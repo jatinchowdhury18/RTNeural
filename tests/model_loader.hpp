@@ -4,29 +4,12 @@
 #include <fstream>
 #include <string>
 #include <memory>
-#include <Model.h>
-#include <json.hpp>
+#include "../src/Model.h"
+#include "../modules/json/json.hpp"
 
 using json = nlohmann::json;
 
 namespace json_parser {
-
-template<typename T>
-std::vector<T> deserialize_array(const json& array)
-{
-    return array.get<std::vector<T>>();
-}
-
-template<typename T>
-std::vector<std::vector<T>> deserialize_double_array(const json& array)
-{
-    std::vector<std::vector<T>> vec;
-
-    for(const auto& elem : array)
-        vec.push_back(elem.get<std::vector<T>>());
-
-    return vec;
-}
 
 template<typename T>
 std::unique_ptr<MLUtils::Dense<T>> createDense(size_t in_size, size_t out_size, const json& weights)
@@ -87,10 +70,10 @@ std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
             auto dense = createDense<T>(model->getNextInSize(), layerDims, weights);
             model->addLayer(dense.release());
 
-            const auto activation = l["activation"].get<std::string>();
-            if(activation == "tanh")
+            const auto activationType = l["activation"].get<std::string>();
+            if(activationType == "tanh")
             {
-                std::cout << "  activation: " << activation << std::endl;
+                std::cout << "  activation: " << activationType << std::endl;
                 auto activation = std::make_unique<MLUtils::TanhActivation<T>> (layerDims);
                 model->addLayer(activation.release());
             }

@@ -74,7 +74,7 @@ class TanhActivation : public Activation<T>
 {
 public:
     TanhActivation (size_t size) :
-        Activation<T> (size, [] (float x) { return std::tanh (x); })
+        Activation<T> (size, [] (T x) { return std::tanh (x); })
     {}
 };
 
