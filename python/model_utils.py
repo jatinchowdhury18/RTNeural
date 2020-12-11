@@ -26,6 +26,9 @@ def save_model_json(model):
     def get_layer_activation(layer):
         if layer.activation == keras.activations.tanh:
             return 'tanh'
+
+        if layer.activation == keras.activations.relu:
+            return 'relu'
         
         return ''
 

@@ -39,6 +39,18 @@ std::unique_ptr<MLUtils::Dense<T>> createDense(size_t in_size, size_t out_size, 
 }
 
 template<typename T>
+std::unique_ptr<MLUtils::Activation<T>> createActivation (const std::string& activationType, size_t dims)
+{
+    if (activationType == "tanh")
+        return std::make_unique<MLUtils::TanhActivation<T>>(dims);
+
+    if (activationType == "relu")
+        return std::make_unique<MLUtils::ReLuActivation<T>>(dims);
+
+    return {};
+}
+
+template<typename T>
 std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
 {
     json parent;
@@ -52,7 +64,7 @@ std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
     const auto nDims = shape.back().get<int>();
     std::cout << "# dimensions: " << nDims << std::endl;
 
-    auto model = std::make_unique<MLUtils::Model<T>> (nDims);
+    auto model = std::make_unique<MLUtils::Model<T>>(nDims);
 
     for(const auto& l : layers)
     {
@@ -71,10 +83,10 @@ std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
             model->addLayer(dense.release());
 
             const auto activationType = l["activation"].get<std::string>();
-            if(activationType == "tanh")
+            if (! activationType.empty())
             {
                 std::cout << "  activation: " << activationType << std::endl;
-                auto activation = std::make_unique<MLUtils::TanhActivation<T>> (layerDims);
+                auto activation = createActivation<T>(activationType, layerDims);
                 model->addLayer(activation.release());
             }
         }

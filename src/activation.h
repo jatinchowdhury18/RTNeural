@@ -49,10 +49,31 @@ public:
 
     inline void forward (const T* input, T* out) override
     {
-        // std::copy (input, &input[Layer<T>::in_size], out);
-        // vector = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>> (out, Layer<T>::in_size, 1);
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>> (input, Layer<T>::in_size, 1);
         outVec = inVec.array().tanh();
+
+        std::copy (outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+};
+
+template<typename T>
+class ReLuActivation : public Activation<T>
+{
+public:
+    ReLuActivation (size_t size) :
+        Activation<T> (size, {})
+    {
+        inVec.resize (size, 1);
+        outVec.resize (size, 1);
+    }
+
+    inline void forward (const T* input, T* out) override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>> (input, Layer<T>::in_size, 1);
+        outVec = inVec.array().max ((T) 0);
 
         std::copy (outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
@@ -75,6 +96,15 @@ class TanhActivation : public Activation<T>
 public:
     TanhActivation (size_t size) :
         Activation<T> (size, [] (T x) { return std::tanh (x); })
+    {}
+};
+
+template<typename T>
+class ReLuActivation : public Activation<T>
+{
+public:
+    ReLuActivation (size_t size) :
+        Activation<T> (size, [] (T x) { return std::max ((T) 0, x); })
     {}
 };
 

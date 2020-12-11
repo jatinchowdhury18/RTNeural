@@ -8,7 +8,10 @@ Currently supported layers:
   
   - [x] dense
   - [ ] GRU
+  - [ ] LSTM
+  - [ ] Conv1D
 
 Currently supported activations:
   - [x] tanh
   - [ ] ReLU
+  - [ ] SoftMax
