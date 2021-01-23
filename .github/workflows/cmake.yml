@@ -22,9 +22,9 @@ jobs:
       matrix:
         include:
         - name: "Eigen"
-          backend: "-DRTNEURAL_USE_EIGEN=ON"
+          backend: "-DRTNEURAL_EIGEN=ON"
         - name: "STL"
-          backend: "-DRTNEURAL_USE_STL=ON"
+          backend: "-DRTNEURAL_STL=ON"
 
     
     steps:
