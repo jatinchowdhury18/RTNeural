@@ -39,6 +39,59 @@ std::unique_ptr<MLUtils::Dense<T>> createDense(size_t in_size, size_t out_size, 
 }
 
 template<typename T>
+std::unique_ptr<MLUtils::GRULayer<T>> createGRU (size_t in_size, size_t out_size, const json& weights)
+{
+    auto gru = std::make_unique<MLUtils::GRULayer<T>> (in_size, out_size);
+
+    // load kernel weights
+    std::vector<std::vector<T>> kernelWeights (in_size);
+    for(auto& w : kernelWeights)
+        w.resize(3 * out_size, (T) 0);
+
+    auto layerWeights = weights[0];
+    for(size_t i = 0; i < layerWeights.size(); ++i)
+    {
+        auto lw = layerWeights[i];
+        for(size_t j = 0; j < lw.size(); ++j)
+            kernelWeights[i][j] = lw[j].get<T>();
+    }
+
+    gru->setWVals (kernelWeights);
+
+    // load recurrent weights
+    std::vector<std::vector<T>> recurrentWeights (out_size);
+    for(auto& w : recurrentWeights)
+        w.resize(3 * out_size, (T) 0);
+        
+    auto layerWeights2 = weights[1];
+    for (int i = 0; i < layerWeights2.size(); ++i)
+    {
+        auto lw = layerWeights2[i];
+        for (int j = 0; j < lw.size(); ++j)
+            recurrentWeights[i][j] = lw[j].get<T>();
+    }
+
+    gru->setUVals (recurrentWeights);
+
+    // load biases
+    std::vector<std::vector<T>> gruBias (2);
+    for(auto& b : gruBias)
+        b.resize(3 * out_size, (T) 0);
+        
+    auto layerBias = weights[2];
+    for (int i = 0; i < layerBias.size(); ++i)
+    {
+        auto lw = layerBias[i];
+        for (int j = 0; j < lw.size(); ++j)
+            gruBias[i][j] = lw[j].get<T>();
+    }
+
+    gru->setBVals (gruBias);
+
+    return std::move (gru);
+}
+
+template<typename T>
 std::unique_ptr<MLUtils::Activation<T>> createActivation (const std::string& activationType, size_t dims)
 {
     if (activationType == "tanh")
@@ -77,7 +130,7 @@ std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
 
         const auto weights = l["weights"];
 
-        if(type == "dense")
+        if(type == "dense" || type == "time-distributed-dense")
         {
             auto dense = createDense<T>(model->getNextInSize(), layerDims, weights);
             model->addLayer(dense.release());
@@ -89,6 +142,11 @@ std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
                 auto activation = createActivation<T>(activationType, layerDims);
                 model->addLayer(activation.release());
             }
+        }
+        else if(type == "gru")
+        {
+            auto gru = createGRU<T>(model->getNextInSize(), layerDims, weights);
+            model->addLayer(gru.release());
         }
     }
 

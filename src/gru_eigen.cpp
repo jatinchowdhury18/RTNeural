@@ -29,6 +29,20 @@ GRULayer<T>::GRULayer (size_t in_size, size_t out_size) :
 }
 
 template<typename T>
+void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
+{
+    for (size_t i = 0; i < Layer<T>::in_size; ++i)
+    {
+        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        {
+            wVec_z (k, i) = wVals[i][k];
+            wVec_r (k, i) = wVals[i][k+Layer<T>::out_size];
+            wVec_c (k, i) = wVals[i][k+Layer<T>::out_size*2];
+        }
+    }
+}
+
+template<typename T>
 void GRULayer<T>::setWVals(T** wVals)
 {
     for (size_t i = 0; i < Layer<T>::in_size; ++i)
@@ -43,6 +57,20 @@ void GRULayer<T>::setWVals(T** wVals)
 }
 
 template<typename T>
+void GRULayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
+{
+    for (size_t i = 0; i < Layer<T>::out_size; ++i)
+    {
+        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        {
+            uVec_z (k, i) = uVals[i][k];
+            uVec_r (k, i) = uVals[i][k+Layer<T>::out_size];
+            uVec_c (k, i) = uVals[i][k+Layer<T>::out_size*2];
+        }
+    }
+}
+
+template<typename T>
 void GRULayer<T>::setUVals(T** uVals)
 {
     for (size_t i = 0; i < Layer<T>::out_size; ++i)
@@ -52,6 +80,20 @@ void GRULayer<T>::setUVals(T** uVals)
             uVec_z (k, i) = uVals[i][k];
             uVec_r (k, i) = uVals[i][k+Layer<T>::out_size];
             uVec_c (k, i) = uVals[i][k+Layer<T>::out_size*2];
+        }
+    }
+}
+
+template<typename T>
+void GRULayer<T>::setBVals(const std::vector<std::vector<T>>& bVals)
+{
+    for (size_t i = 0; i < 2; ++i)
+    {
+        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        {
+            bVec_z (k, i) = bVals[i][k];
+            bVec_r (k, i) = bVals[i][k+Layer<T>::out_size];
+            bVec_c (k, i) = bVals[i][k+Layer<T>::out_size*2];
         }
     }
 }

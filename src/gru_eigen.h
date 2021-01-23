@@ -44,6 +44,10 @@ public:
     void setUVals(T** uVals);
     void setBVals(T** bVals);
 
+    void setWVals(const std::vector<std::vector<T>>& wVals);
+    void setUVals(const std::vector<std::vector<T>>& uVals);
+    void setBVals(const std::vector<std::vector<T>>& bVals);
+
     T getWVal(size_t i, size_t k) const noexcept;
     T getUVal(size_t i, size_t k) const noexcept;
     T getBVal(size_t i, size_t k) const noexcept;

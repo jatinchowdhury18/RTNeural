@@ -24,6 +24,9 @@ def save_model_json(model):
         return 'unknown'
 
     def get_layer_activation(layer):
+        if isinstance(layer, keras.layers.TimeDistributed):
+            return get_layer_activation(layer.layer)
+
         if layer.activation == keras.activations.tanh:
             return 'tanh'
 

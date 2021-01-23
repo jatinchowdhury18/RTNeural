@@ -7,11 +7,11 @@ real-time audio processing.
 Currently supported layers:
   
   - [x] dense
-  - [ ] GRU
+  - [x] GRU
   - [ ] LSTM
   - [ ] Conv1D
 
 Currently supported activations:
   - [x] tanh
-  - [ ] ReLU
+  - [x] ReLU
   - [ ] SoftMax
