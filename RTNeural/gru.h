@@ -11,6 +11,7 @@
 #include "gru_eigen.cpp"
 #else
 #include "Layer.h"
+#include <vector>
 
 namespace RTNeural
 {
