@@ -1,5 +1,7 @@
 # RTNeural
 
+![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)
+
 A lightweight neural network inferencing engine written in C++.
 This library was designed with the intention of being used in
 real-time audio processing, but may be useful for other tasks
