@@ -1,20 +1,32 @@
 cmake_minimum_required(VERSION 3.8)
-project(MLUtils)
+project(RTNeural)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-O3")
 
-add_definitions(-DUSE_EIGEN)
+# select library backend
+option(RTNEURAL_EIGEN "Use Eigen library for vector operations" OFF)
+option(RTNEURAL_STL "Use STL for all operations" OFF)
+if(RTNEURAL_EIGEN)
+    message("Using Eigen backend")
+    add_definitions(-DUSE_EIGEN)
+elseif(RTNEURAL_STL)
+    message("Using STL backend")
+else()
+    message("Using Eigen backend (Default)")
+    add_definitions(-DUSE_EIGEN)
+endif()
 
-add_subdirectory(src)
+add_subdirectory(RTNeural)
 
-option(BUILD_TESTS "Build MLUtils accuracy tests" OFF)
+option(BUILD_TESTS "Build RTNeural accuracy tests" OFF)
 if(BUILD_TESTS)
-    message("Building tests...")
+    message("Configuring tests...")
     add_subdirectory(tests)
 endif()
 
-option(BUILD_BENCH "Build MLUtils benchmarks" OFF)
+option(BUILD_BENCH "Build RTNeural benchmarks" OFF)
 if(BUILD_BENCH)
-    message("Building benchmarks...")
+    message("Configuring benchmarks...")
+    # TODO
 endif()

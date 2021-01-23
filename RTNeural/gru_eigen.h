@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include "Layer.h"
 
-namespace MLUtils
+namespace RTNeural
 {
 
 template<typename T>
@@ -72,6 +72,6 @@ private:
     Eigen::Matrix<T, Eigen::Dynamic, 1> ones;
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #endif // GRUEIGEN_H_INCLUDED

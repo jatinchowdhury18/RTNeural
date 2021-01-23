@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-namespace MLUtils
+namespace RTNeural
 {
 
 /** Neural network layer */
@@ -24,6 +24,6 @@ public:
     const size_t out_size;
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #endif // LAYER_H_INCLUDED

@@ -1,6 +1,6 @@
 include_directories(../modules/Eigen)
 
-add_library(MLUtils STATIC
+add_library(RTNeural STATIC
     gru.h
     gru.cpp
     gru_eigen.h

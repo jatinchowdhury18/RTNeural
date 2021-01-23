@@ -10,7 +10,7 @@
 #else
 #include "Layer.h"
 
-namespace MLUtils
+namespace RTNeural
 {
 
 template<typename T>
@@ -113,7 +113,7 @@ private:
     Dense1<T>** subLayers;
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #endif // USE_EIGEN
 

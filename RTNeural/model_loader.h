@@ -4,17 +4,17 @@
 #include <fstream>
 #include <string>
 #include <memory>
-#include "../src/Model.h"
+#include "Model.h"
 #include "../modules/json/json.hpp"
 
-using json = nlohmann::json;
-
+namespace RTNeural {
 namespace json_parser {
 
+/** Creates a dense layer from a json representation of the layer weights */
 template<typename T>
-std::unique_ptr<MLUtils::Dense<T>> createDense(size_t in_size, size_t out_size, const json& weights)
+std::unique_ptr<Dense<T>> createDense(size_t in_size, size_t out_size, const nlohmann::json& weights)
 {
-    auto dense = std::make_unique<MLUtils::Dense<T>>(in_size, out_size);
+    auto dense = std::make_unique<Dense<T>>(in_size, out_size);
 
     // load weights
     std::vector<std::vector<T>> denseWeights (out_size);
@@ -38,10 +38,11 @@ std::unique_ptr<MLUtils::Dense<T>> createDense(size_t in_size, size_t out_size, 
     return std::move(dense);
 }
 
+/** Creates a GRU layer from a json representation of the layer weights */
 template<typename T>
-std::unique_ptr<MLUtils::GRULayer<T>> createGRU (size_t in_size, size_t out_size, const json& weights)
+std::unique_ptr<GRULayer<T>> createGRU (size_t in_size, size_t out_size, const nlohmann::json& weights)
 {
-    auto gru = std::make_unique<MLUtils::GRULayer<T>> (in_size, out_size);
+    auto gru = std::make_unique<GRULayer<T>> (in_size, out_size);
 
     // load kernel weights
     std::vector<std::vector<T>> kernelWeights (in_size);
@@ -91,22 +92,24 @@ std::unique_ptr<MLUtils::GRULayer<T>> createGRU (size_t in_size, size_t out_size
     return std::move (gru);
 }
 
+/** Creates an activation layer of a given type */
 template<typename T>
-std::unique_ptr<MLUtils::Activation<T>> createActivation (const std::string& activationType, size_t dims)
+std::unique_ptr<Activation<T>> createActivation (const std::string& activationType, size_t dims)
 {
     if (activationType == "tanh")
-        return std::make_unique<MLUtils::TanhActivation<T>>(dims);
+        return std::make_unique<TanhActivation<T>>(dims);
 
     if (activationType == "relu")
-        return std::make_unique<MLUtils::ReLuActivation<T>>(dims);
+        return std::make_unique<ReLuActivation<T>>(dims);
 
     return {};
 }
 
+/** Creates a neural network model from a json stream */
 template<typename T>
-std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
+std::unique_ptr<Model<T>> parseJson (std::ifstream& jsonStream)
 {
-    json parent;
+    nlohmann::json parent;
     jsonStream >> parent;
     auto shape = parent["in_shape"];
     auto layers = parent["layers"];
@@ -117,7 +120,7 @@ std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
     const auto nDims = shape.back().get<int>();
     std::cout << "# dimensions: " << nDims << std::endl;
 
-    auto model = std::make_unique<MLUtils::Model<T>>(nDims);
+    auto model = std::make_unique<Model<T>>(nDims);
 
     for(const auto& l : layers)
     {
@@ -154,3 +157,4 @@ std::unique_ptr<MLUtils::Model<T>> parseJson (std::ifstream& jsonStream)
 }
 
 } // namespace json_parser
+} // namespace RTNeural

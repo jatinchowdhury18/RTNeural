@@ -12,7 +12,7 @@
 #else
 #include "Layer.h"
 
-namespace MLUtils
+namespace RTNeural
 {
 
 template<typename T>
@@ -85,7 +85,7 @@ protected:
     T* cVec;
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #endif // USE_EIGEN
 

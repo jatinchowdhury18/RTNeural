@@ -10,7 +10,7 @@
 #include "gru.h"
 #include "gru.cpp"
 
-namespace MLUtils
+namespace RTNeural
 {
 
 /** Neural network model */
@@ -75,6 +75,6 @@ private:
     std::vector<T*> outs;
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #endif // MODEL_H_INCLUDED

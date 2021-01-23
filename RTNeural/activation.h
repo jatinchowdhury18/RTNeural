@@ -4,7 +4,7 @@
 #include <functional>
 #include "Layer.h"
 
-namespace MLUtils
+namespace RTNeural
 {
 
 template<typename T>
@@ -28,12 +28,12 @@ private:
     const std::function<T(T)> func;
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #ifdef USE_EIGEN
 #include <Eigen/Dense>
 
-namespace MLUtils
+namespace RTNeural
 {
 
 template<typename T>
@@ -82,12 +82,12 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #else
 #include <cmath>
 
-namespace MLUtils
+namespace RTNeural
 {
 
 template<typename T>
@@ -108,7 +108,7 @@ public:
     {}
 };
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #endif // USE_EIGEN
 

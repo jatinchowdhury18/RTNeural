@@ -1,6 +1,6 @@
 #include "gru.h"
 
-namespace MLUtils
+namespace RTNeural
 {
 
 #ifndef USE_EIGEN
@@ -197,4 +197,4 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
 }
 #endif // USE_EIGEN
 
-} // namespace MLUtils
+} // namespace RTNeural

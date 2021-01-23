@@ -2,7 +2,7 @@
 
 #include "gru_eigen.h"
 
-namespace MLUtils
+namespace RTNeural
 {
 
 template<typename T>
@@ -148,6 +148,6 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
     return set (k % Layer<T>::out_size, i);
 }
 
-} // namespace MLUtils
+} // namespace RTNeural
 
 #endif // USE_EIGEN

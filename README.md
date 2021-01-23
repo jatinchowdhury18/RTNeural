@@ -1,4 +1,4 @@
-# MLUtils
+# RTNeural
 
 A lightweight neural network inferencing engine written in C++.
 This library was designed with the intention of being used in
