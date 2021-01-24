@@ -70,4 +70,5 @@ jobs:
       run: cmake --build build --config Release --parallel
 
     - name: Test
+      shell: bash
       run: ./build/rtneural_tests all
