@@ -1,0 +1,57 @@
+name: Bench
+
+on:
+  push:
+    branches:
+    - main
+    - develop
+  pull_request:
+    branches:
+    - main
+    - develop
+
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    if: contains(toJson(github.event.commits), '***NO_CI***') == false && contains(toJson(github.event.commits), '[ci skip]') == false && contains(toJson(github.event.commits), '[skip ci]') == false
+    name: Benchmark library with backend ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # show all errors for each platform (vs. cancel jobs on error)
+      matrix:
+        include:
+        - name: "Eigen"
+          backend: "-DRTNEURAL_EIGEN=ON"
+        - name: "STL"
+          backend: "-DRTNEURAL_STL=ON"
+
+    
+    steps:
+    - name: Get latest CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure
+      env:
+        BACKEND_ARG: ${{ matrix.backend }}
+      shell: bash
+      run: cmake -Bbuild -DBUILD_BENCH=ON $BACKEND_ARG
+
+    - name: Build
+      shell: bash
+      run: cmake --build build --config Release --parallel
+
+    - name: Benchmark GRU
+      run: ./build/rtneural_layer_bench gru 3 4 4
+
+    - name: Benchmark Dense
+      run: ./build/rtneural_layer_bench dense 3 4 4
+
+    - name: Benchmark Tanh
+      run: ./build/rtneural_layer_bench tanh 3 4 4
+
+    - name: Benchmark ReLu
+      run: ./build/rtneural_layer_bench relu 3 4 4

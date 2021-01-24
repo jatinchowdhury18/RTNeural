@@ -47,7 +47,7 @@ void help()
 }
 
 template<typename T>
-int runTest (const TestConfig& test)
+int runTest(const TestConfig& test)
 {
     std::cout << "TESTING " << test.name << " IMPLEMENTATION..." << std::endl;
 

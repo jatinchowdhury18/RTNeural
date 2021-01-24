@@ -88,7 +88,7 @@ is to use `add_subdirectory(RTNeural)` in your `CMakeLists.txt`.
 `RTNeural` supports two backends, \
 [`Eigen`](http://eigen.tuxfamily.org/), or the C++ STL.
 You can choose your backend by passing either
-`-DRTNEURAL_USE_EIGEN=ON` or `-DRTNEURAL_USE_STL=ON`
+`-DRTNEURAL_EIGEN=ON` or `-DRTNEURAL_STL=ON`
 to your CMake configuration. By default, the `Eigen`
 backend will be used.
 

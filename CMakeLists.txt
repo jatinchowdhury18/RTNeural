@@ -28,5 +28,5 @@ endif()
 option(BUILD_BENCH "Build RTNeural benchmarks" OFF)
 if(BUILD_BENCH)
     message("Configuring benchmarks...")
-    # TODO
+    add_subdirectory(bench)
 endif()
