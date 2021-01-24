@@ -85,17 +85,19 @@ is to use `add_subdirectory(RTNeural)` in your `CMakeLists.txt`.
 
 ### Choosing a Backend
 
-`RTNeural` supports two backends, \
-[`Eigen`](http://eigen.tuxfamily.org/), or the C++ STL.
-You can choose your backend by passing either
-`-DRTNEURAL_EIGEN=ON` or `-DRTNEURAL_STL=ON`
-to your CMake configuration. By default, the `Eigen`
-backend will be used.
+`RTNeural` supports three backends,
+[`Eigen`](http://eigen.tuxfamily.org/),
+[`xsimd`](https://github.com/xtensor-stack/xsimd)
+or the C++ STL. You can choose your backend by passing
+either `-DRTNEURAL_EIGEN=ON`, `-DRTNEURAL_XSIMD=ON`, or
+`-DRTNEURAL_STL=ON` to your CMake configuration. By default,
+the `Eigen` backend will be used.
 
-While the `Eigen` backend typically has better performance,
+While the `Eigen` backend typically has the best performance,
 it is recommended to measure the performance of your network
-with both backends to ensure optimal performance. For more
-information see the benchmark results (TODO).
+with all the backends that available on your target platform
+to ensure optimal performance. For more information see the
+benchmark results (TODO).
 
 ### Building the Accuracy Tests
 
