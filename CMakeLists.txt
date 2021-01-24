@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.8)
 project(RTNeural)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-O3")
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "/O3")
+else()
+    set(CMAKE_CXX_FLAGS "-O3")
+endif()
 
 # select library backend
 option(RTNEURAL_EIGEN "Use Eigen library for vector operations" OFF)
