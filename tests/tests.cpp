@@ -29,7 +29,7 @@ static std::unordered_map<std::string, TestConfig> tests {
             "models/gru.json",
             "test_data/gru_x_python.csv",
             "test_data/gru_y_python.csv",
-            1.0e-7
+            5.0e-6
         }
     }
 };
@@ -68,6 +68,7 @@ int runTest(const TestConfig& test)
     }
 
     size_t nErrs = 0;
+    T max_error = (T) 0;
     for(size_t n = 0; n < xData.size(); ++n)
     {
         auto err = std::abs(yData[n] - yRefData[n]);
@@ -76,6 +77,7 @@ int runTest(const TestConfig& test)
             // For debugging purposes
             // std::cout << "ERR: " << err << ", idx: " << n << std::endl;
             // break;
+            max_error = std::max(err, max_error);
             nErrs++;
         }
     }
@@ -83,6 +85,7 @@ int runTest(const TestConfig& test)
     if(nErrs > 0)
     {
         std::cout << "FAIL: " << nErrs << " errors!" << std::endl;
+        std::cout << "Maximum error: " << max_error << std::endl;
         return 1;
     }
 
