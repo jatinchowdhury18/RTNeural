@@ -109,7 +109,10 @@ run `./buildrtneural_tests --help`.
 
 ### Building the Performance Benchmarks
 
-TODO
+To build the performance benchmarks, run
+`cmake -Bbuild -DBUILD_BENCH=ON`, followed by
+`cmake --build build`. To run the layer benchmarks, run
+`./build/rtneural_layer_bench <layer> <length> <in_size> <out_size>`.
 
 ## License
 
