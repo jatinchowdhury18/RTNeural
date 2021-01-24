@@ -1,6 +1,7 @@
 # RTNeural
 
 ![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)
+![Bench](https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg)
 
 A lightweight neural network inferencing engine written in C++.
 This library was designed with the intention of being used in
@@ -97,7 +98,7 @@ While the `Eigen` backend typically has the best performance,
 it is recommended to measure the performance of your network
 with all the backends that available on your target platform
 to ensure optimal performance. For more information see the
-benchmark results (TODO).
+[benchmark results](https://github.com/jatinchowdhury18/RTNeural/actions?query=workflow%3ABench).
 
 ### Building the Accuracy Tests
 
@@ -113,6 +114,26 @@ To build the performance benchmarks, run
 `cmake -Bbuild -DBUILD_BENCH=ON`, followed by
 `cmake --build build`. To run the layer benchmarks, run
 `./build/rtneural_layer_bench <layer> <length> <in_size> <out_size>`.
+
+## Contributing
+
+Contributions to this project are most welcome!
+Currently, there is considerable need for the
+following improvements:
+- Support for convolution layers
+- Support for LSTMs
+- Support for exporting/loading PyTorch models
+- More robust support for exporting/loading Tensorflow models
+- Support for more activation layers
+- Better testing
+- Better performance measurements
+
+General code maintenance and documentation is always
+appreciated as well! Note that if you are implementing
+a new layer type, it is not required to provide support
+for all three backends, though it is recommended to at
+least provide a "fallback" implementation using the STL
+backend.
 
 ## License
 
