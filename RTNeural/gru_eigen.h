@@ -35,7 +35,7 @@ public:
         std::copy (ht1.data(), ht1.data() + Layer<T>::out_size, h);
     }
 
-    inline void sigmoid (Eigen::Matrix<T, Eigen::Dynamic, 1>& vector)
+    inline void sigmoid (Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) const noexcept
     {
         vector = (T) 1 / (((T) -1 * vector.array()).array().exp() + (T) 1);
     }

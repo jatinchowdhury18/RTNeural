@@ -23,6 +23,8 @@ jobs:
         include:
         - name: "Eigen"
           backend: "-DRTNEURAL_EIGEN=ON"
+        - name: "xsimd"
+          backend: "-DRTNEURAL_XSIMD=ON"
         - name: "STL"
           backend: "-DRTNEURAL_STL=ON"
 
@@ -33,6 +35,8 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        submodules: true
 
     - name: Configure
       env:
@@ -45,13 +49,13 @@ jobs:
       run: cmake --build build --config Release --parallel
 
     - name: Benchmark GRU
-      run: ./build/rtneural_layer_bench gru 3 4 4
+      run: ./build/rtneural_layer_bench gru 5 16 16
 
     - name: Benchmark Dense
-      run: ./build/rtneural_layer_bench dense 3 4 4
+      run: ./build/rtneural_layer_bench dense 5 16 16
 
     - name: Benchmark Tanh
-      run: ./build/rtneural_layer_bench tanh 3 4 4
+      run: ./build/rtneural_layer_bench tanh 5 16 16
 
     - name: Benchmark ReLu
-      run: ./build/rtneural_layer_bench relu 3 4 4
+      run: ./build/rtneural_layer_bench relu 5 16 16

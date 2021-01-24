@@ -23,6 +23,8 @@ jobs:
         include:
         - name: "Eigen"
           backend: "-DRTNEURAL_EIGEN=ON"
+        - name: "xsimd"
+          backend: "-DRTNEURAL_XSIMD=ON"
         - name: "STL"
           backend: "-DRTNEURAL_STL=ON"
 
@@ -33,6 +35,8 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        submodules: true
 
     - name: Configure
       env:

@@ -1,5 +1,4 @@
 include_directories(../RTNeural)
-include_directories(../modules/Eigen)
 
 add_executable(rtneural_tests tests.cpp)
 target_link_libraries(rtneural_tests LINK_PUBLIC RTNeural)

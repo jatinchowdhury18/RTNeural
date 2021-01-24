@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <numeric>
 
-#ifdef USE_EIGEN
+#if defined(USE_EIGEN)
 #include "dense_eigen.h"
+#elif defined(USE_XSIMD)
+#include "dense_xsimd.h"
 #else
 #include "Layer.h"
 
