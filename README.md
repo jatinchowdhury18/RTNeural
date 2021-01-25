@@ -82,7 +82,14 @@ double output = model->forward(input); // compute output
 ## Building with CMake
 
 `RTNeural` is built with CMake, and the easiest way to link
-is to use `add_subdirectory(RTNeural)` in your `CMakeLists.txt`.
+is to include `RTNeural` as a submodule:
+```cmake
+...
+add_subdirectory(RTNeural)
+include_directories(RTNeural)
+...
+target_link_libraries(MyCMakeProject LINK_PUBLIC RTNeural)
+```
 
 ### Choosing a Backend
 
@@ -134,6 +141,11 @@ a new layer type, it is not required to provide support
 for all three backends, though it is recommended to at
 least provide a "fallback" implementation using the STL
 backend.
+
+## Related Projects
+
+- [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
+- [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeMachine): An analog tape emulation, using a real-time dense neural network.
 
 ## License
 
