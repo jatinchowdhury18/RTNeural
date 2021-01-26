@@ -1,7 +1,7 @@
 #ifndef GRUEIGEN_H_INCLUDED
 #define GRUEIGEN_H_INCLUDED
 
-#include <Eigen/Dense>
+#include "common.h"
 #include "Layer.h"
 
 namespace RTNeural
@@ -33,11 +33,6 @@ public:
         
         ht1 = (ones - zVec).cwiseProduct (cVec) + zVec.cwiseProduct (ht1);
         std::copy (ht1.data(), ht1.data() + Layer<T>::out_size, h);
-    }
-
-    inline void sigmoid (Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) const noexcept
-    {
-        vector = (T) 1 / (((T) -1 * vector.array()).array().exp() + (T) 1);
     }
 
     void setWVals(T** wVals);

@@ -32,6 +32,9 @@ def save_model_json(model):
 
         if layer.activation == keras.activations.relu:
             return 'relu'
+
+        if layer.activation == keras.activations.sigmoid:
+            return 'sigmoid'
         
         return ''
 
