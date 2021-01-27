@@ -18,6 +18,7 @@ Currently supported layers:
 Currently supported activations:
   - [x] tanh
   - [x] ReLU
+  - [x] Sigmoid
   - [ ] SoftMax
 
 ## How To Use

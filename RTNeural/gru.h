@@ -2,9 +2,6 @@
 #define GRU_H_INCLUDED
 
 #include <algorithm>
-#include <numeric>
-#include <cmath>
-#include <cstring>
 
 #if defined(USE_EIGEN)
 #include "gru_eigen.h"
@@ -13,6 +10,7 @@
 #include "gru_xsimd.h"
 #include "gru_xsimd.cpp"
 #else
+#include "common.h"
 #include "Layer.h"
 #include <vector>
 
@@ -42,16 +40,6 @@ public:
         }
     
         std::copy(h, h + Layer<T>::out_size, ht1);
-    }
-
-    inline T vMult(const T* arg1, const T* arg2, size_t dim) const noexcept
-    {
-        return std::inner_product(arg1, arg1 + dim, arg2, (T) 0);
-    }
-
-    inline T sigmoid(T value) const noexcept
-    {
-        return (T) 1 / ((T) 1 + std::exp(-value));
     }
 
     void setWVals(T** wVals);

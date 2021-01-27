@@ -94,6 +94,12 @@ std::unique_ptr<RTNeural::Layer<double>> create_layer(const std::string& layer_t
         return std::move(layer);
     }
 
+    if(layer_type == "sigmoid")
+    {
+        auto layer = std::make_unique<RTNeural::SigmoidActivation<double>>(in_size);
+        return std::move(layer);
+    }
+
     std::cout << "Layer type: " << layer_type << " not found!" << std::endl;
     return {};
 }

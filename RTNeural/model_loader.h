@@ -102,6 +102,9 @@ std::unique_ptr<Activation<T>> createActivation (const std::string& activationTy
     if (activationType == "relu")
         return std::make_unique<ReLuActivation<T>>(dims);
 
+    if (activationType == "sigmoid")
+        return std::make_unique<SigmoidActivation<T>>(dims);
+
     return {};
 }
 
