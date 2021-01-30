@@ -14,7 +14,7 @@ public:
     GRULayer (size_t in_size, size_t out_size);
     virtual ~GRULayer();
 
-    virtual void reset()
+    void reset() override
     {
         std::fill(ht1, ht1 + Layer<T>::out_size, (T) 0);
     }

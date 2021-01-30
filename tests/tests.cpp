@@ -31,6 +31,14 @@ static std::unordered_map<std::string, TestConfig> tests {
             "test_data/gru_y_python.csv",
             5.0e-6
         }
+    },
+    { "lstm", TestConfig {
+            "LSTM",
+            "models/lstm.json",
+            "test_data/lstm_x_python.csv",
+            "test_data/lstm_y_python.csv",
+            1.0e-3
+        }
     }
 };
 
@@ -53,6 +61,7 @@ int runTest(const TestConfig& test)
 
     std::ifstream jsonStream(test.model_file, std::ifstream::binary);
     auto model = RTNeural::json_parser::parseJson<T>(jsonStream);
+    model->reset();
 
     std::ifstream pythonX(test.x_data_file);
     auto xData = load_csv::loadFile<T>(pythonX);
@@ -75,10 +84,11 @@ int runTest(const TestConfig& test)
         if(err > test.threshold)
         {
             // For debugging purposes
-            // std::cout << "ERR: " << err << ", idx: " << n << std::endl;
-            // break;
-            max_error = std::max(err, max_error);
-            nErrs++;
+            std::cout << "ERR: " << err << ", idx: " << n << std::endl;
+            std::cout << yData[n] << std::endl;
+            break;
+            // max_error = std::max(err, max_error);
+            // nErrs++;
         }
     }
 
