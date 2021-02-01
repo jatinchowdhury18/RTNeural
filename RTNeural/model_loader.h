@@ -139,12 +139,15 @@ std::unique_ptr<Model<T>> parseJson (const nlohmann::json& parent)
             auto dense = createDense<T>(model->getNextInSize(), layerDims, weights);
             model->addLayer(dense.release());
 
-            const auto activationType = l["activation"].get<std::string>();
-            if (! activationType.empty())
+            if(l.contains("activation"))
             {
-                std::cout << "  activation: " << activationType << std::endl;
-                auto activation = createActivation<T>(activationType, layerDims);
-                model->addLayer(activation.release());
+                const auto activationType = l["activation"].get<std::string>();
+                if (! activationType.empty())
+                {
+                    std::cout << "  activation: " << activationType << std::endl;
+                    auto activation = createActivation<T>(activationType, layerDims);
+                    model->addLayer(activation.release());
+                }
             }
         }
         else if(type == "gru")
