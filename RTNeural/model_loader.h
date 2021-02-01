@@ -110,10 +110,8 @@ std::unique_ptr<Activation<T>> createActivation (const std::string& activationTy
 
 /** Creates a neural network model from a json stream */
 template<typename T>
-std::unique_ptr<Model<T>> parseJson (std::ifstream& jsonStream)
+std::unique_ptr<Model<T>> parseJson (const nlohmann::json& parent)
 {
-    nlohmann::json parent;
-    jsonStream >> parent;
     auto shape = parent["in_shape"];
     auto layers = parent["layers"];
 
@@ -157,6 +155,15 @@ std::unique_ptr<Model<T>> parseJson (std::ifstream& jsonStream)
     }
 
     return std::move(model);
+}
+
+/** Creates a neural network model from a json stream */
+template<typename T>
+std::unique_ptr<Model<T>> parseJson (std::ifstream& jsonStream)
+{
+    nlohmann::json parent;
+    jsonStream >> parent;
+    return parseJson(parent);
 }
 
 } // namespace json_parser
