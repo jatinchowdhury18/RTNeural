@@ -163,7 +163,7 @@ std::unique_ptr<Model<T>> parseJson (std::ifstream& jsonStream)
 {
     nlohmann::json parent;
     jsonStream >> parent;
-    return parseJson(parent);
+    return parseJson<T>(parent);
 }
 
 } // namespace json_parser
