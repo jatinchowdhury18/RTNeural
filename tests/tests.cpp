@@ -6,7 +6,8 @@
 
 // @TODO: make tests for both float and double precision
 
-struct TestConfig {
+struct TestConfig
+{
     std::string name;
     std::string model_file;
     std::string x_data_file;
@@ -53,16 +54,19 @@ int runTest(const TestConfig& test)
     const auto yRefData = load_csv::loadFile<T>(pythonY);
 
     std::vector<T> yData(xData.size(), (T)0);
-    for(size_t n = 0; n < xData.size(); ++n) {
+    for(size_t n = 0; n < xData.size(); ++n)
+    {
         T input[] = { xData[n] };
         yData[n] = model->forward(input);
     }
 
     size_t nErrs = 0;
     T max_error = (T)0;
-    for(size_t n = 0; n < xData.size(); ++n) {
+    for(size_t n = 0; n < xData.size(); ++n)
+    {
         auto err = std::abs(yData[n] - yRefData[n]);
-        if(err > test.threshold) {
+        if(err > test.threshold)
+        {
             max_error = std::max(err, max_error);
             nErrs++;
 
@@ -73,7 +77,8 @@ int runTest(const TestConfig& test)
         }
     }
 
-    if(nErrs > 0) {
+    if(nErrs > 0)
+    {
         std::cout << "FAIL: " << nErrs << " errors!" << std::endl;
         std::cout << "Maximum error: " << max_error << std::endl;
         return 1;
@@ -85,18 +90,21 @@ int runTest(const TestConfig& test)
 
 int main(int argc, char* argv[])
 {
-    if(argc != 2) {
+    if(argc != 2)
+    {
         help();
         return 1;
     }
 
     std::string arg = argv[1];
-    if(arg == "--help") {
+    if(arg == "--help")
+    {
         help();
         return 1;
     }
 
-    if(arg == "all") {
+    if(arg == "all")
+    {
         int result = 0;
         for(auto& testConfig : tests)
             result |= runTest<double>(testConfig.second);
@@ -104,7 +112,8 @@ int main(int argc, char* argv[])
         return result;
     }
 
-    if(tests.find(arg) != tests.end()) {
+    if(tests.find(arg) != tests.end())
+    {
         return runTest<double>(tests.at(arg));
     }
 
