@@ -10,8 +10,8 @@
 #include "gru_xsimd.h"
 #include "gru_xsimd.tpp"
 #else
-#include "common.h"
-#include "Layer.h"
+#include "../common.h"
+#include "../Layer.h"
 #include <vector>
 
 namespace RTNeural

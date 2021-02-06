@@ -1,8 +1,8 @@
 #ifndef GRUXSIMD_H_INCLUDED
 #define GRUXSIMD_H_INCLUDED
 
-#include "common.h"
-#include "Layer.h"
+#include "../common.h"
+#include "../Layer.h"
 #include <vector>
 namespace RTNeural
 {

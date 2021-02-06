@@ -80,10 +80,10 @@ void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
     {
         for (size_t k = 0; k < Layer<T>::out_size; ++k)
         {
-            fWeights.W[k][i] = wVals[i][k];
-            iWeights.W[k][i] = wVals[i][k+Layer<T>::out_size];
-            oWeights.W[k][i] = wVals[i][k+Layer<T>::out_size*2];
-            cWeights.W[k][i] = wVals[i][k+Layer<T>::out_size*3];
+            iWeights.W[k][i] = wVals[i][k];
+            fWeights.W[k][i] = wVals[i][k+Layer<T>::out_size];
+            cWeights.W[k][i] = wVals[i][k+Layer<T>::out_size*2];
+            oWeights.W[k][i] = wVals[i][k+Layer<T>::out_size*3];
         }
     }
 }
@@ -95,10 +95,10 @@ void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
     {
         for (size_t k = 0; k < Layer<T>::out_size; ++k)
         {
-            fWeights.U[k][i] = uVals[i][k];
-            iWeights.U[k][i] = uVals[i][k+Layer<T>::out_size];
-            oWeights.U[k][i] = uVals[i][k+Layer<T>::out_size*2];
-            cWeights.U[k][i] = uVals[i][k+Layer<T>::out_size*3];
+            iWeights.U[k][i] = uVals[i][k];
+            fWeights.U[k][i] = uVals[i][k+Layer<T>::out_size];
+            cWeights.U[k][i] = uVals[i][k+Layer<T>::out_size*2];
+            oWeights.U[k][i] = uVals[i][k+Layer<T>::out_size*3];
         }
     }
 }
@@ -108,10 +108,10 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 {
     for (size_t k = 0; k < Layer<T>::out_size; ++k)
     {
-        fWeights.b[k] = bVals[k];
-        iWeights.b[k] = bVals[k+Layer<T>::out_size];
-        oWeights.b[k] = bVals[k+Layer<T>::out_size*2];
-        cWeights.b[k] = bVals[k+Layer<T>::out_size*3];
+        iWeights.b[k] = bVals[k];
+        fWeights.b[k] = bVals[k+Layer<T>::out_size];
+        cWeights.b[k] = bVals[k+Layer<T>::out_size*2];
+        oWeights.b[k] = bVals[k+Layer<T>::out_size*3];
     }
 }
 

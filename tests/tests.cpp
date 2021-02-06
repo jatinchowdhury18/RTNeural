@@ -83,12 +83,13 @@ int runTest(const TestConfig& test)
         auto err = std::abs(yData[n] - yRefData[n]);
         if(err > test.threshold)
         {
+            max_error = std::max(err, max_error);
+            nErrs++;
+            
             // For debugging purposes
-            std::cout << "ERR: " << err << ", idx: " << n << std::endl;
-            std::cout << yData[n] << std::endl;
-            break;
-            // max_error = std::max(err, max_error);
-            // nErrs++;
+            // std::cout << "ERR: " << err << ", idx: " << n << std::endl;
+            // std::cout << yData[n] << std::endl;
+            // break;
         }
     }
 

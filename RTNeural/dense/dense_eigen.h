@@ -2,7 +2,7 @@
 #define DENSEEIGEN_H_INCLUDED
 
 #include <Eigen/Dense>
-#include "Layer.h"
+#include "../Layer.h"
 
 namespace RTNeural
 {

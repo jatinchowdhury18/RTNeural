@@ -1,8 +1,8 @@
 #ifndef GRUEIGEN_H_INCLUDED
 #define GRUEIGEN_H_INCLUDED
 
-#include "common.h"
-#include "Layer.h"
+#include "../common.h"
+#include "../Layer.h"
 
 namespace RTNeural
 {

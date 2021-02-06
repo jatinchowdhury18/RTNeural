@@ -2,7 +2,7 @@
 #define DENSEXSIMD_H_INCLUDED
 
 #include <xsimd/xsimd.hpp>
-#include "Layer.h"
+#include "../Layer.h"
 
 namespace RTNeural
 {

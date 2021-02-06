@@ -13,6 +13,9 @@ add_library(RTNeural STATIC
     gru/gru_xsimd.tpp
     lstm/lstm.h
     lstm/lstm.tpp
+    model_loader.h
+    RTNeural.h
+    RTNeural.cpp
 )
 
 # -fpic

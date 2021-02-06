@@ -2,14 +2,14 @@
 #define LSTM_H_INCLUDED
 
 #if defined(USE_EIGEN)
-// #include "gru_eigen.h"
-// #include "gru_eigen.tpp"
+#include "lstm_eigen.h"
+#include "lstm_eigen.tpp"
 #elif defined(USE_XSIMD)
 // #include "gru_xsimd.h"
 // #include "gru_xsimd.tpp"
 #else
-#include "common.h"
-#include "Layer.h"
+#include "../common.h"
+#include "../Layer.h"
 #include <vector>
 
 namespace RTNeural
