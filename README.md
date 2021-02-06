@@ -12,7 +12,7 @@ Currently supported layers:
   
   - [x] dense
   - [x] GRU
-  - [ ] LSTM
+  - [x] LSTM
   - [ ] Conv1D
 
 Currently supported activations:
