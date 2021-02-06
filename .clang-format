@@ -1,0 +1,8 @@
+---
+Language:       Cpp
+BasedOnStyle:   WebKit
+Standard:       Cpp11
+IndentWidth:    4
+SpaceBeforeParens:  Never
+BreakBeforeBraces:  Allman
+...
