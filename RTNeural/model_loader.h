@@ -92,6 +92,49 @@ std::unique_ptr<GRULayer<T>> createGRU (size_t in_size, size_t out_size, const n
     return std::move (gru);
 }
 
+/** Creates a LSTM layer from a json representation of the layer weights */
+template<typename T>
+std::unique_ptr<LSTMLayer<T>> createLSTM (size_t in_size, size_t out_size, const nlohmann::json& weights)
+{
+    auto lstm = std::make_unique<LSTMLayer<T>> (in_size, out_size);
+
+    // load kernel weights
+    std::vector<std::vector<T>> kernelWeights (in_size);
+    for(auto& w : kernelWeights)
+        w.resize(4 * out_size, (T) 0);
+
+    auto layerWeights = weights[0];
+    for(size_t i = 0; i < layerWeights.size(); ++i)
+    {
+        auto lw = layerWeights[i];
+        for(size_t j = 0; j < lw.size(); ++j)
+            kernelWeights[i][j] = lw[j].get<T>();
+    }
+
+    lstm->setWVals (kernelWeights);
+
+    // load recurrent weights
+    std::vector<std::vector<T>> recurrentWeights (out_size);
+    for(auto& w : recurrentWeights)
+        w.resize(4 * out_size, (T) 0);
+        
+    auto layerWeights2 = weights[1];
+    for (int i = 0; i < layerWeights2.size(); ++i)
+    {
+        auto lw = layerWeights2[i];
+        for (int j = 0; j < lw.size(); ++j)
+            recurrentWeights[i][j] = lw[j].get<T>();
+    }
+
+    lstm->setUVals (recurrentWeights);
+
+    // load biases
+    std::vector<T> lstmBias = weights[2].get<std::vector<T>>();
+    lstm->setBVals(lstmBias);
+
+    return std::move (lstm);
+}
+
 /** Creates an activation layer of a given type */
 template<typename T>
 std::unique_ptr<Activation<T>> createActivation (const std::string& activationType, size_t dims)
@@ -154,6 +197,11 @@ std::unique_ptr<Model<T>> parseJson (const nlohmann::json& parent)
         {
             auto gru = createGRU<T>(model->getNextInSize(), layerDims, weights);
             model->addLayer(gru.release());
+        }
+        else if(type == "lstm")
+        {
+            auto lstm = createLSTM<T>(model->getNextInSize(), layerDims, weights);
+            model->addLayer(lstm.release());
         }
     }
 

@@ -18,6 +18,7 @@ public:
 
     virtual ~Layer() {}
 
+    virtual void reset() {}
     virtual void forward (const T* input, T* out) = 0;
 
     const size_t in_size;

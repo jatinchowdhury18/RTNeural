@@ -10,7 +10,7 @@
 #elif defined(USE_XSIMD)
 #include "dense_xsimd.h"
 #else
-#include "Layer.h"
+#include "../Layer.h"
 
 namespace RTNeural
 {

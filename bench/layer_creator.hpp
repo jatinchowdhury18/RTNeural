@@ -66,6 +66,41 @@ void randomise_gru(std::unique_ptr<RTNeural::GRULayer<double>>& gru)
     gru->setBVals(gru_bias);
 }
 
+void randomise_lstm(std::unique_ptr<RTNeural::LSTMLayer<double>>& lstm)
+{
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(-1.0,1.0);
+
+    // kernel weights
+    std::vector<std::vector<double>> kernelWeights (lstm->in_size);
+    for(auto& w : kernelWeights)
+        w.resize(4 * lstm->out_size, 0.0);
+
+    for(size_t i = 0; i < lstm->in_size; ++i)
+        for(size_t j = 0; j < 4 * lstm->out_size; ++j)
+            kernelWeights[i][j] = distribution(generator);
+    
+    lstm->setWVals(kernelWeights);
+
+    // recurrent weights
+    std::vector<std::vector<double>> recurrentWeights (lstm->out_size);
+    for(auto& w : recurrentWeights)
+        w.resize(4 * lstm->out_size, 0.0);
+
+    for(size_t i = 0; i < lstm->out_size; ++i)
+        for(size_t j = 0; j < 4 * lstm->out_size; ++j)
+            recurrentWeights[i][j] = distribution(generator);
+    
+    lstm->setUVals(recurrentWeights);
+
+    // biases
+    std::vector<double> lstm_bias (4 * lstm->out_size);
+    for(size_t i = 0; i < 4 * lstm->out_size; ++i)
+        lstm_bias[i] = distribution(generator);
+    
+    lstm->setBVals(lstm_bias);
+}
+
 std::unique_ptr<RTNeural::Layer<double>> create_layer(const std::string& layer_type, size_t in_size, size_t out_size)
 {
     if(layer_type == "dense")
@@ -79,6 +114,13 @@ std::unique_ptr<RTNeural::Layer<double>> create_layer(const std::string& layer_t
     {
         auto layer = std::make_unique<RTNeural::GRULayer<double>>(in_size, out_size);
         randomise_gru(layer);
+        return std::move(layer);
+    }
+
+    if(layer_type == "lstm")
+    {
+        auto layer = std::make_unique<RTNeural::LSTMLayer<double>>(in_size, out_size);
+        randomise_lstm(layer);
         return std::move(layer);
     }
 

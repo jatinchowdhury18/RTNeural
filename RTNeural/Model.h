@@ -6,9 +6,11 @@
 
 #include "Layer.h"
 #include "activation.h"
-#include "dense.h"
-#include "gru.h"
-#include "gru.cpp"
+#include "dense/dense.h"
+#include "gru/gru.h"
+#include "gru/gru.tpp"
+#include "lstm/lstm.h"
+#include "lstm/lstm.tpp"
 
 namespace RTNeural
 {
@@ -50,10 +52,7 @@ public:
     void reset()
     {
         for (auto* l : layers)
-        {
-            if (auto* lCast = dynamic_cast<GRULayer<T>*> (l))
-                lCast->reset();
-        }
+            l->reset();
     }
 
     inline T forward (const T* input)

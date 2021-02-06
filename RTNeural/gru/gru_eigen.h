@@ -1,8 +1,8 @@
 #ifndef GRUEIGEN_H_INCLUDED
 #define GRUEIGEN_H_INCLUDED
 
-#include "common.h"
-#include "Layer.h"
+#include "../common.h"
+#include "../Layer.h"
 
 namespace RTNeural
 {
@@ -14,7 +14,7 @@ public:
     GRULayer (size_t in_size, size_t out_size);
     virtual ~GRULayer() {}
 
-    void reset()
+    void reset() override
     {
         std::fill(ht1.data(), ht1.data() + Layer<T>::out_size, (T) 0);
     }

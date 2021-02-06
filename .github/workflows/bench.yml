@@ -42,21 +42,26 @@ jobs:
       env:
         BACKEND_ARG: ${{ matrix.backend }}
       shell: bash
-      run: cmake -Bbuild -DBUILD_BENCH=ON $BACKEND_ARG
+      run: cmake -Bbuild -DBUILD_BENCH=ON -DCMAKE_BUILD_TYPE=Release $BACKEND_ARG
 
     - name: Build
       shell: bash
       run: cmake --build build --config Release --parallel
+
+    - name: Benchmark Dense
+      run: |
+       ./build/rtneural_layer_bench dense 5 4 4
+       ./build/rtneural_layer_bench dense 5 16 16
 
     - name: Benchmark GRU
       run: |
         ./build/rtneural_layer_bench gru 5 4 4
         ./build/rtneural_layer_bench gru 5 16 16
 
-    - name: Benchmark Dense
+    - name: Benchmark LSTM
       run: |
-       ./build/rtneural_layer_bench dense 5 4 4
-       ./build/rtneural_layer_bench dense 5 16 16
+        ./build/rtneural_layer_bench lstm 5 4 4
+        ./build/rtneural_layer_bench lstm 5 16 16
 
     - name: Benchmark Tanh
       run: |

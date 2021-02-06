@@ -18,6 +18,9 @@ def save_model_json(model):
         if isinstance(layer, keras.layers.GRU):
             return 'gru'
 
+        if isinstance(layer, keras.layers.LSTM):
+            return 'lstm'
+
         if isinstance(layer, keras.layers.Dense):
             return 'dense'
 

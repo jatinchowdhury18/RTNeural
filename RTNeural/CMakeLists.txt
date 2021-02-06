@@ -1,20 +1,26 @@
 add_library(RTNeural STATIC
-    gru.h
-    gru.cpp
-    gru_eigen.h
-    gru_eigen.cpp
-    gru_xsimd.h
-    gru_xsimd.cpp
-    dense.h
-    dense_eigen.h
-    dense_xsimd.h
     activation.h
     Model.h
     Layer.h
+    dense/dense.h
+    dense/dense_eigen.h
+    dense/dense_xsimd.h
+    gru/gru.h
+    gru/gru.tpp
+    gru/gru_eigen.h
+    gru/gru_eigen.tpp
+    gru/gru_xsimd.h
+    gru/gru_xsimd.tpp
+    lstm/lstm.h
+    lstm/lstm.tpp
+    model_loader.h
+    RTNeural.h
+    RTNeural.cpp
 )
 
 # -fpic
 set_property(TARGET RTNeural PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(RTNeural PROPERTIES LINKER_LANGUAGE CXX)
 
 # external libraries
 target_include_directories(RTNeural PUBLIC ../modules/Eigen)

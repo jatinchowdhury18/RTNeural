@@ -5,13 +5,13 @@
 
 #if defined(USE_EIGEN)
 #include "gru_eigen.h"
-#include "gru_eigen.cpp"
+#include "gru_eigen.tpp"
 #elif defined(USE_XSIMD)
 #include "gru_xsimd.h"
-#include "gru_xsimd.cpp"
+#include "gru_xsimd.tpp"
 #else
-#include "common.h"
-#include "Layer.h"
+#include "../common.h"
+#include "../Layer.h"
 #include <vector>
 
 namespace RTNeural
@@ -24,7 +24,7 @@ public:
     GRULayer (size_t in_size, size_t out_size);
     virtual ~GRULayer();
 
-    virtual void reset()
+    void reset() override
     {
         std::fill(ht1, ht1 + Layer<T>::out_size, (T) 0);
     }
