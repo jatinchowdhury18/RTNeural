@@ -3,12 +3,12 @@
 namespace RTNeural
 {
 
-template<typename T>
-GRULayer<T>::GRULayer (size_t in_size, size_t out_size) :
-    Layer<T> (in_size, out_size),
-    zWeights (in_size, out_size),
-    rWeights (in_size, out_size),
-    cWeights (in_size, out_size)
+template <typename T>
+GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
+    : Layer<T>(in_size, out_size)
+    , zWeights(in_size, out_size)
+    , rWeights(in_size, out_size)
+    , cWeights(in_size, out_size)
 {
     ht1 = new T[out_size];
     zVec = new T[out_size];
@@ -17,12 +17,12 @@ GRULayer<T>::GRULayer (size_t in_size, size_t out_size) :
 
     prod_in = new T[in_size];
     prod_out = new T[out_size];
-    
+
     ones = new T[out_size];
-    std::fill(ones, &ones[out_size], (T) 1);
+    std::fill(ones, &ones[out_size], (T)1);
 }
 
-template<typename T>
+template <typename T>
 GRULayer<T>::~GRULayer()
 {
     delete[] ht1;
@@ -35,29 +35,29 @@ GRULayer<T>::~GRULayer()
     delete[] ones;
 }
 
-template<typename T>
-GRULayer<T>::WeightSet::WeightSet (size_t in_size, size_t out_size) :
-    out_size (out_size)
+template <typename T>
+GRULayer<T>::WeightSet::WeightSet(size_t in_size, size_t out_size)
+    : out_size(out_size)
 {
     W = new T*[out_size];
     U = new T*[out_size];
     b[0] = new T[out_size];
     b[1] = new T[out_size];
 
-    for (size_t i = 0; i < out_size; ++i)
+    for(size_t i = 0; i < out_size; ++i)
     {
         W[i] = new T[in_size];
         U[i] = new T[out_size];
     }
 }
 
-template<typename T>
+template <typename T>
 GRULayer<T>::WeightSet::~WeightSet()
 {
     delete[] b[0];
     delete[] b[1];
 
-    for (size_t i = 0; i < out_size; ++i)
+    for(size_t i = 0; i < out_size; ++i)
     {
         delete[] W[i];
         delete[] U[i];
@@ -67,91 +67,91 @@ GRULayer<T>::WeightSet::~WeightSet()
     delete[] U;
 }
 
-template<typename T>
+template <typename T>
 void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for (size_t i = 0; i < Layer<T>::in_size; ++i)
+    for(size_t i = 0; i < Layer<T>::in_size; ++i)
     {
-        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(size_t k = 0; k < Layer<T>::out_size; ++k)
         {
             zWeights.W[k][i] = wVals[i][k];
-            rWeights.W[k][i] = wVals[i][k+Layer<T>::out_size];
-            cWeights.W[k][i] = wVals[i][k+Layer<T>::out_size*2];
+            rWeights.W[k][i] = wVals[i][k + Layer<T>::out_size];
+            cWeights.W[k][i] = wVals[i][k + Layer<T>::out_size * 2];
         }
     }
 }
 
-template<typename T>
+template <typename T>
 void GRULayer<T>::setWVals(T** wVals)
 {
-    for (size_t i = 0; i < Layer<T>::in_size; ++i)
+    for(size_t i = 0; i < Layer<T>::in_size; ++i)
     {
-        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(size_t k = 0; k < Layer<T>::out_size; ++k)
         {
             zWeights.W[k][i] = wVals[i][k];
-            rWeights.W[k][i] = wVals[i][k+Layer<T>::out_size];
-            cWeights.W[k][i] = wVals[i][k+Layer<T>::out_size*2];
+            rWeights.W[k][i] = wVals[i][k + Layer<T>::out_size];
+            cWeights.W[k][i] = wVals[i][k + Layer<T>::out_size * 2];
         }
     }
 }
 
-template<typename T>
+template <typename T>
 void GRULayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
-    for (size_t i = 0; i < Layer<T>::out_size; ++i)
+    for(size_t i = 0; i < Layer<T>::out_size; ++i)
     {
-        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(size_t k = 0; k < Layer<T>::out_size; ++k)
         {
             zWeights.U[k][i] = uVals[i][k];
-            rWeights.U[k][i] = uVals[i][k+Layer<T>::out_size];
-            cWeights.U[k][i] = uVals[i][k+Layer<T>::out_size*2];
+            rWeights.U[k][i] = uVals[i][k + Layer<T>::out_size];
+            cWeights.U[k][i] = uVals[i][k + Layer<T>::out_size * 2];
         }
     }
 }
 
-template<typename T>
+template <typename T>
 void GRULayer<T>::setUVals(T** uVals)
 {
-    for (size_t i = 0; i < Layer<T>::out_size; ++i)
+    for(size_t i = 0; i < Layer<T>::out_size; ++i)
     {
-        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(size_t k = 0; k < Layer<T>::out_size; ++k)
         {
             zWeights.U[k][i] = uVals[i][k];
-            rWeights.U[k][i] = uVals[i][k+Layer<T>::out_size];
-            cWeights.U[k][i] = uVals[i][k+Layer<T>::out_size*2];
+            rWeights.U[k][i] = uVals[i][k + Layer<T>::out_size];
+            cWeights.U[k][i] = uVals[i][k + Layer<T>::out_size * 2];
         }
     }
 }
 
-template<typename T>
+template <typename T>
 void GRULayer<T>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
-    for (size_t i = 0; i < 2; ++i)
+    for(size_t i = 0; i < 2; ++i)
     {
-        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(size_t k = 0; k < Layer<T>::out_size; ++k)
         {
             zWeights.b[i][k] = bVals[i][k];
-            rWeights.b[i][k] = bVals[i][k+Layer<T>::out_size];
-            cWeights.b[i][k] = bVals[i][k+Layer<T>::out_size*2];
+            rWeights.b[i][k] = bVals[i][k + Layer<T>::out_size];
+            cWeights.b[i][k] = bVals[i][k + Layer<T>::out_size * 2];
         }
     }
 }
 
-template<typename T>
+template <typename T>
 void GRULayer<T>::setBVals(T** bVals)
 {
-    for (size_t i = 0; i < 2; ++i)
+    for(size_t i = 0; i < 2; ++i)
     {
-        for (size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(size_t k = 0; k < Layer<T>::out_size; ++k)
         {
             zWeights.b[i][k] = bVals[i][k];
-            rWeights.b[i][k] = bVals[i][k+Layer<T>::out_size];
-            cWeights.b[i][k] = bVals[i][k+Layer<T>::out_size*2];
+            rWeights.b[i][k] = bVals[i][k + Layer<T>::out_size];
+            cWeights.b[i][k] = bVals[i][k + Layer<T>::out_size * 2];
         }
     }
 }
 
-template<typename T>
+template <typename T>
 T GRULayer<T>::getWVal(size_t i, size_t k) const noexcept
 {
     T** set = zWeights.W;
@@ -160,7 +160,7 @@ T GRULayer<T>::getWVal(size_t i, size_t k) const noexcept
         k -= 2 * Layer<T>::out_size;
         set = cWeights.W;
     }
-    else if (k > Layer<T>::out_size)
+    else if(k > Layer<T>::out_size)
     {
         k -= Layer<T>::out_size;
         set = rWeights.W;
@@ -169,7 +169,7 @@ T GRULayer<T>::getWVal(size_t i, size_t k) const noexcept
     return set[i][k];
 }
 
-template<typename T>
+template <typename T>
 T GRULayer<T>::getUVal(size_t i, size_t k) const noexcept
 {
     T** set = zWeights.U;
@@ -178,7 +178,7 @@ T GRULayer<T>::getUVal(size_t i, size_t k) const noexcept
         k -= 2 * Layer<T>::out_size;
         set = cWeights.U;
     }
-    else if (k > Layer<T>::out_size)
+    else if(k > Layer<T>::out_size)
     {
         k -= Layer<T>::out_size;
         set = rWeights.U;
@@ -187,7 +187,7 @@ T GRULayer<T>::getUVal(size_t i, size_t k) const noexcept
     return set[i][k];
 }
 
-template<typename T>
+template <typename T>
 T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
 {
     T** set = zWeights.b;
@@ -196,7 +196,7 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
         k -= 2 * Layer<T>::out_size;
         set = cWeights.b;
     }
-    else if (k > Layer<T>::out_size)
+    else if(k > Layer<T>::out_size)
     {
         k -= Layer<T>::out_size;
         set = rWeights.b;

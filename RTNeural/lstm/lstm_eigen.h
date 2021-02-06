@@ -1,23 +1,24 @@
 #ifndef LSTM_EIGEN_INCLUDED
 #define LSTM_EIGEN_INCLUDED
 
-#include "../common.h"
 #include "../Layer.h"
+#include "../common.h"
 
 namespace RTNeural
 {
 
-template<typename T>
+template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
-    LSTMLayer (size_t in_size, size_t out_size);
-    virtual ~LSTMLayer() {}
+    LSTMLayer(size_t in_size, size_t out_size);
+    virtual ~LSTMLayer() { }
 
     void reset() override;
     inline void forward(const T* input, T* h) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>> (input, Layer<T>::in_size, 1);
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
+            input, Layer<T>::in_size, 1);
 
         fVec = Wf * inVec + Uf * ht1 + bf;
         iVec = Wi * inVec + Ui * ht1 + bi;
@@ -33,7 +34,7 @@ public:
         ht1 = oVec.cwiseProduct(ht1);
 
         ct1 = cVec;
-        std::copy (ht1.data(), ht1.data() + Layer<T>::out_size, h);
+        std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
     }
 
     void setWVals(const std::vector<std::vector<T>>& wVals);

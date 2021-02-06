@@ -1,23 +1,20 @@
 #ifndef GRUXSIMD_H_INCLUDED
 #define GRUXSIMD_H_INCLUDED
 
-#include "../common.h"
 #include "../Layer.h"
+#include "../common.h"
 #include <vector>
 namespace RTNeural
 {
 
-template<typename T>
+template <typename T>
 class GRULayer : public Layer<T>
 {
 public:
-    GRULayer (size_t in_size, size_t out_size);
+    GRULayer(size_t in_size, size_t out_size);
     virtual ~GRULayer();
 
-    void reset() override
-    {
-        std::fill(ht1, ht1 + Layer<T>::out_size, (T) 0);
-    }
+    void reset() override { std::fill(ht1, ht1 + Layer<T>::out_size, (T)0); }
 
     virtual inline void forward(const T* input, T* h) override
     {
@@ -44,7 +41,7 @@ public:
         vProd(h, cVec, h, Layer<T>::out_size);
         vProd(zVec, ht1, prod_out, Layer<T>::out_size);
         vAdd(h, prod_out, h, Layer<T>::out_size);
-    
+
         vCopy(h, ht1, Layer<T>::out_size);
     }
 
@@ -65,7 +62,7 @@ protected:
 
     struct WeightSet
     {
-        WeightSet (size_t in_size, size_t out_size);
+        WeightSet(size_t in_size, size_t out_size);
         ~WeightSet();
 
         T** W;

@@ -8,18 +8,18 @@
 #include "lstm_xsimd.h"
 #include "lstm_xsimd.tpp"
 #else
-#include "../common.h"
 #include "../Layer.h"
+#include "../common.h"
 #include <vector>
 
 namespace RTNeural
 {
 
-template<typename T>
+template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
-    LSTMLayer (size_t in_size, size_t out_size);
+    LSTMLayer(size_t in_size, size_t out_size);
     virtual ~LSTMLayer();
 
     void reset() override;
@@ -49,7 +49,7 @@ protected:
 
     struct WeightSet
     {
-        WeightSet (size_t in_size, size_t out_size);
+        WeightSet(size_t in_size, size_t out_size);
         ~WeightSet();
 
         T** W;

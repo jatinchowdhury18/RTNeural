@@ -1,38 +1,39 @@
 #ifndef GRUEIGEN_H_INCLUDED
 #define GRUEIGEN_H_INCLUDED
 
-#include "../common.h"
 #include "../Layer.h"
+#include "../common.h"
 
 namespace RTNeural
 {
 
-template<typename T>
+template <typename T>
 class GRULayer : public Layer<T>
 {
 public:
-    GRULayer (size_t in_size, size_t out_size);
-    virtual ~GRULayer() {}
+    GRULayer(size_t in_size, size_t out_size);
+    virtual ~GRULayer() { }
 
     void reset() override
     {
-        std::fill(ht1.data(), ht1.data() + Layer<T>::out_size, (T) 0);
+        std::fill(ht1.data(), ht1.data() + Layer<T>::out_size, (T)0);
     }
 
     inline void forward(const T* input, T* h) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>> (input, Layer<T>::in_size, 1);
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
+            input, Layer<T>::in_size, 1);
 
-        zVec = wVec_z * inVec + uVec_z * ht1 + bVec_z.col (0) + bVec_z.col (1);
-        rVec = wVec_r * inVec + uVec_r * ht1 + bVec_r.col (0) + bVec_r.col (1);
-        sigmoid (zVec);
-        sigmoid (rVec);
-        
-        cVec = wVec_c * inVec + rVec.cwiseProduct (uVec_c * ht1 + bVec_c.col (1)) + bVec_c.col (0);
+        zVec = wVec_z * inVec + uVec_z * ht1 + bVec_z.col(0) + bVec_z.col(1);
+        rVec = wVec_r * inVec + uVec_r * ht1 + bVec_r.col(0) + bVec_r.col(1);
+        sigmoid(zVec);
+        sigmoid(rVec);
+
+        cVec = wVec_c * inVec + rVec.cwiseProduct(uVec_c * ht1 + bVec_c.col(1)) + bVec_c.col(0);
         cVec = cVec.array().tanh();
-        
-        ht1 = (ones - zVec).cwiseProduct (cVec) + zVec.cwiseProduct (ht1);
-        std::copy (ht1.data(), ht1.data() + Layer<T>::out_size, h);
+
+        ht1 = (ones - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(ht1);
+        std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
     }
 
     void setWVals(T** wVals);
