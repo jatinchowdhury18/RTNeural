@@ -5,8 +5,8 @@
 #include "lstm_eigen.h"
 #include "lstm_eigen.tpp"
 #elif defined(USE_XSIMD)
-// #include "gru_xsimd.h"
-// #include "gru_xsimd.tpp"
+#include "lstm_xsimd.h"
+#include "lstm_xsimd.tpp"
 #else
 #include "../common.h"
 #include "../Layer.h"
@@ -23,7 +23,6 @@ public:
     virtual ~LSTMLayer();
 
     void reset() override;
-
     virtual inline void forward(const T* input, T* h) override
     {
         for(size_t i = 0; i < Layer<T>::out_size; ++i)
