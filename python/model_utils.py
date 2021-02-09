@@ -24,6 +24,9 @@ def save_model_json(model):
         if isinstance(layer, keras.layers.Dense):
             return 'dense'
 
+        if isinstance(layer, keras.layers.Conv1D):
+            return 'conv1d'
+
         return 'unknown'
 
     def get_layer_activation(layer):
