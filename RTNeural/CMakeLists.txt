@@ -2,6 +2,8 @@ add_library(RTNeural STATIC
     activation.h
     Model.h
     Layer.h
+    conv1d/conv1d.h
+    conv1d/conv1d.tpp
     dense/dense.h
     dense/dense_eigen.h
     dense/dense_xsimd.h
@@ -13,6 +15,10 @@ add_library(RTNeural STATIC
     gru/gru_xsimd.tpp
     lstm/lstm.h
     lstm/lstm.tpp
+    lstm/lstm_eigen.h
+    lstm/lstm_eigen.tpp
+    lstm/lstm_xsimd.h
+    lstm/lstm_xsimd.tpp
     model_loader.h
     RTNeural.h
     RTNeural.cpp

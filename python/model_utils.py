@@ -53,6 +53,10 @@ def save_model_json(model):
             "weights"    : layer.get_weights()
         }
 
+        if layer_dict["type"] == "conv1d":
+            layer_dict["kernel_size"] = layer.kernel_size
+            layer_dict["dilation"] = layer.dilation_rate
+
         return layer_dict
 
 
