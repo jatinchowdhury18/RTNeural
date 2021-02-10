@@ -165,7 +165,7 @@ namespace json_parser
 
     /** Creates a neural network model from a json stream */
     template <typename T>
-    std::unique_ptr<Model<T>> parseJson(const nlohmann::json& parent, bool debug=false)
+    std::unique_ptr<Model<T>> parseJson(const nlohmann::json& parent, bool debug = false)
     {
         auto shape = parent["in_shape"];
         auto layers = parent["layers"];
@@ -222,7 +222,7 @@ namespace json_parser
 
     /** Creates a neural network model from a json stream */
     template <typename T>
-    std::unique_ptr<Model<T>> parseJson(std::ifstream& jsonStream, bool debug=false)
+    std::unique_ptr<Model<T>> parseJson(std::ifstream& jsonStream, bool debug = false)
     {
         nlohmann::json parent;
         jsonStream >> parent;
