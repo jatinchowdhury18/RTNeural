@@ -44,7 +44,7 @@ int runTest(const TestConfig& test)
     std::cout << "TESTING " << test.name << " IMPLEMENTATION..." << std::endl;
 
     std::ifstream jsonStream(test.model_file, std::ifstream::binary);
-    auto model = RTNeural::json_parser::parseJson<T>(jsonStream);
+    auto model = RTNeural::json_parser::parseJson<T>(jsonStream, true);
     model->reset();
 
     std::ifstream pythonX(test.x_data_file);

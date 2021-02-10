@@ -157,9 +157,15 @@ namespace json_parser
         return {};
     }
 
+    void debug_print(std::string str, bool debug)
+    {
+        if(debug)
+            std::cout << str << std::endl;
+    }
+
     /** Creates a neural network model from a json stream */
     template <typename T>
-    std::unique_ptr<Model<T>> parseJson(const nlohmann::json& parent)
+    std::unique_ptr<Model<T>> parseJson(const nlohmann::json& parent, bool debug = false)
     {
         auto shape = parent["in_shape"];
         auto layers = parent["layers"];
@@ -168,18 +174,18 @@ namespace json_parser
             return {};
 
         const auto nDims = shape.back().get<int>();
-        std::cout << "# dimensions: " << nDims << std::endl;
+        debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         auto model = std::make_unique<Model<T>>(nDims);
 
         for(const auto& l : layers)
         {
             const auto type = l["type"].get<std::string>();
-            std::cout << "Layer: " << type << std::endl;
+            debug_print("Layer: " + type, debug);
 
             const auto layerShape = l["shape"];
             const auto layerDims = layerShape.back().get<int>();
-            std::cout << "  Dims: " << layerDims << std::endl;
+            debug_print("  Dims: " + std::to_string(layerDims), debug);
 
             const auto weights = l["weights"];
 
@@ -193,7 +199,7 @@ namespace json_parser
                     const auto activationType = l["activation"].get<std::string>();
                     if(!activationType.empty())
                     {
-                        std::cout << "  activation: " << activationType << std::endl;
+                        debug_print("  activation: " + activationType, debug);
                         auto activation = createActivation<T>(activationType, layerDims);
                         model->addLayer(activation.release());
                     }
@@ -216,11 +222,11 @@ namespace json_parser
 
     /** Creates a neural network model from a json stream */
     template <typename T>
-    std::unique_ptr<Model<T>> parseJson(std::ifstream& jsonStream)
+    std::unique_ptr<Model<T>> parseJson(std::ifstream& jsonStream, bool debug = false)
     {
         nlohmann::json parent;
         jsonStream >> parent;
-        return parseJson<T>(parent);
+        return parseJson<T>(parent, debug);
     }
 
 } // namespace json_parser
