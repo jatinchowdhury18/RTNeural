@@ -11,7 +11,7 @@ from model_utils import save_model
 model = keras.Sequential()
 model.add(keras.layers.InputLayer(input_shape=(None, 1)))
 model.add(keras.layers.Dense(8, activation='sigmoid', kernel_initializer=tf.keras.initializers.Orthogonal(), bias_initializer='random_normal'))
-model.add(keras.layers.Conv1D(4, 3, dilation_rate=3, activation='tanh', kernel_initializer='glorot_uniform', bias_initializer='random_normal'))
+model.add(keras.layers.Conv1D(4, 3, dilation_rate=1, activation='tanh', padding='causal', kernel_initializer='glorot_uniform', bias_initializer='random_normal'))
 model.add(keras.layers.Dense(8, activation='sigmoid', kernel_initializer=tf.keras.initializers.Orthogonal(), bias_initializer='random_normal'))
 model.add(keras.layers.Dense(1, kernel_initializer='orthogonal', bias_initializer='random_normal'))
 
@@ -19,6 +19,7 @@ model.add(keras.layers.Dense(1, kernel_initializer='orthogonal', bias_initialize
 N = 100
 x = 10 * np.sin(np.arange(N) * np.pi * 0.1)
 y = model.predict((x.reshape((1, -1, 1))))
+print(y.shape)
 y = y.flatten()
 
 # plot signals

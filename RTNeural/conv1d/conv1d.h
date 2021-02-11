@@ -22,20 +22,41 @@ public:
     Conv1D(size_t in_size, size_t out_size, size_t kernel_size, size_t dilation);
     virtual ~Conv1D();
 
+    void reset() override;
+
     virtual inline void forward(const T* input, T* h) override
     {
+        // copy input into state vector
+        std::copy(&state[Layer<T>::in_size], &state[state_size], state);
+        std::copy(input, &input[Layer<T>::in_size], &state[state_size - Layer<T>::in_size]);
+
+        // zero output vector
+        std::fill(h, &h[Layer<T>::out_size], (T) 0);
+
         for(size_t i = 0; i < Layer<T>::out_size; ++i)
-            h[i] = vMult() + bias[i];
+        {
+            for(size_t k = 0; k < Layer<T>::in_size; ++k)
+                h[i] += vMult(&state[k], kernelWeights[i][k], kernel_size * dilation_rate);
+                
+            h[i] += bias[i];
+        }
     }
+
+    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    void setBias(const std::vector<T>& biasVals);
 
 private:
     const size_t dilation_rate;
-    const size_t full_kernel_size;
+    const size_t kernel_size;
+    const size_t state_size;
 
-    T** kernelWeights;
+    T*** kernelWeights;
     T* bias;
+    T* state;
 };
 
 } // namespace RTNeural
+
+#endif
 
 #endif // CONV1D_H_INCLUDED

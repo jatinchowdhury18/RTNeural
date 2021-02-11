@@ -6,6 +6,8 @@
 
 #include "Layer.h"
 #include "activation.h"
+#include "conv1d/conv1d.h"
+#include "conv1d/conv1d.tpp"
 #include "dense/dense.h"
 #include "gru/gru.h"
 #include "gru/gru.tpp"
