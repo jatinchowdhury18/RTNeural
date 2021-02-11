@@ -17,7 +17,7 @@ Conv1D<T>::Conv1D(size_t in_size, size_t out_size, size_t kernel_size, size_t di
         for(size_t k = 0; k < in_size; ++k)
         {
             kernelWeights[i][k] = new T[state_size];
-            std::fill(kernelWeights[i][k], &kernelWeights[i][k][state_size], (T) 0);
+            std::fill(kernelWeights[i][k], &kernelWeights[i][k][state_size], (T)0);
         }
     }
 
@@ -56,7 +56,7 @@ void Conv1D<T>::reset()
 {
     state_ptr = 0;
     for(size_t k = 0; k < Layer<T>::in_size; ++k)
-        std::fill(state[k], &state[k][2 * state_size], (T) 0);
+        std::fill(state[k], &state[k][2 * state_size], (T)0);
 }
 
 template <typename T>

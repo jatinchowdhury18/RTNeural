@@ -34,7 +34,7 @@ public:
 
         for(size_t i = 0; i < Layer<T>::out_size; ++i)
         {
-            h[i] = (T) 0;
+            h[i] = (T)0;
             for(size_t k = 0; k < Layer<T>::in_size; ++k)
                 h[i] += vMult(&state[k][state_ptr], kernelWeights[i][k], state_size);
 

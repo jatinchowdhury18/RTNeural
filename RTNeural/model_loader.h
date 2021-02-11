@@ -53,9 +53,9 @@ namespace json_parser
         for(auto& wIn : convWeights)
         {
             wIn.resize(in_size);
-            
+
             for(auto& w : wIn)
-                w.resize(kernel_size, (T) 0);
+                w.resize(kernel_size, (T)0);
         }
 
         auto layerWeights = weights[0];
@@ -66,7 +66,7 @@ namespace json_parser
             {
                 auto l = lw[j];
                 for(size_t k = 0; k < l.size(); ++k)
-                    convWeights[k][j][kernel_size - 1 -i] = l[k].get<T>();
+                    convWeights[k][j][kernel_size - 1 - i] = l[k].get<T>();
             }
         }
 
@@ -227,8 +227,7 @@ namespace json_parser
 
             const auto weights = l["weights"];
 
-            auto add_activation = [=](std::unique_ptr<Model<T>>& model, const nlohmann::json& l)
-            {
+            auto add_activation = [=](std::unique_ptr<Model<T>>& model, const nlohmann::json& l) {
                 if(l.contains("activation"))
                 {
                     const auto activationType = l["activation"].get<std::string>();
