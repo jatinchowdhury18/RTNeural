@@ -21,6 +21,7 @@ public:
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
             input, Layer<T>::in_size, 1);
 
+        // insert input into double-buffered state
         state.col(state_ptr) = inVec;
         state.col(state_ptr + state_size) = inVec;
 
