@@ -41,6 +41,44 @@ namespace json_parser
         return std::move(dense);
     }
 
+    /** Creates a Conv1D layer from a json representation of the layer weights */
+    template <typename T>
+    std::unique_ptr<Conv1D<T>> createConv1D(size_t in_size, size_t out_size,
+        size_t kernel_size, size_t dilation, const nlohmann::json& weights)
+    {
+        auto conv = std::make_unique<Conv1D<T>>(in_size, out_size, kernel_size, dilation);
+
+        // load weights
+        std::vector<std::vector<std::vector<T>>> convWeights(out_size);
+        for(auto& wIn : convWeights)
+        {
+            wIn.resize(in_size);
+
+            for(auto& w : wIn)
+                w.resize(kernel_size, (T)0);
+        }
+
+        auto layerWeights = weights[0];
+        for(size_t i = 0; i < layerWeights.size(); ++i)
+        {
+            auto lw = layerWeights[i];
+            for(size_t j = 0; j < lw.size(); ++j)
+            {
+                auto l = lw[j];
+                for(size_t k = 0; k < l.size(); ++k)
+                    convWeights[k][j][kernel_size - 1 - i] = l[k].get<T>();
+            }
+        }
+
+        conv->setWeights(convWeights);
+
+        // load biases
+        std::vector<T> convBias = weights[1].get<std::vector<T>>();
+        conv->setBias(convBias);
+
+        return std::move(conv);
+    }
+
     /** Creates a GRU layer from a json representation of the layer weights */
     template <typename T>
     std::unique_ptr<GRULayer<T>> createGRU(size_t in_size, size_t out_size,
@@ -189,11 +227,7 @@ namespace json_parser
 
             const auto weights = l["weights"];
 
-            if(type == "dense" || type == "time-distributed-dense")
-            {
-                auto dense = createDense<T>(model->getNextInSize(), layerDims, weights);
-                model->addLayer(dense.release());
-
+            auto add_activation = [=](std::unique_ptr<Model<T>>& model, const nlohmann::json& l) {
                 if(l.contains("activation"))
                 {
                     const auto activationType = l["activation"].get<std::string>();
@@ -204,6 +238,22 @@ namespace json_parser
                         model->addLayer(activation.release());
                     }
                 }
+            };
+
+            if(type == "dense" || type == "time-distributed-dense")
+            {
+                auto dense = createDense<T>(model->getNextInSize(), layerDims, weights);
+                model->addLayer(dense.release());
+                add_activation(model, l);
+            }
+            else if(type == "conv1d")
+            {
+                const auto kernel_size = l["kernel_size"].back().get<int>();
+                const auto dilation = l["dilation"].back().get<int>();
+
+                auto conv = createConv1D<T>(model->getNextInSize(), layerDims, kernel_size, dilation, weights);
+                model->addLayer(conv.release());
+                add_activation(model, l);
             }
             else if(type == "gru")
             {
