@@ -1,8 +1,8 @@
 #include "load_csv.hpp"
 #include <RTNeural.h>
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 // @TODO: make tests for both float and double precision
 
