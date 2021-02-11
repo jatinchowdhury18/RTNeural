@@ -10,8 +10,8 @@ from model_utils import save_model
 # construct TensorFlow model
 model = keras.Sequential()
 model.add(keras.layers.InputLayer(input_shape=(None, 1)))
-model.add(keras.layers.Dense(8, activation='sigmoid', kernel_initializer=tf.keras.initializers.Orthogonal(), bias_initializer='random_normal'))
-model.add(keras.layers.Conv1D(4, 3, dilation_rate=1, activation='tanh', padding='causal', kernel_initializer='glorot_uniform', bias_initializer='random_normal'))
+model.add(keras.layers.Dense(8, activation='tanh', kernel_initializer='random_normal', bias_initializer='random_normal'))
+model.add(keras.layers.Conv1D(4, 3, dilation_rate=2, activation='tanh', padding='causal', kernel_initializer='glorot_uniform', bias_initializer='random_normal'))
 model.add(keras.layers.Dense(8, activation='sigmoid', kernel_initializer=tf.keras.initializers.Orthogonal(), bias_initializer='random_normal'))
 model.add(keras.layers.Dense(1, kernel_initializer='orthogonal', bias_initializer='random_normal'))
 

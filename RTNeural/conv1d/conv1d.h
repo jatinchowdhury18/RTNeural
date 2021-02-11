@@ -26,20 +26,22 @@ public:
 
     virtual inline void forward(const T* input, T* h) override
     {
-        // copy input into state vector
-        std::copy(&state[Layer<T>::in_size], &state[state_size], state);
-        std::copy(input, &input[Layer<T>::in_size], &state[state_size - Layer<T>::in_size]);
-
-        // zero output vector
-        std::fill(h, &h[Layer<T>::out_size], (T) 0);
+        for(size_t k = 0; k < Layer<T>::in_size; ++k)
+        {
+            state[k][state_ptr] = input[k];
+            state[k][state_ptr + state_size] = input[k];
+        }
 
         for(size_t i = 0; i < Layer<T>::out_size; ++i)
         {
+            h[i] = (T) 0;
             for(size_t k = 0; k < Layer<T>::in_size; ++k)
-                h[i] += vMult(&state[k], kernelWeights[i][k], kernel_size * dilation_rate);
-                
+                h[i] += vMult(&state[k][state_ptr], kernelWeights[i][k], state_size);
+
             h[i] += bias[i];
         }
+
+        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
     }
 
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
@@ -52,7 +54,8 @@ private:
 
     T*** kernelWeights;
     T* bias;
-    T* state;
+    T** state;
+    size_t state_ptr = 0;
 };
 
 } // namespace RTNeural

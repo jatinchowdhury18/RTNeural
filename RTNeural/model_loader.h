@@ -66,7 +66,7 @@ namespace json_parser
             {
                 auto l = lw[j];
                 for(size_t k = 0; k < l.size(); ++k)
-                    convWeights[k][j][i] = l[k].get<T>();
+                    convWeights[k][j][kernel_size - 1 -i] = l[k].get<T>();
             }
         }
 

@@ -53,6 +53,11 @@ jobs:
        ./build/rtneural_layer_bench dense 5 4 4
        ./build/rtneural_layer_bench dense 5 16 16
 
+    - name: Benchmark Conv1D
+      run: |
+       ./build/rtneural_layer_bench conv1d 5 4 4
+       ./build/rtneural_layer_bench conv1d 5 16 16
+
     - name: Benchmark GRU
       run: |
         ./build/rtneural_layer_bench gru 5 4 4
