@@ -24,6 +24,9 @@ def save_model_json(model):
         if isinstance(layer, keras.layers.Dense):
             return 'dense'
 
+        if isinstance(layer, keras.layers.Conv1D):
+            return 'conv1d'
+
         return 'unknown'
 
     def get_layer_activation(layer):
@@ -49,6 +52,10 @@ def save_model_json(model):
             "shape"      : layer.output_shape,
             "weights"    : layer.get_weights()
         }
+
+        if layer_dict["type"] == "conv1d":
+            layer_dict["kernel_size"] = layer.kernel_size
+            layer_dict["dilation"] = layer.dilation_rate
 
         return layer_dict
 

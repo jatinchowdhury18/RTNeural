@@ -26,6 +26,34 @@ void randomise_dense(std::unique_ptr<RTNeural::Dense<double>> &dense) {
   dense->setBias(denseBias.data());
 }
 
+void randomise_conv1d(std::unique_ptr<RTNeural::Conv1D<double>> &conv, size_t kernel_size) {
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution(-1.0, 1.0);
+
+  // random weights
+  std::vector<std::vector<std::vector<double>>> convWeights(conv->out_size);
+  for(auto& wIn : convWeights)
+  {
+      wIn.resize(conv->in_size);
+      for(auto& w : wIn)
+          w.resize(kernel_size, 0.0);
+  }
+
+  for (size_t i = 0; i < conv->out_size; ++i)
+    for (size_t j = 0; j < conv->in_size; ++j)
+      for (size_t k = 0; k < kernel_size; ++k)
+        convWeights[i][j][k] = distribution(generator);
+
+  conv->setWeights(convWeights);
+
+  // random biases
+  std::vector<double> convBias(conv->out_size);
+  for (size_t i = 0; i < conv->out_size; ++i)
+    convBias[i] = distribution(generator);
+
+  conv->setBias(convBias);
+}
+
 void randomise_gru(std::unique_ptr<RTNeural::GRULayer<double>> &gru) {
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution(-1.0, 1.0);
@@ -103,6 +131,13 @@ create_layer(const std::string &layer_type, size_t in_size, size_t out_size) {
   if (layer_type == "dense") {
     auto layer = std::make_unique<RTNeural::Dense<double>>(in_size, out_size);
     randomise_dense(layer);
+    return std::move(layer);
+  }
+
+  if (layer_type == "conv1d") {
+    const auto kernel_size = in_size - 1;
+    auto layer = std::make_unique<RTNeural::Conv1D<double>>(in_size, out_size, kernel_size, 1);
+    randomise_conv1d(layer, kernel_size);
     return std::move(layer);
   }
 

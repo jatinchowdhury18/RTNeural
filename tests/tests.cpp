@@ -1,8 +1,8 @@
 #include "load_csv.hpp"
 #include <RTNeural.h>
 #include <iostream>
+#include <map>
 #include <string>
-#include <unordered_map>
 
 // @TODO: make tests for both float and double precision
 
@@ -15,14 +15,17 @@ struct TestConfig
     const double threshold;
 };
 
-static std::unordered_map<std::string, TestConfig> tests {
+static std::map<std::string, TestConfig> tests {
+    { "conv1d",
+        TestConfig { "CONV1D", "models/conv.json", "test_data/conv_x_python.csv",
+            "test_data/conv_y_python.csv", 1.0e-6 } },
     { "dense",
         TestConfig { "DENSE", "models/dense.json", "test_data/dense_x_python.csv",
             "test_data/dense_y_python.csv", 2.0e-8 } },
     { "gru", TestConfig { "GRU", "models/gru.json", "test_data/gru_x_python.csv", "test_data/gru_y_python.csv", 5.0e-6 } },
     { "lstm",
         TestConfig { "LSTM", "models/lstm.json", "test_data/lstm_x_python.csv",
-            "test_data/lstm_y_python.csv", 1.0e-3 } }
+            "test_data/lstm_y_python.csv", 1.0e-6 } },
 };
 
 void help()
@@ -73,6 +76,7 @@ int runTest(const TestConfig& test)
             // For debugging purposes
             // std::cout << "ERR: " << err << ", idx: " << n << std::endl;
             // std::cout << yData[n] << std::endl;
+            // std::cout << yRefData[n] << std::endl;
             // break;
         }
     }
