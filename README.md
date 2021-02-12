@@ -146,7 +146,7 @@ backend.
 ## Related Projects
 
 - [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
-- [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeMachine): An analog tape emulation, using a real-time dense neural network.
+- [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
 
 ## License
 
