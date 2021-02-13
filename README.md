@@ -25,7 +25,9 @@ Currently supported activations:
 
 `RTNeural` is capable of taking a neural network that
 has already been trained, loading the weights from that
-network, and running inference.
+network, and running inference. An example of using
+RTNeural within an audio plugin can be found on GitHub
+[here](https://github.com/jatinchowdhury18/RTNeural-example).
 
 ### Exporting weights from a trained network
 
