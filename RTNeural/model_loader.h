@@ -195,7 +195,7 @@ namespace json_parser
         return {};
     }
 
-    static void debug_print(std::string str, bool debug)
+    [[ maybe_unused ]] static void debug_print(std::string str, bool debug)
     {
         if(debug)
             std::cout << str << std::endl;
