@@ -92,6 +92,8 @@ int runTest(const TestConfig& test)
     return 0;
 }
 
+using TestType = double;
+
 int main(int argc, char* argv[])
 {
     if(argc != 2)
@@ -111,14 +113,14 @@ int main(int argc, char* argv[])
     {
         int result = 0;
         for(auto& testConfig : tests)
-            result |= runTest<double>(testConfig.second);
+            result |= runTest<TestType>(testConfig.second);
 
         return result;
     }
 
     if(tests.find(arg) != tests.end())
     {
-        return runTest<double>(tests.at(arg));
+        return runTest<TestType>(tests.at(arg));
     }
 
     std::cout << "Test: " << arg << " not found!" << std::endl;

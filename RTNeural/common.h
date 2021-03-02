@@ -116,6 +116,54 @@ static inline void tanh(const T* in, T* out, size_t dim) noexcept
 
 } // namespace RTNeural
 
+#elif defined(USE_ACCELERATE)
+#include <Accelerate/Accelerate.h>
+
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+
+namespace RTNeural
+{
+
+template <typename T>
+static inline T vMult(const T* arg1, const T* arg2, size_t dim) noexcept
+{
+    return std::inner_product(arg1, arg1 + dim, arg2, (T)0);
+}
+
+template <typename T>
+static inline T sigmoid(T value) noexcept
+{
+    return (T)1 / ((T)1 + std::exp(-value));
+}
+
+static inline void sigmoid(const float* in, float* out, size_t dim) noexcept
+{
+    constexpr float one = 1.0f;
+    constexpr float neg_one = -1.0f;
+    const auto dim_int = static_cast<int> (dim);
+
+    vDSP_vsmul(in, 1, &neg_one, out, 1, dim);
+    vvexpf(out, out, &dim_int);
+    vDSP_vsadd(out, 1, &one, out, 1, dim);
+    vvrecf(out, out, &dim_int);
+}
+
+static inline void sigmoid(const double* in, double* out, size_t dim) noexcept
+{
+    constexpr double one = 1.0;
+    constexpr double neg_one = -1.0;
+    const auto dim_int = static_cast<int> (dim);
+
+    vDSP_vsmulD(in, 1, &neg_one, out, 1, dim);
+    vvexp(out, out, &dim_int);
+    vDSP_vsaddD(out, 1, &one, out, 1, dim);
+    vvrec(out, out, &dim_int);
+}
+
+} // namespace RTNeural
+
 #else // STL backend
 #include <algorithm>
 #include <cmath>

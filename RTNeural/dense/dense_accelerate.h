@@ -1,8 +1,8 @@
-#ifndef DENSEXSIMD_H_INCLUDED
-#define DENSEXSIMD_H_INCLUDED
+#ifndef DENSEACCELERATE_H_INCLUDED
+#define DENSEACCELERATE_H_INCLUDED
 
 #include "../Layer.h"
-#include <xsimd/xsimd.hpp>
+#include <Accelerate/Accelerate.h>
 
 namespace RTNeural
 {
@@ -14,7 +14,7 @@ public:
     Dense(size_t in_size, size_t out_size)
         : Layer<T>(in_size, out_size)
     {
-        prod = new T[in_size];
+        sums = new T[out_size];
         bias = new T[out_size];
         weights = new T*[out_size];
         for(int i = 0; i < out_size; ++i)
@@ -24,22 +24,15 @@ public:
     virtual ~Dense()
     {
         delete[] bias;
-        delete[] prod;
+        delete[] sums;
         for(int i = 0; i < Layer<T>::out_size; ++i)
             delete[] weights[i];
         delete[] weights;
     }
 
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out)
     {
-        for(int l = 0; l < Layer<T>::out_size; ++l)
-        {
-            xsimd::transform(input, &input[Layer<T>::in_size], weights[l], prod,
-                [](auto const& a, auto const& b) { return a * b; });
-
-            auto sum = xsimd::reduce(prod, &prod[Layer<T>::in_size], (T)0);
-            out[l] = sum + bias[l];
-        }
+        forward_internal(input, out);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
@@ -67,11 +60,31 @@ public:
     T getBias(size_t i) const noexcept { return bias[i]; }
 
 private:
+    template<typename FloatType = T>
+    inline typename std::enable_if <std::is_same<FloatType, float>::value>::type
+    forward_internal(const float* input, float* out)
+    {
+        for(int l = 0; l < Layer<T>::out_size; ++l)
+            vDSP_dotpr(input, 1, weights[l], 1, &sums[l], Layer<T>::in_size);
+
+        vDSP_vadd(sums, 1, bias, 1, out, 1, Layer<T>::out_size);
+    }
+
+    template<typename FloatType = T>
+    inline typename std::enable_if <std::is_same<FloatType, double>::value>::type
+    forward_internal(const double* input, double* out)
+    {
+        for(int l = 0; l < Layer<T>::out_size; ++l)
+            vDSP_dotprD(input, 1, weights[l], 1, &sums[l], Layer<T>::in_size);
+
+        vDSP_vaddD(sums, 1, bias, 1, out, 1, Layer<T>::out_size);
+    }
+
     T* bias;
     T** weights;
-    T* prod;
+    T* sums;
 };
 
 } // namespace RTNeural
 
-#endif // DENSEXSIMD_H_INCLUDED
+#endif // DENSEACCELERATE_H_INCLUDED

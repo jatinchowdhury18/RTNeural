@@ -1,10 +1,14 @@
 add_library(RTNeural STATIC
-    activation.h
+    activation/activation.h
+    activation/activation_accelerate.h
+    activation/activation_eigen.h
+    activation/activation_xsimd.h
     Model.h
     Layer.h
     conv1d/conv1d.h
     conv1d/conv1d.tpp
     dense/dense.h
+    dense/dense_accelerate.h
     dense/dense_eigen.h
     dense/dense_xsimd.h
     gru/gru.h
@@ -31,6 +35,10 @@ set_target_properties(RTNeural PROPERTIES LINKER_LANGUAGE CXX)
 # external libraries
 target_include_directories(RTNeural PUBLIC ../modules/Eigen)
 target_include_directories(RTNeural PUBLIC ../modules/xsimd/include)
+
+if(RTNEURAL_ACCELERATE)
+    target_link_libraries(RTNeural PUBLIC "-framework Accelerate")
+endif()
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)

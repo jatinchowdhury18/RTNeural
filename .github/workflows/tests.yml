@@ -47,6 +47,9 @@ jobs:
           name: "xsimd"
           backend: "-DRTNEURAL_XSIMD=ON"
         - os: macos-latest
+          name: "Accelerate"
+          backend: "-DRTNEURAL_ACCELERATE=ON"
+        - os: macos-latest
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
 

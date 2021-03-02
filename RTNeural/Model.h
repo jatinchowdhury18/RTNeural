@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Layer.h"
-#include "activation.h"
+#include "activation/activation.h"
 #include "conv1d/conv1d.h"
 #include "conv1d/conv1d.tpp"
 #include "dense/dense.h"
