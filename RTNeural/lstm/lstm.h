@@ -7,6 +7,9 @@
 #elif defined(USE_XSIMD)
 #include "lstm_xsimd.h"
 #include "lstm_xsimd.tpp"
+#elif defined(USE_ACCELERATE)
+#include "lstm_accelerate.h"
+#include "lstm_accelerate.tpp"
 #else
 #include "../Layer.h"
 #include "../common.h"
