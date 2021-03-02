@@ -13,6 +13,8 @@ add_library(RTNeural STATIC
     dense/dense_xsimd.h
     gru/gru.h
     gru/gru.tpp
+    gru/gru_accelerate.h
+    gru/gru_accelerate.tpp
     gru/gru_eigen.h
     gru/gru_eigen.tpp
     gru/gru_xsimd.h

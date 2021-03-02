@@ -1,9 +1,9 @@
-#include "gru.h"
+#include "gru_accelerate.h"
 
 namespace RTNeural
 {
 
-#if !defined(USE_EIGEN) && !defined(USE_XSIMD) && !defined(USE_ACCELERATE)
+#if !defined(USE_EIGEN) && !defined(USE_XSIMD)
 template <typename T>
 GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     : Layer<T>(in_size, out_size)
@@ -15,6 +15,9 @@ GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     zVec = new T[out_size];
     rVec = new T[out_size];
     cVec = new T[out_size];
+
+    ones = new T[out_size];
+    std::fill(ones, &ones[out_size], (T)1);
 }
 
 template <typename T>
@@ -24,6 +27,8 @@ GRULayer<T>::~GRULayer()
     delete[] zVec;
     delete[] rVec;
     delete[] cVec;
+
+    delete[] ones;
 }
 
 template <typename T>
