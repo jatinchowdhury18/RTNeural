@@ -3,7 +3,6 @@
 namespace RTNeural
 {
 
-#if !defined(USE_EIGEN) && !defined(USE_XSIMD)
 template <typename T>
 GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     : Layer<T>(in_size, out_size)
@@ -200,6 +199,5 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
 
     return set[i][k];
 }
-#endif // !defined(USE_EIGEN) && !defined(USE_XSIMD)
 
 } // namespace RTNeural
