@@ -60,8 +60,8 @@ public:
     T getBias(size_t i) const noexcept { return bias[i]; }
 
 private:
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, float>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
     forward_internal(const float* input, float* out)
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)
@@ -70,8 +70,8 @@ private:
         vDSP_vadd(sums, 1, bias, 1, out, 1, Layer<T>::out_size);
     }
 
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, double>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
     forward_internal(const double* input, double* out)
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)

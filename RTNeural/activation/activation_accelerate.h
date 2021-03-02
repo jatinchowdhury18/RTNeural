@@ -21,19 +21,19 @@ public:
     }
 
 private:
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, float>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
     forward_internal(const float* input, float* out)
     {
-        const auto dim_int = static_cast<int> (Layer<T>::in_size);
+        const auto dim_int = static_cast<int>(Layer<T>::in_size);
         vvtanhf(out, input, &dim_int);
     }
 
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, double>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
     forward_internal(const double* input, double* out)
     {
-        const auto dim_int = static_cast<int> (Layer<T>::in_size);
+        const auto dim_int = static_cast<int>(Layer<T>::in_size);
         vvtanh(out, input, &dim_int);
     }
 };
@@ -54,15 +54,15 @@ public:
     }
 
 private:
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, float>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
     forward_internal(const float* input, float* out)
     {
         vDSP_vmax(input, 1, zeros.data(), 1, out, 1, Layer<T>::in_size);
     }
 
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, double>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
     forward_internal(const double* input, double* out)
     {
         vDSP_vmaxD(input, 1, zeros.data(), 1, out, 1, Layer<T>::in_size);
