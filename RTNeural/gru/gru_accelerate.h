@@ -69,7 +69,7 @@ protected:
             cVec[i] += rVec[i] * (dotpr_out + cWeights.b[1][i]);
         }
         vDSP_vadd(cVec, 1, cWeights.b[0], 1, cVec, 1, Layer<T>::out_size);
-        const auto dim_int = static_cast<int> (Layer<T>::out_size);
+        const auto dim_int = static_cast<int>(Layer<T>::out_size);
         vvtanhf(cVec, cVec, &dim_int);
 
         vDSP_vsub(zVec, 1, ones, 1, h, 1, Layer<T>::out_size);

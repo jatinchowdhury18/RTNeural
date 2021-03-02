@@ -24,8 +24,8 @@ public:
     void setBVals(const std::vector<T>& bVals);
 
 protected:
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, float>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
     forward_internal(const float* input, float* h)
     {
         float dotpr_out;
@@ -62,7 +62,7 @@ protected:
         sigmoid(oVec, oVec, Layer<T>::out_size);
 
         vDSP_vadd(ctVec, 1, cWeights.b, 1, ctVec, 1, Layer<T>::out_size);
-        const auto dim_int = static_cast<int> (Layer<T>::out_size);
+        const auto dim_int = static_cast<int>(Layer<T>::out_size);
         vvtanhf(ctVec, ctVec, &dim_int);
 
         vDSP_vmul(fVec, 1, ct1, 1, cVec, 1, Layer<T>::out_size);
@@ -76,8 +76,8 @@ protected:
         cblas_scopy(Layer<T>::out_size, h, 1, ht1, 1);
     }
 
-    template<typename FloatType = T>
-    inline typename std::enable_if <std::is_same<FloatType, double>::value>::type
+    template <typename FloatType = T>
+    inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
     forward_internal(const double* input, double* h)
     {
         double dotpr_out;
@@ -114,7 +114,7 @@ protected:
         sigmoid(oVec, oVec, Layer<T>::out_size);
 
         vDSP_vaddD(ctVec, 1, cWeights.b, 1, ctVec, 1, Layer<T>::out_size);
-        const auto dim_int = static_cast<int> (Layer<T>::out_size);
+        const auto dim_int = static_cast<int>(Layer<T>::out_size);
         vvtanh(ctVec, ctVec, &dim_int);
 
         vDSP_vmulD(fVec, 1, ct1, 1, cVec, 1, Layer<T>::out_size);
