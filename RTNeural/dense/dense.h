@@ -9,6 +9,8 @@
 #include "dense_eigen.h"
 #elif defined(USE_XSIMD)
 #include "dense_xsimd.h"
+#elif defined(USE_ACCELERATE)
+#include "dense_accelerate.h"
 #else
 #include "../Layer.h"
 
