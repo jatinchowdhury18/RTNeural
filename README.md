@@ -98,11 +98,14 @@ target_link_libraries(MyCMakeProject LINK_PUBLIC RTNeural)
 
 `RTNeural` supports three backends,
 [`Eigen`](http://eigen.tuxfamily.org/),
-[`xsimd`](https://github.com/xtensor-stack/xsimd)
+[`xsimd`](https://github.com/xtensor-stack/xsimd),
+[`Accelerate`](https://developer.apple.com/documentation/accelerate),
 or the C++ STL. You can choose your backend by passing
-either `-DRTNEURAL_EIGEN=ON`, `-DRTNEURAL_XSIMD=ON`, or
-`-DRTNEURAL_STL=ON` to your CMake configuration. By default,
-the `Eigen` backend will be used.
+either `-DRTNEURAL_EIGEN=ON`, `-DRTNEURAL_XSIMD=ON`, 
+`-DRTNEURAL_ACCELERATEE=ON`, or `-DRTNEURAL_STL=ON`
+to your CMake configuration. By default, the `Eigen`
+backend will be used. Please note that the `Accelerate`
+backend can only be used when compiling for Apple devices.
 
 While the `Eigen` backend typically has the best performance,
 it is recommended to measure the performance of your network

@@ -14,6 +14,7 @@ GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     zVec = new T[out_size];
     rVec = new T[out_size];
     cVec = new T[out_size];
+    cTmp = new T[out_size];
 
     ones = new T[out_size];
     std::fill(ones, &ones[out_size], (T)1);
@@ -26,6 +27,7 @@ GRULayer<T>::~GRULayer()
     delete[] zVec;
     delete[] rVec;
     delete[] cVec;
+    delete[] cTmp;
 
     delete[] ones;
 }

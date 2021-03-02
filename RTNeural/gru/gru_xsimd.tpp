@@ -14,6 +14,7 @@ GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     zVec = new T[out_size];
     rVec = new T[out_size];
     cVec = new T[out_size];
+    cTmp = new T[out_size];
 
     prod_in = new T[in_size];
     prod_out = new T[out_size];
@@ -29,6 +30,7 @@ GRULayer<T>::~GRULayer()
     delete[] zVec;
     delete[] rVec;
     delete[] cVec;
+    delete[] cTmp;
 
     delete[] prod_in;
     delete[] prod_out;

@@ -22,6 +22,8 @@ public:
         {
             zVec[i] = vMult(zWeights.W[i], input, prod_in, Layer<T>::in_size) + vMult(zWeights.U[i], ht1, prod_out, Layer<T>::out_size);
             rVec[i] = vMult(rWeights.W[i], input, prod_in, Layer<T>::in_size) + vMult(rWeights.U[i], ht1, prod_out, Layer<T>::out_size);
+            cVec[i] = vMult(cWeights.W[i], input, prod_in, Layer<T>::in_size);
+            cTmp[i] = vMult(cWeights.U[i], ht1, prod_out, Layer<T>::out_size);
         }
 
         vAdd(zVec, zWeights.b[0], zVec, Layer<T>::out_size);
@@ -32,8 +34,9 @@ public:
         vAdd(rVec, rWeights.b[1], rVec, Layer<T>::out_size);
         sigmoid(rVec, rVec, Layer<T>::out_size);
 
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
-            cVec[i] = vMult(cWeights.W[i], input, prod_in, Layer<T>::in_size) + rVec[i] * (vMult(cWeights.U[i], ht1, prod_out, Layer<T>::out_size) + cWeights.b[1][i]);
+        vAdd(cTmp, cWeights.b[1], cTmp, Layer<T>::out_size);
+        vProd(cTmp, rVec, cTmp, Layer<T>::out_size);
+        vAdd(cTmp, cVec, cVec, Layer<T>::out_size);
         vAdd(cVec, cWeights.b[0], cVec, Layer<T>::out_size);
         tanh(cVec, cVec, Layer<T>::out_size);
 
@@ -78,6 +81,7 @@ protected:
     T* zVec;
     T* rVec;
     T* cVec;
+    T* cTmp;
 
     T* prod_in;
     T* prod_out;
