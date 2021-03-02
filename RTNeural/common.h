@@ -119,24 +119,8 @@ static inline void tanh(const T* in, T* out, size_t dim) noexcept
 #elif defined(USE_ACCELERATE)
 #include <Accelerate/Accelerate.h>
 
-#include <algorithm>
-#include <cmath>
-#include <numeric>
-
 namespace RTNeural
 {
-
-template <typename T>
-static inline T vMult(const T* arg1, const T* arg2, size_t dim) noexcept
-{
-    return std::inner_product(arg1, arg1 + dim, arg2, (T)0);
-}
-
-template <typename T>
-static inline T sigmoid(T value) noexcept
-{
-    return (T)1 / ((T)1 + std::exp(-value));
-}
 
 static inline void sigmoid(const float* in, float* out, size_t dim) noexcept
 {
