@@ -43,7 +43,7 @@ public:
         vAdd(cVec, prod_out, cVec, Layer<T>::out_size);
 
         tanh(cVec, h, Layer<T>::out_size);
-        vMult(h, oVec, h, Layer<T>::out_size);
+        vProd(h, oVec, h, Layer<T>::out_size);
 
         vCopy(cVec, ct1, Layer<T>::out_size);
         vCopy(h, ht1, Layer<T>::out_size);

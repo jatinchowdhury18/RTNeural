@@ -1,9 +1,7 @@
-#include "lstm.h"
+#include "lstm_accelerate.h"
 
 namespace RTNeural
 {
-
-#if !defined(USE_EIGEN) && !defined(USE_XSIMD) && !defined(USE_ACCELERATE)
 
 template <typename T>
 LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
@@ -114,7 +112,5 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
         oWeights.b[k] = bVals[k + Layer<T>::out_size * 3];
     }
 }
-
-#endif // !defined(USE_EIGEN) && !defined(USE_XSIMD)
 
 } // namespace RTNeural

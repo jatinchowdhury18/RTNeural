@@ -1,4 +1,4 @@
-#include "gru_xsimd.h"
+#include "gru_accelerate.h"
 
 namespace RTNeural
 {
@@ -16,9 +16,6 @@ GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     cVec = new T[out_size];
     cTmp = new T[out_size];
 
-    prod_in = new T[in_size];
-    prod_out = new T[out_size];
-
     ones = new T[out_size];
     std::fill(ones, &ones[out_size], (T)1);
 }
@@ -32,8 +29,6 @@ GRULayer<T>::~GRULayer()
     delete[] cVec;
     delete[] cTmp;
 
-    delete[] prod_in;
-    delete[] prod_out;
     delete[] ones;
 }
 

@@ -1,9 +1,7 @@
-#include "conv1d.h"
+#include "conv1d_accelerate.h"
 
 namespace RTNeural
 {
-
-#if !defined(USE_EIGEN) && !defined(USE_XSIMD) && !defined(USE_ACCELERATE)
 
 template <typename T>
 Conv1D<T>::Conv1D(size_t in_size, size_t out_size, size_t kernel_size, size_t dilation)
@@ -72,7 +70,5 @@ void Conv1D<T>::setBias(const std::vector<T>& biasVals)
     for(size_t i = 0; i < Layer<T>::out_size; ++i)
         bias[i] = biasVals[i];
 }
-
-#endif
 
 } // namespace RTNeural
