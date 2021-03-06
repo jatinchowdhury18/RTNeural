@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../modules/json/json.hpp"
 #include "Model.h"
 #include <fstream>
 #include <iostream>
+#include <json.hpp>
 #include <memory>
 #include <string>
 
@@ -107,10 +107,10 @@ namespace json_parser
             w.resize(3 * out_size, (T)0);
 
         auto layerWeights2 = weights[1];
-        for(int i = 0; i < layerWeights2.size(); ++i)
+        for(size_t i = 0; i < layerWeights2.size(); ++i)
         {
             auto lw = layerWeights2[i];
-            for(int j = 0; j < lw.size(); ++j)
+            for(size_t j = 0; j < lw.size(); ++j)
                 recurrentWeights[i][j] = lw[j].get<T>();
         }
 
@@ -122,10 +122,10 @@ namespace json_parser
             b.resize(3 * out_size, (T)0);
 
         auto layerBias = weights[2];
-        for(int i = 0; i < layerBias.size(); ++i)
+        for(size_t i = 0; i < layerBias.size(); ++i)
         {
             auto lw = layerBias[i];
-            for(int j = 0; j < lw.size(); ++j)
+            for(size_t j = 0; j < lw.size(); ++j)
                 gruBias[i][j] = lw[j].get<T>();
         }
 
@@ -162,10 +162,10 @@ namespace json_parser
             w.resize(4 * out_size, (T)0);
 
         auto layerWeights2 = weights[1];
-        for(int i = 0; i < layerWeights2.size(); ++i)
+        for(size_t i = 0; i < layerWeights2.size(); ++i)
         {
             auto lw = layerWeights2[i];
-            for(int j = 0; j < lw.size(); ++j)
+            for(size_t j = 0; j < lw.size(); ++j)
                 recurrentWeights[i][j] = lw[j].get<T>();
         }
 
@@ -222,20 +222,20 @@ namespace json_parser
             debug_print("Layer: " + type, debug);
 
             const auto layerShape = l["shape"];
-            const auto layerDims = layerShape.back().get<int>();
+            const auto layerDims = layerShape.back().get<size_t>();
             debug_print("  Dims: " + std::to_string(layerDims), debug);
 
             const auto weights = l["weights"];
 
-            auto add_activation = [=](std::unique_ptr<Model<T>>& model, const nlohmann::json& l) {
-                if(l.contains("activation"))
+            auto add_activation = [=](std::unique_ptr<Model<T>>& _model, const nlohmann::json& _l) {
+                if(_l.contains("activation"))
                 {
-                    const auto activationType = l["activation"].get<std::string>();
+                    const auto activationType = _l["activation"].get<std::string>();
                     if(!activationType.empty())
                     {
                         debug_print("  activation: " + activationType, debug);
                         auto activation = createActivation<T>(activationType, layerDims);
-                        model->addLayer(activation.release());
+                        _model->addLayer(activation.release());
                     }
                 }
             };
@@ -248,8 +248,8 @@ namespace json_parser
             }
             else if(type == "conv1d")
             {
-                const auto kernel_size = l["kernel_size"].back().get<int>();
-                const auto dilation = l["dilation"].back().get<int>();
+                const auto kernel_size = l["kernel_size"].back().get<size_t>();
+                const auto dilation = l["dilation"].back().get<size_t>();
 
                 auto conv = createConv1D<T>(model->getNextInSize(), layerDims, kernel_size, dilation, weights);
                 model->addLayer(conv.release());
