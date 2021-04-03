@@ -70,6 +70,11 @@ public:
         return outs.back()[0];
     }
 
+    inline T* getOutputs() const noexcept
+    {
+        return outs.back();
+    }
+
     std::vector<Layer<T>*> layers;
 
 private:

@@ -41,6 +41,8 @@ public:
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
     void setBias(const std::vector<T>& biasVals);
 
+    size_t getKernelSize() const noexcept { return kernel_size; }
+
 private:
     const size_t dilation_rate;
     const size_t kernel_size;
