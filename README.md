@@ -102,7 +102,7 @@ target_link_libraries(MyCMakeProject LINK_PUBLIC RTNeural)
 [`Accelerate`](https://developer.apple.com/documentation/accelerate),
 or the C++ STL. You can choose your backend by passing
 either `-DRTNEURAL_EIGEN=ON`, `-DRTNEURAL_XSIMD=ON`, 
-`-DRTNEURAL_ACCELERATEE=ON`, or `-DRTNEURAL_STL=ON`
+`-DRTNEURAL_ACCELERATE=ON`, or `-DRTNEURAL_STL=ON`
 to your CMake configuration. By default, the `Eigen`
 backend will be used. Please note that the `Accelerate`
 backend can only be used when compiling for Apple devices.
@@ -133,8 +133,10 @@ To build the performance benchmarks, run
 Contributions to this project are most welcome!
 Currently, there is considerable need for the
 following improvements:
-- Support for convolution layers
-- Support for LSTMs
+- Better implementation of convolutional layers:
+  - Faster implementations for Eigen and XSimd
+  - Implement more options (grouping, stride, etc...)
+  - Implement COnv2D
 - Support for exporting/loading PyTorch models
 - More robust support for exporting/loading Tensorflow models
 - Support for more activation layers
