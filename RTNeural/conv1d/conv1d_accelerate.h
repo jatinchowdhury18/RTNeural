@@ -26,7 +26,7 @@ public:
             state[k][state_ptr + state_size] = input[k];
         }
 
-        conv_internal(input, h);
+        conv_internal(h);
 
         state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
     }
@@ -39,7 +39,7 @@ public:
 private:
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
-    conv_internal(const float* input, float* h)
+    conv_internal(float* h)
     {
         float dotpr_out;
         for(size_t i = 0; i < Layer<T>::out_size; ++i)
@@ -57,7 +57,7 @@ private:
 
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
-    conv_internal(const double* input, double* h)
+    conv_internal(double* h)
     {
         double dotpr_out;
         for(size_t i = 0; i < Layer<T>::out_size; ++i)

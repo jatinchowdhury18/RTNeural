@@ -17,7 +17,7 @@ public:
         sums = new T[out_size];
         bias = new T[out_size];
         weights = new T*[out_size];
-        for(int i = 0; i < out_size; ++i)
+        for(size_t i = 0; i < out_size; ++i)
             weights[i] = new T[in_size];
     }
 
@@ -25,7 +25,7 @@ public:
     {
         delete[] bias;
         delete[] sums;
-        for(int i = 0; i < Layer<T>::out_size; ++i)
+        for(size_t i = 0; i < Layer<T>::out_size; ++i)
             delete[] weights[i];
         delete[] weights;
     }
@@ -74,7 +74,7 @@ private:
     inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
     forward_internal(const double* input, double* out)
     {
-        for(int l = 0; l < Layer<T>::out_size; ++l)
+        for(size_t l = 0; l < Layer<T>::out_size; ++l)
             vDSP_dotprD(input, 1, weights[l], 1, &sums[l], Layer<T>::in_size);
 
         vDSP_vaddD(sums, 1, bias, 1, out, 1, Layer<T>::out_size);

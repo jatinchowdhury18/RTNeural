@@ -17,7 +17,7 @@ public:
         prod = new T[in_size];
         bias = new T[out_size];
         weights = new T*[out_size];
-        for(int i = 0; i < out_size; ++i)
+        for(size_t i = 0; i < out_size; ++i)
             weights[i] = new T[in_size];
     }
 
@@ -25,14 +25,14 @@ public:
     {
         delete[] bias;
         delete[] prod;
-        for(int i = 0; i < Layer<T>::out_size; ++i)
+        for(size_t i = 0; i < Layer<T>::out_size; ++i)
             delete[] weights[i];
         delete[] weights;
     }
 
     inline void forward(const T* input, T* out) override
     {
-        for(int l = 0; l < Layer<T>::out_size; ++l)
+        for(size_t l = 0; l < Layer<T>::out_size; ++l)
         {
             xsimd::transform(input, &input[Layer<T>::in_size], weights[l], prod,
                 [](auto const& a, auto const& b) { return a * b; });
