@@ -127,8 +127,8 @@ protected:
         vvtanh(h, cVec, &dim_int);
         vDSP_vmulD(h, 1, oVec, 1, h, 1, Layer<T>::out_size);
 
-        cblas_dcopy((int) Layer<T>::out_size, cVec, 1, ct1, 1);
-        cblas_dcopy((int) Layer<T>::out_size, h, 1, ht1, 1);
+        cblas_dcopy((int)Layer<T>::out_size, cVec, 1, ct1, 1);
+        cblas_dcopy((int)Layer<T>::out_size, h, 1, ht1, 1);
     }
 
     T* ht1;

@@ -22,7 +22,7 @@ public:
     }
 
     Dense(std::initializer_list<size_t> sizes)
-        : Dense (*sizes.begin(), *(sizes.begin() + 1))
+        : Dense(*sizes.begin(), *(sizes.begin() + 1))
     {
     }
 
@@ -33,7 +33,7 @@ public:
 
     Dense& operator=(const Dense& other)
     {
-         return *this = Dense(other);
+        return *this = Dense(other);
     }
 
     virtual ~Dense() { }
