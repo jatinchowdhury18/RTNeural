@@ -1,5 +1,6 @@
 #include "load_csv.hpp"
 #include "util_tests.h"
+#include "modelt_test.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -108,6 +109,8 @@ int main(int argc, char* argv[])
         help();
         return 1;
     }
+
+    modelt_test();
 
     if(arg == "all")
     {
