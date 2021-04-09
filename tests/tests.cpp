@@ -1,5 +1,5 @@
 #include "load_csv.hpp"
-#include <RTNeural.h>
+#include "util_tests.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -35,8 +35,8 @@ void help()
     std::cout << std::endl;
     std::cout << "Available test types are:" << std::endl;
 
-    std::cout << "    "
-              << "all" << std::endl;
+    std::cout << "    all" << std::endl;
+    std::cout << "    util" << std::endl;
     for(auto& testConfig : tests)
         std::cout << "    " << testConfig.first << std::endl;
 }
@@ -111,11 +111,19 @@ int main(int argc, char* argv[])
 
     if(arg == "all")
     {
+        util_test();
+
         int result = 0;
         for(auto& testConfig : tests)
             result |= runTest<TestType>(testConfig.second);
 
         return result;
+    }
+
+    if(arg == "util")
+    {
+        util_test();
+        return 0;
     }
 
     if(tests.find(arg) != tests.end())

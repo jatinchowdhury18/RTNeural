@@ -13,6 +13,9 @@ class GRULayer : public Layer<T>
 {
 public:
     GRULayer(size_t in_size, size_t out_size);
+    GRULayer(std::initializer_list<size_t> sizes);
+    GRULayer(const GRULayer& other);
+    GRULayer& operator=(const GRULayer& other);
     virtual ~GRULayer();
 
     void reset() override { std::fill(ht1, ht1 + Layer<T>::out_size, (T)0); }
@@ -124,7 +127,7 @@ protected:
         vDSP_vmulD(zVec, 1, ht1, 1, ht1, 1, Layer<T>::out_size);
         vDSP_vaddD(h, 1, ht1, 1, h, 1, Layer<T>::out_size);
 
-        cblas_dcopy((int) Layer<T>::out_size, h, 1, ht1, 1);
+        cblas_dcopy((int)Layer<T>::out_size, h, 1, ht1, 1);
     }
 
     T* ht1;
