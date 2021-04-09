@@ -25,6 +25,24 @@ LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
 }
 
 template <typename T>
+LSTMLayer<T>::LSTMLayer(std::initializer_list<size_t> sizes)
+    : LSTMLayer<T>(*sizes.begin(), *(sizes.begin() + 1))
+{
+}
+
+template <typename T>
+LSTMLayer<T>::LSTMLayer(const LSTMLayer& other)
+    : LSTMLayer<T>(other.in_size, other.out_size)
+{
+}
+
+template <typename T>
+LSTMLayer<T>& LSTMLayer<T>::operator=(const LSTMLayer<T>& other)
+{
+    return *this = LSTMLayer<T>(other);
+}
+
+template <typename T>
 LSTMLayer<T>::~LSTMLayer()
 {
     delete[] ht1;

@@ -29,6 +29,24 @@ GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
 }
 
 template <typename T>
+GRULayer<T>::GRULayer(std::initializer_list<size_t> sizes)
+    : GRULayer<T>(*sizes.begin(), *(sizes.begin() + 1))
+{
+}
+
+template <typename T>
+GRULayer<T>::GRULayer(const GRULayer<T>& other)
+    : GRULayer<T>(other.in_size, other.out_size)
+{
+}
+
+template <typename T>
+GRULayer<T>& GRULayer<T>::operator=(const GRULayer<T>& other)
+{
+    return *this = GRULayer<T>(other);
+}
+
+template <typename T>
 void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(size_t i = 0; i < Layer<T>::in_size; ++i)
