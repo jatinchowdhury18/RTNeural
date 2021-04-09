@@ -13,6 +13,9 @@ class Conv1D : public Layer<T>
 {
 public:
     Conv1D(size_t in_size, size_t out_size, size_t kernel_size, size_t dilation);
+    Conv1D(std::initializer_list<size_t> sizes);
+    Conv1D(const Conv1D& other);
+    Conv1D& operator=(const Conv1D& other);
     virtual ~Conv1D();
 
     void reset() override;

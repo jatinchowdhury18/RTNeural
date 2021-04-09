@@ -21,6 +21,21 @@ public:
         outVec.resize(out_size, 1);
     }
 
+    Dense(std::initializer_list<size_t> sizes)
+        : Dense (*sizes.begin(), *(sizes.begin() + 1))
+    {
+    }
+
+    Dense(const Dense& other)
+        : Dense(other.in_size, other.out_size)
+    {
+    }
+
+    Dense& operator=(const Dense& other)
+    {
+         return *this = Dense(other);
+    }
+
     virtual ~Dense() { }
 
     inline void forward(const T* input, T* out) override

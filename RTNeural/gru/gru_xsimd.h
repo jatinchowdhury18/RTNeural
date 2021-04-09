@@ -12,6 +12,9 @@ class GRULayer : public Layer<T>
 {
 public:
     GRULayer(size_t in_size, size_t out_size);
+    GRULayer(std::initializer_list<size_t> sizes);
+    GRULayer(const GRULayer& other);
+    GRULayer& operator=(const GRULayer& other);
     virtual ~GRULayer();
 
     void reset() override { std::fill(ht1, ht1 + Layer<T>::out_size, (T)0); }

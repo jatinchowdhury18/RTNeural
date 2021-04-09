@@ -65,6 +65,21 @@ public:
             subLayers[i] = new Dense1<T>(in_size);
     }
 
+    Dense(std::initializer_list<size_t> sizes)
+        : Dense (*sizes.begin(), *(sizes.begin() + 1))
+    {
+    }
+
+    Dense(const Dense& other)
+        : Dense(other.in_size, other.out_size)
+    {
+    }
+
+    Dense& operator=(const Dense& other)
+    {
+         return *this = Dense(other);
+    }
+
     virtual ~Dense()
     {
         for(size_t i = 0; i < Layer<T>::out_size; ++i)

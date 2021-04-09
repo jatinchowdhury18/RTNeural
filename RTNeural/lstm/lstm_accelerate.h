@@ -11,6 +11,9 @@ class LSTMLayer : public Layer<T>
 {
 public:
     LSTMLayer(size_t in_size, size_t out_size);
+    LSTMLayer(std::initializer_list<size_t> sizes);
+    LSTMLayer(const LSTMLayer& other);
+    LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer();
 
     void reset() override;

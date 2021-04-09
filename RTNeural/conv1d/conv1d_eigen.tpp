@@ -21,6 +21,24 @@ Conv1D<T>::Conv1D(size_t in_size, size_t out_size, size_t kernel_size, size_t di
 }
 
 template <typename T>
+Conv1D<T>::Conv1D(std::initializer_list<size_t> sizes)
+    : Conv1D<T>(*sizes.begin(), *(sizes.begin() + 1), *(sizes.begin() + 2), *(sizes.begin() + 3))
+{
+}
+
+template <typename T>
+Conv1D<T>::Conv1D(const Conv1D<T>& other)
+    : Conv1D<T>(other.in_size, other.out_size, other.kernel_size, other.dilation_rate)
+{
+}
+
+template <typename T>
+Conv1D<T>& Conv1D<T>::operator=(const Conv1D<T>& other)
+{
+    return *this = Conv1D<T>(other);
+}
+
+template <typename T>
 Conv1D<T>::~Conv1D()
 {
 }
