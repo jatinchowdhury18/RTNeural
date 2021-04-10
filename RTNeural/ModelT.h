@@ -16,7 +16,8 @@ namespace modelt_detail
 {
 
 /** Useful for parsing constructor args */
-using Liter = std::initializer_list<size_t>::const_iterator;
+using init_list = std::initializer_list<std::initializer_list<size_t>>;
+using Liter = init_list::const_iterator;
 
 /** Forward declaration. */
 template <typename... Layers>
@@ -28,7 +29,7 @@ struct MakeLayersTupleImpl<Layer>
 {
     std::tuple<Layer> operator()(Liter begin, Liter /*end*/) const
     {
-        return std::tuple<Layer> (Layer (*begin, *(begin + 1)));
+        return std::tuple<Layer> (Layer (*begin));
     }
 };
 
@@ -45,7 +46,7 @@ struct MakeLayersTupleImpl<Layer, Layers...>
 
 /* Delegate function. */
 template <typename... Layers>
-std::tuple<Layers...> makeLayersTuple(std::initializer_list<size_t> l)
+std::tuple<Layers...> makeLayersTuple(init_list l)
 {
     return MakeLayersTupleImpl<Layers...>()(l.begin(), l.end());
 }
@@ -92,9 +93,10 @@ template <typename T, typename... Layers>
 class ModelT
 {
 public:
-    ModelT(std::initializer_list<size_t> sizes)
+    using init_list = std::initializer_list<std::initializer_list<size_t>>;
+    ModelT(std::initializer_list<size_t> sizes, init_list layer_inits)
         : in_size(*sizes.begin()),
-          layers(modelt_detail::makeLayersTuple<Layers...>(sizes))
+          layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
     {
         std::cout << "Constructing..." << std::endl;
         for (size_t i = 0; i < sizes.size(); ++i)
