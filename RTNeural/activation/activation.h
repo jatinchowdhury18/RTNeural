@@ -17,8 +17,6 @@ public:
     {
     }
 
-    virtual ~Activation() { }
-
     inline void forward(const T* input, T* out) override
     {
         for(size_t i = 0; i < Layer<T>::out_size; ++i)
@@ -55,6 +53,11 @@ public:
         : Activation<T>(size, [](T x) { return std::tanh(x); })
     {
     }
+
+    TanhActivation(std::initializer_list<size_t> sizes)
+        : TanhActivation(*sizes.begin())
+    {
+    }
 };
 
 template <typename T>
@@ -65,6 +68,11 @@ public:
         : Activation<T>(size, [](T x) { return std::max((T)0, x); })
     {
     }
+
+    ReLuActivation(std::initializer_list<size_t> sizes)
+        : ReluActivation(*sizes.begin())
+    {
+    }
 };
 
 template <typename T>
@@ -73,6 +81,11 @@ class SigmoidActivation : public Activation<T>
 public:
     SigmoidActivation(size_t size)
         : Activation<T>(size, [](T x) { return sigmoid(x); })
+    {
+    }
+
+    SigmoidActivation(std::initializer_list<size_t> sizes)
+        : SigmoidActivation(*sizes.begin())
     {
     }
 };

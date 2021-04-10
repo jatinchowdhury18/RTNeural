@@ -15,6 +15,11 @@ public:
     {
     }
 
+    TanhActivation(std::initializer_list<size_t> sizes)
+        : TanhActivation(*sizes.begin())
+    {
+    }
+
     inline void forward(const T* input, T* out) override
     {
         tanh(input, out, Layer<T>::in_size);
@@ -29,6 +34,11 @@ public:
         : Activation<T>(size, {})
     {
         zeros.resize(size, (T)0);
+    }
+
+    ReluActivation(std::initializer_list<size_t> sizes)
+        : ReluActivation(*sizes.begin())
+    {
     }
 
     inline void forward(const T* input, T* out) override
@@ -47,6 +57,11 @@ class SigmoidActivation : public Activation<T>
 public:
     SigmoidActivation(size_t size)
         : Activation<T>(size, {})
+    {
+    }
+
+    SigmoidActivation(std::initializer_list<size_t> sizes)
+        : SigmoidActivation(*sizes.begin())
     {
     }
 
