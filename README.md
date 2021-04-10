@@ -14,6 +14,8 @@ Currently supported layers:
   - [x] GRU
   - [x] LSTM
   - [x] Conv1D
+  - [ ] MaxPooling
+  - [ ] BatchNorm
 
 Currently supported activations:
   - [x] tanh
