@@ -1,6 +1,6 @@
 #include <RTNeural.h>
 
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     RTNeural::ModelT<float,
         RTNeural::Dense<float>,
@@ -8,21 +8,21 @@ int main (int argc, char* argv[])
         RTNeural::Conv1D<float>,
         RTNeural::TanhActivation<float>,
         RTNeural::GRULayer<float>,
-        RTNeural::Dense<float>
-    > model ({ 1, 8, 8, 4, 4, 8, 1 }, {
-        { 1, 8 }, // Dense
-        { 8 }, // Tanh
-        { 8, 4, 3, 2 }, // Conv1D
-        { 4 }, // Tanh
-        { 4, 8 }, // GRU
-        { 8, 1 } // Dense
-    });
+        RTNeural::Dense<float>>
+        model({ 1, 8, 8, 4, 4, 8, 1 }, {
+                                           { 1, 8 }, // Dense
+                                           { 8 }, // Tanh
+                                           { 8, 4, 3, 2 }, // Conv1D
+                                           { 4 }, // Tanh
+                                           { 4, 8 }, // GRU
+                                           { 8, 1 } // Dense
+                                       });
 
     std::ifstream jsonStream("models/full_model.json", std::ifstream::binary);
     model.parseJson(jsonStream, true);
 
     model.reset();
-    
+
     float x[] = { 2.0f, 4.0f };
-    model.forward (x);
+    model.forward(x);
 }

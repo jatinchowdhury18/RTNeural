@@ -54,7 +54,8 @@ class TanhActivation : public Activation<T>
 {
 public:
     TanhActivation(size_t size)
-        : Activation<T>(size, [](T x) { return std::tanh(x); }, "tanh")
+        : Activation<T>(
+            size, [](T x) { return std::tanh(x); }, "tanh")
     {
     }
 
@@ -69,7 +70,8 @@ class ReLuActivation : public Activation<T>
 {
 public:
     ReLuActivation(size_t size)
-        : Activation<T>(size, [](T x) { return std::max((T)0, x); }, "relu")
+        : Activation<T>(
+            size, [](T x) { return std::max((T)0, x); }, "relu")
     {
     }
 
@@ -84,7 +86,8 @@ class SigmoidActivation : public Activation<T>
 {
 public:
     SigmoidActivation(size_t size)
-        : Activation<T>(size, [](T x) { return sigmoid(x); }, "sigmoid")
+        : Activation<T>(
+            size, [](T x) { return sigmoid(x); }, "sigmoid")
     {
     }
 

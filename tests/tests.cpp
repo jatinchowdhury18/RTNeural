@@ -1,6 +1,6 @@
 #include "load_csv.hpp"
-#include "util_tests.hpp"
 #include "model_test.hpp"
+#include "util_tests.hpp"
 #include <iostream>
 #include <map>
 #include <string>

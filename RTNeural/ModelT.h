@@ -15,77 +15,78 @@ namespace RTNeural
 namespace modelt_detail
 {
 
-/** Useful for parsing constructor args */
-using init_list = std::initializer_list<std::initializer_list<size_t>>;
-using Liter = init_list::const_iterator;
+    /** Useful for parsing constructor args */
+    using init_list = std::initializer_list<std::initializer_list<size_t>>;
+    using Liter = init_list::const_iterator;
 
-/** Forward declaration. */
-template <typename... Layers>
-struct MakeLayersTupleImpl;
+    /** Forward declaration. */
+    template <typename... Layers>
+    struct MakeLayersTupleImpl;
 
-/** Base case. */
-template <typename Layer>
-struct MakeLayersTupleImpl<Layer>
-{
-    std::tuple<Layer> operator()(Liter begin, Liter /*end*/) const
+    /** Base case. */
+    template <typename Layer>
+    struct MakeLayersTupleImpl<Layer>
     {
-        return std::tuple<Layer> (Layer (*begin));
-    }
-};
+        std::tuple<Layer> operator()(Liter begin, Liter /*end*/) const
+        {
+            return std::tuple<Layer>(Layer(*begin));
+        }
+    };
 
-/* Recursive case. */
-template <typename Layer, typename... Layers>
-struct MakeLayersTupleImpl<Layer, Layers...>
-{
-    std::tuple<Layer, Layers...> operator()(Liter begin, Liter end) const
+    /* Recursive case. */
+    template <typename Layer, typename... Layers>
+    struct MakeLayersTupleImpl<Layer, Layers...>
     {
-        return std::tuple_cat(MakeLayersTupleImpl<Layer>()(begin, end),
-                              MakeLayersTupleImpl<Layers...>()(begin + 1, end));
+        std::tuple<Layer, Layers...> operator()(Liter begin, Liter end) const
+        {
+            return std::tuple_cat(MakeLayersTupleImpl<Layer>()(begin, end),
+                MakeLayersTupleImpl<Layers...>()(begin + 1, end));
+        }
+    };
+
+    /* Delegate function. */
+    template <typename... Layers>
+    std::tuple<Layers...> makeLayersTuple(init_list l)
+    {
+        return MakeLayersTupleImpl<Layers...>()(l.begin(), l.end());
     }
-};
 
-/* Delegate function. */
-template <typename... Layers>
-std::tuple<Layers...> makeLayersTuple(init_list l)
-{
-    return MakeLayersTupleImpl<Layers...>()(l.begin(), l.end());
-}
+    /** utils for making offset index sequences */
+    template <std::size_t N, typename Seq>
+    struct offset_sequence;
 
-/** utils for making offset index sequences */
-template<std::size_t N, typename Seq> struct offset_sequence;
+    template <std::size_t N, std::size_t... Ints>
+    struct offset_sequence<N, std::index_sequence<Ints...>>
+    {
+        using type = std::index_sequence<Ints + N...>;
+    };
+    template <std::size_t N, typename Seq>
+    using offset_sequence_t = typename offset_sequence<N, Seq>::type;
 
-template<std::size_t N, std::size_t... Ints>
-struct offset_sequence<N, std::index_sequence<Ints...>>
-{
- using type = std::index_sequence<Ints + N...>;
-};
-template<std::size_t N, typename Seq>
-using offset_sequence_t = typename offset_sequence<N, Seq>::type;
+    /** Functions to do a function for each element in the tuple */
+    template <typename Fn, typename Tuple, size_t... Ix>
+    constexpr void forEachInTuple(Fn&& fn, Tuple&& tuple, std::index_sequence<Ix...>) noexcept(noexcept(std::initializer_list<int> { (fn(std::get<Ix>(tuple), Ix), 0)... }))
+    {
+        (void)std::initializer_list<int> { ((void)fn(std::get<Ix>(tuple), Ix), 0)... };
+    }
 
-/** Functions to do a function for each element in the tuple */
-template <typename Fn, typename Tuple, size_t... Ix>
-constexpr void forEachInTuple (Fn&& fn, Tuple&& tuple, std::index_sequence<Ix...>) noexcept (noexcept (std::initializer_list<int> { (fn (std::get<Ix> (tuple), Ix), 0)... }))
-{
-    (void) std::initializer_list<int> { ((void) fn (std::get<Ix> (tuple), Ix), 0)... };
-}
+    template <typename T>
+    using TupleIndexSequence = std::make_index_sequence<std::tuple_size<std::remove_cv_t<std::remove_reference_t<T>>>::value>;
 
-template <typename T>
-using TupleIndexSequence = std::make_index_sequence<std::tuple_size<std::remove_cv_t<std::remove_reference_t<T>>>::value>;
+    template <typename Fn, typename Tuple>
+    constexpr void forEachInTuple(Fn&& fn, Tuple&& tuple) noexcept(noexcept(forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequence<Tuple> {})))
+    {
+        forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequence<Tuple> {});
+    }
 
-template <typename Fn, typename Tuple>
-constexpr void forEachInTuple (Fn&& fn, Tuple&& tuple) noexcept (noexcept (forEachInTuple (std::forward<Fn> (fn), std::forward<Tuple> (tuple), TupleIndexSequence<Tuple> {})))
-{
-    forEachInTuple (std::forward<Fn> (fn), std::forward<Tuple> (tuple), TupleIndexSequence<Tuple> {});
-}
+    template <size_t start, size_t num>
+    using TupleIndexSequenceRange = offset_sequence_t<start, std::make_index_sequence<num>>;
 
-template<size_t start, size_t num>
-using TupleIndexSequenceRange = offset_sequence_t<start, std::make_index_sequence<num>>;
-
-template <size_t start, size_t num, typename Fn, typename Tuple>
-constexpr void forEachInTupleRange (Fn&& fn, Tuple&& tuple) noexcept (noexcept (forEachInTuple (std::forward<Fn> (fn), std::forward<Tuple> (tuple), TupleIndexSequenceRange<start, num> {})))
-{
-    forEachInTuple (std::forward<Fn> (fn), std::forward<Tuple> (tuple), TupleIndexSequenceRange<start, num> {});
-}
+    template <size_t start, size_t num, typename Fn, typename Tuple>
+    constexpr void forEachInTupleRange(Fn&& fn, Tuple&& tuple) noexcept(noexcept(forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {})))
+    {
+        forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {});
+    }
 
 } // namespace modelt_detail
 
@@ -95,13 +96,13 @@ class ModelT
 public:
     using init_list = std::initializer_list<std::initializer_list<size_t>>;
     ModelT(std::initializer_list<size_t> sizes, init_list layer_inits)
-        : in_size(*sizes.begin()),
-          layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
+        : in_size(*sizes.begin())
+        , layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
     {
-        for (size_t i = 1; i < sizes.size(); ++i)
+        for(size_t i = 1; i < sizes.size(); ++i)
         {
             auto out_size = *(sizes.begin() + i);
-            outs[i-1] = new T[out_size];
+            outs[i - 1] = new T[out_size];
         }
     }
 
@@ -115,28 +116,29 @@ public:
     template <int Index>
     auto& get() noexcept
     {
-        return std::get<Index> (layers);
+        return std::get<Index>(layers);
     }
 
     /** Get a reference to the layer at index `Index`. */
     template <int Index>
     const auto& get() const noexcept
     {
-        return std::get<Index> (layers);
+        return std::get<Index>(layers);
     }
 
     void reset()
     {
-        modelt_detail::forEachInTuple ([&] (auto& layer, size_t) { layer.reset(); }, layers);
+        modelt_detail::forEachInTuple([&](auto& layer, size_t) { layer.reset(); }, layers);
     }
 
     inline T forward(const T* input)
     {
         std::get<0>(layers).forward(input, outs[0]);
 
-        modelt_detail::forEachInTupleRange<1, n_layers-1> ([&] (auto& layer, size_t i) { 
-            layer.forward (outs[i-1], outs[i]);
-        }, layers);
+        modelt_detail::forEachInTupleRange<1, n_layers - 1>([&](auto& layer, size_t i) {
+            layer.forward(outs[i - 1], outs[i]);
+        },
+            layers);
 
         return outs.back()[0];
     }
@@ -160,15 +162,15 @@ public:
         const auto nDims = shape.back().get<int>();
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
-        if (nDims != in_size)
+        if(nDims != in_size)
         {
             debug_print("Incorrect input size!", debug);
             return;
         }
 
         size_t json_stream_idx = 0;
-        modelt_detail::forEachInTuple ([&] (auto& layer, size_t idx) {
-            if (json_stream_idx >= json_layers.size())
+        modelt_detail::forEachInTuple([&](auto& layer, size_t idx) {
+            if(json_stream_idx >= json_layers.size())
             {
                 debug_print("Too many layers!", debug);
                 return;
@@ -179,9 +181,9 @@ public:
             const auto layerShape = l["shape"];
             const auto layerDims = layerShape.back().get<size_t>();
 
-            if (auto* actLayer = dynamic_cast<Activation<T>*> (&layer)) // activation layers don't need initialisation
+            if(auto* actLayer = dynamic_cast<Activation<T>*>(&layer)) // activation layers don't need initialisation
             {
-                if(! l.contains("activation"))
+                if(!l.contains("activation"))
                 {
                     debug_print("No activation layer expected!", debug);
                     return;
@@ -202,33 +204,33 @@ public:
             debug_print("  Dims: " + std::to_string(layerDims), debug);
             const auto weights = l["weights"];
 
-            if (auto* dense = dynamic_cast<Dense<T>*> (&layer))
+            if(auto* dense = dynamic_cast<Dense<T>*>(&layer))
             {
                 if(checkDense(*dense, type, layerDims, debug))
                     loadDense(*dense, weights);
 
-                if(! l.contains("activation"))
+                if(!l.contains("activation"))
                     json_stream_idx++;
             }
-            else if (auto* conv = dynamic_cast<Conv1D<T>*> (&layer))
+            else if(auto* conv = dynamic_cast<Conv1D<T>*>(&layer))
             {
                 const auto kernel_size = l["kernel_size"].back().get<size_t>();
                 const auto dilation = l["dilation"].back().get<size_t>();
 
                 if(checkConv1D(*conv, type, layerDims, kernel_size, dilation, debug))
                     loadConv1D(*conv, kernel_size, dilation, weights);
-                
-                if(! l.contains("activation"))
+
+                if(!l.contains("activation"))
                     json_stream_idx++;
             }
-            else if (auto* gru = dynamic_cast<GRULayer<T>*> (&layer))
+            else if(auto* gru = dynamic_cast<GRULayer<T>*>(&layer))
             {
                 if(checkGRU(*gru, type, layerDims, debug))
                     loadGRU(*gru, weights);
-                
+
                 json_stream_idx++;
             }
-            else if (auto* lstm = dynamic_cast<LSTMLayer<T>*> (&layer))
+            else if(auto* lstm = dynamic_cast<LSTMLayer<T>*>(&layer))
             {
                 if(checkLSTM(*lstm, type, layerDims, debug))
                     loadLSTM(*lstm, weights);
@@ -239,10 +241,11 @@ public:
             {
                 debug_print("Layer type not recognized!", debug);
 
-                if(! l.contains("activation"))
+                if(!l.contains("activation"))
                     json_stream_idx++;
             }
-        }, layers);
+        },
+            layers);
     }
 
     /** Creates a neural network model from a json stream */
