@@ -14,11 +14,11 @@ public:
     Dense(size_t in_size, size_t out_size)
         : Layer<T>(in_size, out_size)
     {
-        weights.resize(out_size, in_size);
-        bias.resize(out_size, 1);
+        weights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+        bias = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 
-        inVec.resize(in_size, 1);
-        outVec.resize(out_size, 1);
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(in_size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
     }
 
     Dense(std::initializer_list<size_t> sizes)
