@@ -1,5 +1,6 @@
 #include "load_csv.hpp"
-#include "util_tests.h"
+#include "model_test.hpp"
+#include "util_tests.hpp"
 #include <iostream>
 #include <map>
 #include <string>
@@ -37,6 +38,7 @@ void help()
 
     std::cout << "    all" << std::endl;
     std::cout << "    util" << std::endl;
+    std::cout << "    model" << std::endl;
     for(auto& testConfig : tests)
         std::cout << "    " << testConfig.first << std::endl;
 }
@@ -114,6 +116,8 @@ int main(int argc, char* argv[])
         util_test();
 
         int result = 0;
+        result |= model_test::model_test();
+
         for(auto& testConfig : tests)
             result |= runTest<TestType>(testConfig.second);
 
@@ -124,6 +128,11 @@ int main(int argc, char* argv[])
     {
         util_test();
         return 0;
+    }
+
+    if(arg == "model")
+    {
+        return model_test::model_test();
     }
 
     if(tests.find(arg) != tests.end())

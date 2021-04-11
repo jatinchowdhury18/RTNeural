@@ -12,12 +12,12 @@ Conv1D<T>::Conv1D(size_t in_size, size_t out_size, size_t kernel_size, size_t di
 {
     kernelWeights.resize(out_size);
     for(size_t i = 0; i < out_size; ++i)
-        kernelWeights[i].resize(in_size, state_size);
+        kernelWeights[i] = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(in_size, state_size);
 
-    bias.resize(out_size, 1);
-    state.resize(in_size, 2 * state_size);
-    inVec.resize(in_size, 1);
-    outVec.resize(out_size, 1);
+    bias = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    state = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(in_size, 2 * state_size);
+    inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(in_size, 1);
+    outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 }
 
 template <typename T>
