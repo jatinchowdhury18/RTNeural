@@ -37,7 +37,7 @@ public:
     }
 
     ReluActivation(std::initializer_list<size_t> sizes)
-        : ReluActivation(*sizes.begin())
+        : ReLuActivation(*sizes.begin())
     {
     }
 

@@ -14,7 +14,6 @@ public:
     Dense(size_t in_size, size_t out_size)
         : Layer<T>(in_size, out_size)
     {
-        std::cout << "Creating Dense with in_size " << in_size << " and out_size " << out_size << std::endl;
         sums = new T[out_size];
         bias = new T[out_size];
         weights = new T*[out_size];
@@ -39,7 +38,6 @@ public:
 
     virtual ~Dense()
     {
-        std::cout << "Destroying Dense with in_size " << Layer<T>::in_size << " and out_size " << Layer<T>::out_size << std::endl;
         delete[] bias;
         delete[] sums;
         for(size_t i = 0; i < Layer<T>::out_size; ++i)
@@ -47,14 +45,14 @@ public:
         delete[] weights;
     }
 
-    // Dense(const Dense& other) : Dense(other.in_size, other.out_size)
-    // {
-    // }
+    Dense(const Dense& other) : Dense(other.in_size, other.out_size)
+    {
+    }
 
-    // Dense& operator=(const Dense& other)
-    // {
-    //     return *this = Dense(other);
-    // }
+    Dense& operator=(const Dense& other)
+    {
+        return *this = Dense(other);
+    }
 
     inline void forward(const T* input, T* out)
     {

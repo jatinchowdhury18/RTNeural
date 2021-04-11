@@ -22,7 +22,7 @@ int model_test()
 
     const std::string model_file = "models/full_model.json";
     const std::string data_file = "test_data/dense_x_python.csv";
-    constexpr double threshold = 1.0e-25;
+    constexpr double threshold = 1.0e-15;
 
     std::ifstream pythonX(data_file);
     auto xData = load_csv::loadFile<TestType>(pythonX);

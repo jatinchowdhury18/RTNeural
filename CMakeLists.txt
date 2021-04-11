@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.8)
 project(RTNeural)
 
 set(CMAKE_CXX_STANDARD 17)
-# if(MSVC)
-#     set(CMAKE_CXX_FLAGS "/O3")
-# else()
-#     set(CMAKE_CXX_FLAGS "-O3")
-# endif()
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "/O3")
+else()
+    set(CMAKE_CXX_FLAGS "-O3")
+endif()
 
 add_subdirectory(RTNeural)
 
