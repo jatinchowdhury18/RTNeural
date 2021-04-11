@@ -45,6 +45,15 @@ public:
         delete[] weights;
     }
 
+    Dense(const Dense& other) : Dense(other.in_size, other.out_size)
+    {
+    }
+
+    Dense& operator=(const Dense& other)
+    {
+        return *this = Dense(other);
+    }
+
     inline void forward(const T* input, T* out)
     {
         forward_internal(input, out);

@@ -11,10 +11,15 @@ class TanhActivation : public Activation<T>
 {
 public:
     TanhActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "tanh")
     {
         inVec.resize(size, 1);
         outVec.resize(size, 1);
+    }
+
+    TanhActivation(std::initializer_list<size_t> sizes)
+        : TanhActivation(*sizes.begin())
+    {
     }
 
     inline void forward(const T* input, T* out) override
@@ -35,10 +40,15 @@ class ReLuActivation : public Activation<T>
 {
 public:
     ReLuActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "relu")
     {
         inVec.resize(size, 1);
         outVec.resize(size, 1);
+    }
+
+    ReLuActivation(std::initializer_list<size_t> sizes)
+        : ReLuActivation(*sizes.begin())
+    {
     }
 
     inline void forward(const T* input, T* out) override
@@ -59,10 +69,15 @@ class SigmoidActivation : public Activation<T>
 {
 public:
     SigmoidActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "sigmoid")
     {
         inVec.resize(size, 1);
         outVec.resize(size, 1);
+    }
+
+    SigmoidActivation(std::initializer_list<size_t> sizes)
+        : SigmoidActivation(*sizes.begin())
+    {
     }
 
     inline void forward(const T* input, T* out) override
