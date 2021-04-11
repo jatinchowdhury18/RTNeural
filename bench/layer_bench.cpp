@@ -1,5 +1,5 @@
-#include "layer_creator.hpp"
 #include "bench_utils.hpp"
+#include "layer_creator.hpp"
 #include <RTNeural.h>
 #include <chrono>
 #include <iostream>

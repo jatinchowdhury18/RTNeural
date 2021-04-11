@@ -1,14 +1,14 @@
-#include <RTNeural.h>
 #include "bench_utils.hpp"
+#include <RTNeural.h>
 
-template<typename ModelType>
+template <typename ModelType>
 void runBench(ModelType& model, double length_seconds)
 {
     // generate audio
     constexpr double sample_rate = 48000.0;
     const auto n_samples = static_cast<size_t>(sample_rate * length_seconds);
     const auto signal = generate_signal(n_samples, 1);
-    auto y = 0.0;    
+    auto y = 0.0;
 
     // run benchmark
     using clock_t = std::chrono::high_resolution_clock;
@@ -46,15 +46,15 @@ int main(int argc, char* argv[])
             RTNeural::Conv1D<double>,
             RTNeural::TanhActivation<double>,
             RTNeural::GRULayer<double>,
-            RTNeural::Dense<double>
-        > modelT ({ 1, 8, 8, 4, 4, 8, 1 }, {
-            { 1, 8 }, // Dense
-            { 8 }, // Tanh
-            { 8, 4, 3, 2 }, // Conv1D
-            { 4 }, // Tanh
-            { 4, 8 }, // GRU
-            { 8, 1 } // Dense
-        });
+            RTNeural::Dense<double>>
+            modelT({ 1, 8, 8, 4, 4, 8, 1 }, {
+                                                { 1, 8 }, // Dense
+                                                { 8 }, // Tanh
+                                                { 8, 4, 3, 2 }, // Conv1D
+                                                { 4 }, // Tanh
+                                                { 4, 8 }, // GRU
+                                                { 8, 1 } // Dense
+                                            });
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream);
         runBench(modelT, bench_time);
