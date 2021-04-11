@@ -1,6 +1,6 @@
+#include "bench_utils.hpp"
 #include <RTNeural.h>
 #include <chrono>
-#include "bench_utils.hpp"
 
 template <typename ModelType>
 void runBench(ModelType& model, double length_seconds)
