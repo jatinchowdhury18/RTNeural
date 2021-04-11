@@ -71,10 +71,10 @@ int model_test()
             nErrs++;
 
             // For debugging purposes
-            std::cout << "ERR: " << err << ", idx: " << n << std::endl;
-            std::cout << yData[n] << std::endl;
-            std::cout << yRefData[n] << std::endl;
-            break;
+            // std::cout << "ERR: " << err << ", idx: " << n << std::endl;
+            // std::cout << yData[n] << std::endl;
+            // std::cout << yRefData[n] << std::endl;
+            // break;
         }
     }
 

@@ -36,7 +36,7 @@ public:
         zeros.resize(size, (T)0);
     }
 
-    ReluActivation(std::initializer_list<size_t> sizes)
+    ReLuActivation(std::initializer_list<size_t> sizes)
         : ReLuActivation(*sizes.begin())
     {
     }
