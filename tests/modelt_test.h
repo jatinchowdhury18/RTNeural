@@ -14,6 +14,6 @@ void modelt_test()
     //     RTNeural::TanhActivation<TestType>
     // > model ({2, 2, 2, 2, 2, 2});
 
-    std::initializer_list<size_t> ll { 2, 2 };
-    RTNeural::Dense<TestType> dd ({ ll.begin(), ll.end() });
+    // std::initializer_list<size_t> ll { 2, 2 };
+    // RTNeural::Dense<TestType> dd ({ ll.begin(), ll.end() });
 }

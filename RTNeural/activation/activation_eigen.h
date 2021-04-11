@@ -11,7 +11,7 @@ class TanhActivation : public Activation<T>
 {
 public:
     TanhActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "tanh")
     {
         inVec.resize(size, 1);
         outVec.resize(size, 1);
@@ -40,7 +40,7 @@ class ReLuActivation : public Activation<T>
 {
 public:
     ReLuActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "relu")
     {
         inVec.resize(size, 1);
         outVec.resize(size, 1);
@@ -69,7 +69,7 @@ class SigmoidActivation : public Activation<T>
 {
 public:
     SigmoidActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "sigmoid")
     {
         inVec.resize(size, 1);
         outVec.resize(size, 1);

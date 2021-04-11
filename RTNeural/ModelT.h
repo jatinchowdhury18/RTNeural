@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Model.h"
+#include "model_loader.h"
 
 namespace RTNeural
 {
@@ -110,6 +110,20 @@ public:
             delete[] o;
     }
 
+    /** Get a reference to the layer at index `Index`. */
+    template <int Index>
+    auto& get() noexcept
+    {
+        return std::get<Index> (layers);
+    }
+
+    /** Get a reference to the layer at index `Index`. */
+    template <int Index>
+    const auto& get() const noexcept
+    {
+        return std::get<Index> (layers);
+    }
+
     void reset()
     {
         std::cout << "Resetting..." << std::endl;
@@ -126,6 +140,113 @@ public:
         }, layers);
 
         return outs.back()[0];
+    }
+
+    /** Creates a neural network model from a json stream */
+    void parseJson(const nlohmann::json& parent, const bool debug = false)
+    {
+        using namespace json_parser;
+
+        auto shape = parent["in_shape"];
+        auto json_layers = parent["layers"];
+
+        if(!shape.is_array() || !json_layers.is_array())
+            return;
+
+        const auto nDims = shape.back().get<int>();
+        debug_print("# dimensions: " + std::to_string(nDims), debug);
+
+        if (nDims != in_size)
+        {
+            debug_print("Incorrect input size!", debug);
+            return;
+        }
+
+        size_t json_stream_idx = 0;
+        modelt_detail::forEachInTuple ([&] (auto& layer, size_t idx) {
+            if (json_stream_idx >= json_layers.size())
+            {
+                debug_print("Too many layers!", debug);
+                return;
+            }
+
+            const auto l = json_layers.at(json_stream_idx);
+            const auto type = l["type"].get<std::string>();
+            const auto layerShape = l["shape"];
+            const auto layerDims = layerShape.back().get<size_t>();
+
+            if (auto* actLayer = dynamic_cast<Activation<T>*> (&layer)) // activation layers don't need initialisation
+            {
+                if(! l.contains("activation"))
+                {
+                    debug_print("No activation layer expected!", debug);
+                    return;
+                }
+
+                const auto activationType = l["activation"].get<std::string>();
+                if(!activationType.empty())
+                {
+                    debug_print("  activation: " + activationType, debug);
+                    checkActivation(*actLayer, activationType, layerDims, debug);
+                }
+
+                json_stream_idx++;
+                return;
+            }
+
+            debug_print("Layer: " + type, debug);
+            debug_print("  Dims: " + std::to_string(layerDims), debug);
+            const auto weights = l["weights"];
+
+            if (auto* dense = dynamic_cast<Dense<T>*> (&layer))
+            {
+                if(checkDense(*dense, type, layerDims, debug))
+                    loadDense(*dense, weights);
+
+                if(! l.contains("activation"))
+                    json_stream_idx++;
+            }
+            else if (auto* conv = dynamic_cast<Conv1D<T>*> (&layer))
+            {
+                const auto kernel_size = l["kernel_size"].back().get<size_t>();
+                const auto dilation = l["dilation"].back().get<size_t>();
+
+                if(checkConv1D(*conv, type, layerDims, kernel_size, dilation, debug))
+                    loadConv1D(*conv, kernel_size, dilation, weights);
+                
+                if(! l.contains("activation"))
+                    json_stream_idx++;
+            }
+            else if (auto* gru = dynamic_cast<GRULayer<T>*> (&layer))
+            {
+                if(checkGRU(*gru, type, layerDims, debug))
+                    loadGRU(*gru, weights);
+                
+                json_stream_idx++;
+            }
+            else if (auto* lstm = dynamic_cast<LSTMLayer<T>*> (&layer))
+            {
+                if(checkLSTM(*lstm, type, layerDims, debug))
+                    loadLSTM(*lstm, weights);
+
+                json_stream_idx++;
+            }
+            else
+            {
+                debug_print("Layer type not recognized!", debug);
+
+                if(! l.contains("activation"))
+                    json_stream_idx++;
+            }
+        }, layers);
+    }
+
+    /** Creates a neural network model from a json stream */
+    void parseJson(std::ifstream& jsonStream, const bool debug = false)
+    {
+        nlohmann::json parent;
+        jsonStream >> parent;
+        return parseJson(parent, debug);
     }
 
 private:

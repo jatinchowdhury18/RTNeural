@@ -11,7 +11,7 @@ class TanhActivation : public Activation<T>
 {
 public:
     TanhActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "tanh")
     {
     }
 
@@ -48,7 +48,7 @@ class ReLuActivation : public Activation<T>
 {
 public:
     ReLuActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "relu")
     {
         zeros.resize(size, (T)0);
     }
@@ -86,7 +86,7 @@ class SigmoidActivation : public Activation<T>
 {
 public:
     SigmoidActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "sigmoid")
     {
     }
 

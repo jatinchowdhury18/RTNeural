@@ -18,6 +18,9 @@ int main (int argc, char* argv[])
         { 8, 1 } // Dense
     });
 
+    std::ifstream jsonStream("models/full_model.json", std::ifstream::binary);
+    model.parseJson(jsonStream, true);
+
     model.reset();
     
     float x[] = { 2.0f, 4.0f };

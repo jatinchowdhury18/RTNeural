@@ -54,6 +54,7 @@ public:
     void setBias(const std::vector<T>& biasVals);
 
     size_t getKernelSize() const noexcept { return kernel_size; }
+    size_t getDilationRate() const noexcept { return dilation_rate; }
 
 private:
     const size_t dilation_rate;
