@@ -13,8 +13,8 @@ public:
     TanhActivation(size_t size)
         : Activation<T>(size, {}, "tanh")
     {
-        inVec.resize(size, 1);
-        outVec.resize(size, 1);
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
     }
 
     TanhActivation(std::initializer_list<size_t> sizes)
@@ -42,8 +42,8 @@ public:
     ReLuActivation(size_t size)
         : Activation<T>(size, {}, "relu")
     {
-        inVec.resize(size, 1);
-        outVec.resize(size, 1);
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
     }
 
     ReLuActivation(std::initializer_list<size_t> sizes)
@@ -71,8 +71,8 @@ public:
     SigmoidActivation(size_t size)
         : Activation<T>(size, {}, "sigmoid")
     {
-        inVec.resize(size, 1);
-        outVec.resize(size, 1);
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
     }
 
     SigmoidActivation(std::initializer_list<size_t> sizes)
