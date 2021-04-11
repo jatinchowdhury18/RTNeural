@@ -45,7 +45,8 @@ public:
         delete[] weights;
     }
 
-    Dense(const Dense& other) : Dense(other.in_size, other.out_size)
+    Dense(const Dense& other)
+        : Dense(other.in_size, other.out_size)
     {
     }
 
