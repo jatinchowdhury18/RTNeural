@@ -9,22 +9,22 @@ template <typename T>
 GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     : Layer<T>(in_size, out_size)
 {
-    wVec_z.resize(out_size, in_size);
-    wVec_r.resize(out_size, in_size);
-    wVec_c.resize(out_size, in_size);
-    uVec_z.resize(out_size, out_size);
-    uVec_r.resize(out_size, out_size);
-    uVec_c.resize(out_size, out_size);
-    bVec_z.resize(out_size, 2);
-    bVec_r.resize(out_size, 2);
-    bVec_c.resize(out_size, 2);
+    wVec_z = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+    wVec_r = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+    wVec_c = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+    uVec_z = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
+    uVec_r = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
+    uVec_c = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
+    bVec_z = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 2);
+    bVec_r = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 2);
+    bVec_c = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 2);
 
-    ht1.resize(out_size, 1);
-    zVec.resize(out_size, 1);
-    rVec.resize(out_size, 1);
-    cVec.resize(out_size, 1);
+    ht1 = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    zVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    rVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    cVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 
-    inVec.resize(in_size, 1);
+    inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(in_size, 1);
     ones = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Ones(out_size, 1);
 }
 

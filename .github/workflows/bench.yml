@@ -82,3 +82,7 @@ jobs:
       run: |
         ./build/rtneural_layer_bench sigmoid 5 4 4
         ./build/rtneural_layer_bench sigmoid 5 16 16
+
+    - name: Benchmark Model
+      run: |
+        ./build/rtneural_model_bench

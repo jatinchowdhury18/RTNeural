@@ -7,30 +7,30 @@ template <typename T>
 LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
     : Layer<T>(in_size, out_size)
 {
-    Wf.resize(out_size, in_size);
-    Wi.resize(out_size, in_size);
-    Wo.resize(out_size, in_size);
-    Wc.resize(out_size, in_size);
+    Wf = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+    Wi = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+    Wo = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+    Wc = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
 
-    Uf.resize(out_size, out_size);
-    Ui.resize(out_size, out_size);
-    Uo.resize(out_size, out_size);
-    Uc.resize(out_size, out_size);
+    Uf = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
+    Ui = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
+    Uo = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
+    Uc = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
 
-    bf.resize(out_size, 1);
-    bi.resize(out_size, 1);
-    bo.resize(out_size, 1);
-    bc.resize(out_size, 1);
+    bf = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    bi = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    bo = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    bc = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 
-    fVec.resize(out_size, 1);
-    iVec.resize(out_size, 1);
-    oVec.resize(out_size, 1);
-    ctVec.resize(out_size, 1);
-    cVec.resize(out_size, 1);
+    fVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    iVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    oVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    ctVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    cVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 
-    inVec.resize(out_size, 1);
-    ht1.resize(out_size, 1);
-    ct1.resize(out_size, 1);
+    inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    ht1 = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    ct1 = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 }
 
 template <typename T>

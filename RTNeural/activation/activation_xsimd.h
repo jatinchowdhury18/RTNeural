@@ -11,7 +11,12 @@ class TanhActivation : public Activation<T>
 {
 public:
     TanhActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "tanh")
+    {
+    }
+
+    TanhActivation(std::initializer_list<size_t> sizes)
+        : TanhActivation(*sizes.begin())
     {
     }
 
@@ -26,9 +31,14 @@ class ReLuActivation : public Activation<T>
 {
 public:
     ReLuActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "relu")
     {
         zeros.resize(size, (T)0);
+    }
+
+    ReLuActivation(std::initializer_list<size_t> sizes)
+        : ReLuActivation(*sizes.begin())
+    {
     }
 
     inline void forward(const T* input, T* out) override
@@ -46,7 +56,12 @@ class SigmoidActivation : public Activation<T>
 {
 public:
     SigmoidActivation(size_t size)
-        : Activation<T>(size, {})
+        : Activation<T>(size, {}, "sigmoid")
+    {
+    }
+
+    SigmoidActivation(std::initializer_list<size_t> sizes)
+        : SigmoidActivation(*sizes.begin())
     {
     }
 

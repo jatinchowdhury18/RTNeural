@@ -11,13 +11,14 @@ template <typename T>
 class Activation : public Layer<T>
 {
 public:
-    Activation(size_t size, std::function<T(T)> func)
+    Activation(size_t size, std::function<T(T)> func, std::string name)
         : Layer<T>(size, size)
         , func(func)
+        , name(name)
     {
     }
 
-    virtual ~Activation() { }
+    std::string getName() const noexcept { return name; }
 
     inline void forward(const T* input, T* out) override
     {
@@ -26,6 +27,7 @@ public:
     }
 
 private:
+    const std::string name;
     const std::function<T(T)> func;
 };
 
@@ -52,7 +54,13 @@ class TanhActivation : public Activation<T>
 {
 public:
     TanhActivation(size_t size)
-        : Activation<T>(size, [](T x) { return std::tanh(x); })
+        : Activation<T>(
+            size, [](T x) { return std::tanh(x); }, "tanh")
+    {
+    }
+
+    TanhActivation(std::initializer_list<size_t> sizes)
+        : TanhActivation(*sizes.begin())
     {
     }
 };
@@ -62,7 +70,13 @@ class ReLuActivation : public Activation<T>
 {
 public:
     ReLuActivation(size_t size)
-        : Activation<T>(size, [](T x) { return std::max((T)0, x); })
+        : Activation<T>(
+            size, [](T x) { return std::max((T)0, x); }, "relu")
+    {
+    }
+
+    ReLuActivation(std::initializer_list<size_t> sizes)
+        : ReLuActivation(*sizes.begin())
     {
     }
 };
@@ -72,7 +86,13 @@ class SigmoidActivation : public Activation<T>
 {
 public:
     SigmoidActivation(size_t size)
-        : Activation<T>(size, [](T x) { return sigmoid(x); })
+        : Activation<T>(
+            size, [](T x) { return sigmoid(x); }, "sigmoid")
+    {
+    }
+
+    SigmoidActivation(std::initializer_list<size_t> sizes)
+        : SigmoidActivation(*sizes.begin())
     {
     }
 };
