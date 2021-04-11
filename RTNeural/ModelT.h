@@ -88,6 +88,23 @@ namespace modelt_detail
         forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {});
     }
 
+    // unrolled loop for forward inferencing
+    template <size_t idx, size_t Niter> struct forward_unroll
+    {
+        template <typename T, typename IO>
+        static void call(T& t, IO& io)
+        {
+            std::get<idx>(t).forward(io[idx-1], io[idx]);
+            forward_unroll<idx+1,Niter-1>::call(t, io);
+        }
+    };
+
+    template <size_t idx> struct forward_unroll<idx, 0>
+    {
+        template <typename T, typename IO>
+        static void call(T&, IO&) {}
+    };
+
 } // namespace modelt_detail
 
 template <typename T, typename... Layers>
@@ -134,11 +151,7 @@ public:
     inline T forward(const T* input)
     {
         std::get<0>(layers).forward(input, outs[0]);
-
-        modelt_detail::forEachInTupleRange<1, n_layers - 1>([&](auto& layer, size_t i) {
-            layer.forward(outs[i - 1], outs[i]);
-        },
-            layers);
+        modelt_detail::forward_unroll<1, n_layers-1>::call(layers, outs);
 
         return outs.back()[0];
     }
