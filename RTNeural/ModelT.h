@@ -98,10 +98,11 @@ public:
         : in_size(*sizes.begin()),
           layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
     {
-        std::cout << "Constructing..." << std::endl;
-        for (size_t i = 0; i < sizes.size(); ++i)
-            outs[i-1] = new T[*(sizes.begin() + i)];
-        std::cout << "Done Constructing..." << std::endl;
+        for (size_t i = 1; i < sizes.size(); ++i)
+        {
+            auto out_size = *(sizes.begin() + i);
+            outs[i-1] = new T[out_size];
+        }
     }
 
     ~ModelT()
@@ -126,13 +127,11 @@ public:
 
     void reset()
     {
-        std::cout << "Resetting..." << std::endl;
         modelt_detail::forEachInTuple ([&] (auto& layer, size_t) { layer.reset(); }, layers);
     }
 
     inline T forward(const T* input)
     {
-        std::cout << "Inferencing..." << std::endl;
         std::get<0>(layers).forward(input, outs[0]);
 
         modelt_detail::forEachInTupleRange<1, n_layers-1> ([&] (auto& layer, size_t i) { 
@@ -140,6 +139,11 @@ public:
         }, layers);
 
         return outs.back()[0];
+    }
+
+    inline T* getOutputs() const noexcept
+    {
+        return outs.back();
     }
 
     /** Creates a neural network model from a json stream */
@@ -252,9 +256,9 @@ public:
 private:
     const size_t in_size;
     std::tuple<Layers...> layers;
-    std::array<T*, sizeof...(Layers)> outs;
 
     static constexpr size_t n_layers = sizeof...(Layers);
+    std::array<T*, n_layers> outs;
 };
 
 } // namespace RTNeural
