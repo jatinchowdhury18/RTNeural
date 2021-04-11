@@ -3,6 +3,9 @@
 #include <RTNeural.h>
 #include "load_csv.hpp"
 
+namespace model_test
+{
+
 using TestType = double;
 
 template<typename ModelType>
@@ -88,3 +91,5 @@ int model_test()
     std::cout << "SUCCESS" << std::endl;
     return 0;
 }
+
+} // namespace model_test

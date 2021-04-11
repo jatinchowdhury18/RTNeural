@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
         util_test();
 
         int result = 0;
-        result |= model_test();
+        result |= model_test::model_test();
 
         for(auto& testConfig : tests)
             result |= runTest<TestType>(testConfig.second);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 
     if(arg == "model")
     {
-        return model_test();
+        return model_test::model_test();
     }
 
     if(tests.find(arg) != tests.end())
