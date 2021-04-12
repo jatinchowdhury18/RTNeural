@@ -16,7 +16,7 @@ namespace modelt_detail
 {
 
     /** Useful for parsing constructor args */
-    using init_list = std::initializer_list<std::initializer_list<size_t>>;
+    using init_list = std::vector<std::initializer_list<size_t>>;
     using Liter = init_list::const_iterator;
 
     /** Forward declaration. */
@@ -111,16 +111,28 @@ template <typename T, typename... Layers>
 class ModelT
 {
 public:
-    using init_list = std::initializer_list<std::initializer_list<size_t>>;
+    using init_list = std::vector<std::initializer_list<size_t>>;
     ModelT(std::initializer_list<size_t> sizes, init_list layer_inits)
         : in_size(*sizes.begin())
         , layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
+        , sizes(sizes)
+        , layer_inits(layer_inits)
     {
         for(size_t i = 1; i < sizes.size(); ++i)
         {
             auto out_size = *(sizes.begin() + i);
             outs[i - 1] = new T[out_size];
         }
+    }
+
+    ModelT(const ModelT& other)
+        : ModelT(other.sizes, other.layer_inits)
+    {
+    }
+
+    ModelT& operator=(const ModelT& other)
+    {
+        return *this = ModelT(other);
     }
 
     ~ModelT()
@@ -275,6 +287,10 @@ private:
 
     static constexpr size_t n_layers = sizeof...(Layers);
     std::array<T*, n_layers> outs;
+
+    // needed for copy constructor
+    std::initializer_list<size_t> sizes;
+    init_list layer_inits;
 };
 
 } // namespace RTNeural
