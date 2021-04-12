@@ -63,6 +63,12 @@ public:
         : TanhActivation(*sizes.begin())
     {
     }
+
+    inline void forward(const T* input, T* out) override
+    {
+        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+            out[i] = std::tanh(input[i]);
+    }
 };
 
 template <typename T>

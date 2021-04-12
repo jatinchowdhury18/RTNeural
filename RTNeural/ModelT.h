@@ -16,7 +16,7 @@ namespace modelt_detail
 {
 
     /** Useful for parsing constructor args */
-    using init_list = std::initializer_list<std::initializer_list<size_t>>;
+    using init_list = std::vector<std::initializer_list<size_t>>;
     using Liter = init_list::const_iterator;
 
     /** Forward declaration. */
@@ -89,20 +89,22 @@ namespace modelt_detail
     }
 
     // unrolled loop for forward inferencing
-    template <size_t idx, size_t Niter> struct forward_unroll
+    template <size_t idx, size_t Niter>
+    struct forward_unroll
     {
         template <typename T, typename IO>
         static void call(T& t, IO& io)
         {
-            std::get<idx>(t).forward(io[idx-1], io[idx]);
-            forward_unroll<idx+1,Niter-1>::call(t, io);
+            std::get<idx>(t).forward(io[idx - 1], io[idx]);
+            forward_unroll<idx + 1, Niter - 1>::call(t, io);
         }
     };
 
-    template <size_t idx> struct forward_unroll<idx, 0>
+    template <size_t idx>
+    struct forward_unroll<idx, 0>
     {
         template <typename T, typename IO>
-        static void call(T&, IO&) {}
+        static void call(T&, IO&) { }
     };
 
 } // namespace modelt_detail
@@ -111,16 +113,28 @@ template <typename T, typename... Layers>
 class ModelT
 {
 public:
-    using init_list = std::initializer_list<std::initializer_list<size_t>>;
+    using init_list = std::vector<std::initializer_list<size_t>>;
     ModelT(std::initializer_list<size_t> sizes, init_list layer_inits)
         : in_size(*sizes.begin())
         , layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
+        , sizes(sizes)
+        , layer_inits(layer_inits)
     {
         for(size_t i = 1; i < sizes.size(); ++i)
         {
             auto out_size = *(sizes.begin() + i);
             outs[i - 1] = new T[out_size];
         }
+    }
+
+    ModelT(const ModelT& other)
+        : ModelT(other.sizes, other.layer_inits)
+    {
+    }
+
+    ModelT& operator=(const ModelT& other)
+    {
+        return *this = ModelT(other);
     }
 
     ~ModelT()
@@ -151,7 +165,7 @@ public:
     inline T forward(const T* input)
     {
         std::get<0>(layers).forward(input, outs[0]);
-        modelt_detail::forward_unroll<1, n_layers-1>::call(layers, outs);
+        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers, outs);
 
         return outs.back()[0];
     }
@@ -275,6 +289,10 @@ private:
 
     static constexpr size_t n_layers = sizeof...(Layers);
     std::array<T*, n_layers> outs;
+
+    // needed for copy constructor
+    std::initializer_list<size_t> sizes;
+    init_list layer_inits;
 };
 
 } // namespace RTNeural
