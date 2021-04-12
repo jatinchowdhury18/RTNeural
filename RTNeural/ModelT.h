@@ -89,20 +89,22 @@ namespace modelt_detail
     }
 
     // unrolled loop for forward inferencing
-    template <size_t idx, size_t Niter> struct forward_unroll
+    template <size_t idx, size_t Niter>
+    struct forward_unroll
     {
         template <typename T, typename IO>
         static void call(T& t, IO& io)
         {
-            std::get<idx>(t).forward(io[idx-1], io[idx]);
-            forward_unroll<idx+1,Niter-1>::call(t, io);
+            std::get<idx>(t).forward(io[idx - 1], io[idx]);
+            forward_unroll<idx + 1, Niter - 1>::call(t, io);
         }
     };
 
-    template <size_t idx> struct forward_unroll<idx, 0>
+    template <size_t idx>
+    struct forward_unroll<idx, 0>
     {
         template <typename T, typename IO>
-        static void call(T&, IO&) {}
+        static void call(T&, IO&) { }
     };
 
 } // namespace modelt_detail
@@ -163,7 +165,7 @@ public:
     inline T forward(const T* input)
     {
         std::get<0>(layers).forward(input, outs[0]);
-        modelt_detail::forward_unroll<1, n_layers-1>::call(layers, outs);
+        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers, outs);
 
         return outs.back()[0];
     }
