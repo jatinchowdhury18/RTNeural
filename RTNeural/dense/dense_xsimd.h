@@ -21,11 +21,11 @@ public:
     {
         std::cout << "Dense - XSIMD NEW" << std::endl;
 
-        prod.resize(in_size, (T) 0);
-        weights = std::vector<vec_type>(out_size, vec_type(in_size, (T) 0));
+        prod.resize(in_size, (T)0);
+        weights = std::vector<vec_type>(out_size, vec_type(in_size, (T)0));
 
-        bias.resize(out_size, (T) 0);
-        sums.resize(out_size, (T) 0);
+        bias.resize(out_size, (T)0);
+        sums.resize(out_size, (T)0);
     }
 
     Dense(std::initializer_list<size_t> sizes)

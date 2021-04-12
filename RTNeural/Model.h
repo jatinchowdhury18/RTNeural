@@ -47,7 +47,7 @@ public:
     void addLayer(Layer<T>* layer)
     {
         layers.push_back(layer);
-        outs.push_back(vec_type(layer->out_size, (T) 0));
+        outs.push_back(vec_type(layer->out_size, (T)0));
     }
 
     void reset()

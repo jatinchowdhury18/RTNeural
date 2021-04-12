@@ -123,7 +123,7 @@ public:
         for(size_t i = 1; i < sizes.size(); ++i)
         {
             auto out_size = *(sizes.begin() + i);
-            outs[i - 1].resize(out_size, (T) 0);
+            outs[i - 1].resize(out_size, (T)0);
         }
     }
 
