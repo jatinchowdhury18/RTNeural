@@ -10,17 +10,16 @@ GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
     , rWeights(in_size, out_size)
     , cWeights(in_size, out_size)
 {
-    ht1 = new T[out_size];
-    zVec = new T[out_size];
-    rVec = new T[out_size];
-    cVec = new T[out_size];
-    cTmp = new T[out_size];
+    ht1.resize(out_size, (T)0);
+    zVec.resize(out_size, (T)0);
+    rVec.resize(out_size, (T)0);
+    cVec.resize(out_size, (T)0);
+    cTmp.resize(out_size, (T)0);
 
-    prod_in = new T[in_size];
-    prod_out = new T[out_size];
+    prod_in.resize(in_size, (T)0);
+    prod_out.resize(out_size, (T)0);
 
-    ones = new T[out_size];
-    std::fill(ones, &ones[out_size], (T)1);
+    ones.resize(out_size, (T)1);
 }
 
 template <typename T>
@@ -44,47 +43,22 @@ GRULayer<T>& GRULayer<T>::operator=(const GRULayer<T>& other)
 template <typename T>
 GRULayer<T>::~GRULayer()
 {
-    delete[] ht1;
-    delete[] zVec;
-    delete[] rVec;
-    delete[] cVec;
-    delete[] cTmp;
-
-    delete[] prod_in;
-    delete[] prod_out;
-    delete[] ones;
 }
 
 template <typename T>
 GRULayer<T>::WeightSet::WeightSet(size_t in_size, size_t out_size)
     : out_size(out_size)
 {
-    W = new T*[out_size];
-    U = new T*[out_size];
-    b[0] = new T[out_size];
-    b[1] = new T[out_size];
+    W = vec2(out_size, vec_type(in_size, (T)0));
+    U = vec2(out_size, vec_type(out_size, (T)0));
 
-    for(size_t i = 0; i < out_size; ++i)
-    {
-        W[i] = new T[in_size];
-        U[i] = new T[out_size];
-    }
+    b[0].resize(out_size, (T)0);
+    b[1].resize(out_size, (T)0);
 }
 
 template <typename T>
 GRULayer<T>::WeightSet::~WeightSet()
 {
-    delete[] b[0];
-    delete[] b[1];
-
-    for(size_t i = 0; i < out_size; ++i)
-    {
-        delete[] W[i];
-        delete[] U[i];
-    }
-
-    delete[] W;
-    delete[] U;
 }
 
 template <typename T>

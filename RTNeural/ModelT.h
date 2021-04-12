@@ -95,7 +95,7 @@ namespace modelt_detail
         template <typename T, typename IO>
         static void call(T& t, IO& io)
         {
-            std::get<idx>(t).forward(io[idx - 1], io[idx]);
+            std::get<idx>(t).forward(io[idx - 1].data(), io[idx].data());
             forward_unroll<idx + 1, Niter - 1>::call(t, io);
         }
     };
@@ -123,7 +123,7 @@ public:
         for(size_t i = 1; i < sizes.size(); ++i)
         {
             auto out_size = *(sizes.begin() + i);
-            outs[i - 1] = new T[out_size];
+            outs[i - 1].resize(out_size, (T) 0);
         }
     }
 
@@ -139,8 +139,6 @@ public:
 
     ~ModelT()
     {
-        for(auto o : outs)
-            delete[] o;
     }
 
     /** Get a reference to the layer at index `Index`. */
@@ -164,15 +162,15 @@ public:
 
     inline T forward(const T* input)
     {
-        std::get<0>(layers).forward(input, outs[0]);
+        std::get<0>(layers).forward(input, outs[0].data());
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers, outs);
 
         return outs.back()[0];
     }
 
-    inline T* getOutputs() const noexcept
+    inline const T* getOutputs() const noexcept
     {
-        return outs.back();
+        return outs.back().data();
     }
 
     /** Creates a neural network model from a json stream */
@@ -284,11 +282,17 @@ public:
     }
 
 private:
+#if USE_XSIMD
+    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+#else
+    using vec_type = std::vector<T>;
+#endif
+
     const size_t in_size;
     std::tuple<Layers...> layers;
 
     static constexpr size_t n_layers = sizeof...(Layers);
-    std::array<T*, n_layers> outs;
+    std::array<vec_type, n_layers> outs;
 
     // needed for copy constructor
     std::initializer_list<size_t> sizes;
