@@ -103,6 +103,19 @@ public:
     }
 };
 
+template <typename T>
+class SoftmaxActivation : public Activation<T>
+{
+public:
+    SoftmaxActivation(size_t size)
+        : Activation<T>(
+            size, [](T x) { return softmax(x); }, "softmax")
+     SoftmaxActivation(std::initializer_list<size_t> sizes)
+        : SoftmaxActivation(*sizes.begin())
+    {
+    }     
+}
+
 } // namespace RTNeural
 
 #endif // USE_EIGEN

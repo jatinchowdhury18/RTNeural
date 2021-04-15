@@ -13,6 +13,13 @@ sigmoid(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
     vector = (T)1 / (((T)-1 * vector.array()).array().exp() + (T)1);
 }
 
+template <typename T>
+static inline void
+softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
+{
+    vector = (T)1 / (((T)-1 * vector.array()).array().exp() + (T)1);
+}
+
 } // namespace RTNeural
 
 #elif defined(USE_XSIMD)
@@ -94,6 +101,25 @@ static inline void sigmoid(const T* in, T* out, size_t dim) noexcept
         out[i] = 1.0 / (1.0 + std::exp(-in[i]));
 }
 
+static inline void softmax(const T* in, T* out, size_t dim) noexcept
+{
+    using b_type = xsimd::simd_type<T>;
+    auto inc = b_type::size;
+
+    // size for which the vectorization is possible
+    auto vec_size = dim - dim % inc;
+    for(size_t i = 0; i < vec_size; i += inc)
+    {
+        b_type x_vec = xsimd::load_aligned(&in[i]);
+        b_type y_vec = 1.0 / (1.0 + xsimd::exp(-x_vec));
+        xsimd::store_aligned(&out[i], y_vec);
+    }
+
+    // Remaining part that cannot be vectorize
+    for(auto i = vec_size; i < dim; ++i)
+        out[i] = 1.0 / (1.0 + std::exp(-in[i]));
+}
+
 template <typename T>
 static inline void tanh(const T* in, T* out, size_t dim) noexcept
 {
@@ -146,6 +172,30 @@ static inline void sigmoid(const double* in, double* out, size_t dim) noexcept
     vvrec(out, out, &dim_int);
 }
 
+static inline void softmax(const float* in, float* out, size_t dim) noexcept
+{
+    constexpr float one = 1.0f;
+    constexpr float neg_one = -1.0f;
+    const auto dim_int = static_cast<int>(dim);
+
+    vDSP_vsmul(in, 1, &neg_one, out, 1, dim);
+    vvexpf(out, out, &dim_int);
+    vDSP_vsadd(out, 1, &one, out, 1, dim);
+    vvrecf(out, out, &dim_int);
+}
+
+static inline void softmax(const double* in, double* out, size_t dim) noexcept
+{
+    constexpr double one = 1.0;
+    constexpr double neg_one = -1.0;
+    const auto dim_int = static_cast<int>(dim);
+
+    vDSP_vsmulD(in, 1, &neg_one, out, 1, dim);
+    vvexp(out, out, &dim_int);
+    vDSP_vsaddD(out, 1, &one, out, 1, dim);
+    vvrec(out, out, &dim_int);
+}
+
 } // namespace RTNeural
 
 #else // STL backend
@@ -166,6 +216,12 @@ template <typename T>
 static inline T sigmoid(T value) noexcept
 {
     return (T)1 / ((T)1 + std::exp(-value));
+}
+
+template <typename T>
+static inline T softmax(T value) noexcept
+{
+    return (T)0;
 }
 
 } // namespace RTNeural
