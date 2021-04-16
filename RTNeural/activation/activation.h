@@ -110,11 +110,20 @@ public:
     SoftmaxActivation(size_t size)
         : Activation<T>(
             size, [](T x) { return softmax(x); }, "softmax")
-     SoftmaxActivation(std::initializer_list<size_t> sizes)
+
+    // should almost always be called.
+    SoftmaxActivation(std::initializer_list<size_t> sizes)
         : SoftmaxActivation(*sizes.begin())
     {
-    }     
-}
+    }
+
+    inline void forward(const T* input, T* out) override
+    {
+        // input dimensions should be the same as output dimensions.
+        softmax(input, Layer<T>::out_size);
+        out = input;
+    }
+};
 
 } // namespace RTNeural
 

@@ -219,9 +219,21 @@ static inline T sigmoid(T value) noexcept
 }
 
 template <typename T>
-static inline T softmax(T value) noexcept
+static inline void softmax(T* values, size_t size) noexcept
 {
-    return (T)0;
+    T sum = 0;
+    const T max_element { std::max_element(values, values+(size-1)) };
+    std::transform(
+        values,
+        values+(size-1),
+        values,
+        [&](T x)
+        {
+            auto val = std::exp(x-max_element);
+            sum += val;
+            return val;
+        }
+    );
 }
 
 } // namespace RTNeural

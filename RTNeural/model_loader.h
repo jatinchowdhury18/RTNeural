@@ -304,6 +304,9 @@ namespace json_parser
         if(activationType == "sigmoid")
             return std::make_unique<SigmoidActivation<T>>(dims);
 
+        if(activationType == "softmax")
+            return std::make_unique<SoftmaxActivation<T>>(dims);
+
         return {};
     }
 
