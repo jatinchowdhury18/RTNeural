@@ -140,7 +140,7 @@
         },
         {
             "type": "dense",
-            "activation": "",
+            "activation": "softmax",
             "shape": [
                 null,
                 8
@@ -242,7 +242,7 @@
         },
         {
             "type": "dense",
-            "activation": "",
+            "activation": "softmax",
             "shape": [
                 null,
                 1

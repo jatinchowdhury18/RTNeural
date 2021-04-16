@@ -17,7 +17,7 @@ template <typename T>
 static inline void
 softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 {
-    vector = (T)1 / (((T)-1 * vector.array()).array().exp() + (T)1);
+    vector = vector.array().array().exp() / (vector.array().exp().array().sum());
 }
 
 } // namespace RTNeural
