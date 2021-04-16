@@ -109,9 +109,10 @@ class SoftmaxActivation : public Activation<T>
 public:
     SoftmaxActivation(size_t size)
         : Activation<T>(
-            size, [](T x) { return softmax(x); }, "softmax")
+            size, [](T x) { return (T)0; }, "softmax")
+    {
+    }
 
-    // should almost always be called.
     SoftmaxActivation(std::initializer_list<size_t> sizes)
         : SoftmaxActivation(*sizes.begin())
     {
@@ -120,8 +121,8 @@ public:
     inline void forward(const T* input, T* out) override
     {
         // input dimensions should be the same as output dimensions.
-        softmax(input, Layer<T>::out_size);
-        out = input;
+        memcpy(out, input, Layer<T>::out_size * sizeof(T));
+        softmax(out, Layer<T>::out_size);
     }
 };
 
