@@ -6,6 +6,9 @@
 #if USE_XSIMD
 #include <xsimd/xsimd.hpp>
 using vec_type = std::vector<double, XSIMD_DEFAULT_ALLOCATOR(double)>;
+#elif USE_EIGEN
+#include <Eigen/Dense>
+using vec_type = std::vector<T, Eigen::aligned_allocator<T>>;
 #else
 using vec_type = std::vector<double>;
 #endif
