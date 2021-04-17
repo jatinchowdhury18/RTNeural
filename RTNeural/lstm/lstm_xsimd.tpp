@@ -19,7 +19,7 @@ LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
     oVec.resize(out_size, (T)0);
     ctVec.resize(out_size, (T)0);
     cVec.resize(out_size, (T)0);
-    
+
     prod_in.resize(in_size, (T)0);
     prod_out.resize(out_size, (T)0);
 }
