@@ -284,6 +284,8 @@ public:
 private:
 #if USE_XSIMD
     using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+#elif USE_EIGEN
+    using vec_type = std::vector<T, Eigen::aligned_allocator<T>>;
 #else
     using vec_type = std::vector<T>;
 #endif
