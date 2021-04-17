@@ -57,7 +57,6 @@ private:
     const size_t state_size;
 
     vec3_type kernelWeights;
-    // T*** kernelWeights;
     vec_type bias;
     vec2_type state;
     size_t state_ptr = 0;
