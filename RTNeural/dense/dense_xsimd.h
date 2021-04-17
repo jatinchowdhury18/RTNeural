@@ -11,18 +11,11 @@ template <typename T>
 class Dense : public Layer<T>
 {
 public:
-    static size_t ceil_div(size_t n, size_t d)
-    {
-        return (n + d - 1) / d;
-    }
-
     Dense(size_t in_size, size_t out_size)
         : Layer<T>(in_size, out_size)
     {
-        std::cout << "Dense - XSIMD NEW" << std::endl;
-
         prod.resize(in_size, (T)0);
-        weights = std::vector<vec_type>(out_size, vec_type(in_size, (T)0));
+        weights = vec2_type(out_size, vec_type(in_size, (T)0));
 
         bias.resize(out_size, (T)0);
         sums.resize(out_size, (T)0);
@@ -85,9 +78,10 @@ public:
 
 private:
     using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+    using vec2_type = std::vector<vec_type>;
 
     vec_type bias;
-    std::vector<vec_type> weights;
+    vec2_type weights;
     vec_type prod;
     vec_type sums;
 };

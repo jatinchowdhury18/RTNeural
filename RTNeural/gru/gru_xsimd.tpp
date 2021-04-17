@@ -49,8 +49,8 @@ template <typename T>
 GRULayer<T>::WeightSet::WeightSet(size_t in_size, size_t out_size)
     : out_size(out_size)
 {
-    W = vec2(out_size, vec_type(in_size, (T)0));
-    U = vec2(out_size, vec_type(out_size, (T)0));
+    W = vec2_type(out_size, vec_type(in_size, (T)0));
+    U = vec2_type(out_size, vec_type(out_size, (T)0));
 
     b[0].resize(out_size, (T)0);
     b[1].resize(out_size, (T)0);

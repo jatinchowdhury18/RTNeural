@@ -65,7 +65,7 @@ public:
 
 protected:
     using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
-    using vec2 = std::vector<vec_type>;
+    using vec2_type = std::vector<vec_type>;
 
     vec_type ht1;
 
@@ -74,8 +74,8 @@ protected:
         WeightSet(size_t in_size, size_t out_size);
         ~WeightSet();
 
-        vec2 W;
-        vec2 U;
+        vec2_type W;
+        vec2_type U;
         vec_type b[2];
         const size_t out_size;
     };
