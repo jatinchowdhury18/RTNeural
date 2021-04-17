@@ -48,7 +48,7 @@ public:
             [](auto const& a, auto const& b) { return xsimd::max(a, b); });
     }
 
-    std::vector<T> zeros;
+    std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)> zeros;
 };
 
 template <typename T>

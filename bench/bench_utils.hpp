@@ -3,10 +3,17 @@
 #include <random>
 #include <vector>
 
-std::vector<std::vector<double>> generate_signal(size_t n_samples,
+#if USE_XSIMD
+#include <xsimd/xsimd.hpp>
+using vec_type = std::vector<double, XSIMD_DEFAULT_ALLOCATOR(double)>;
+#else
+using vec_type = std::vector<double>;
+#endif
+
+std::vector<vec_type> generate_signal(size_t n_samples,
     size_t in_size)
 {
-    std::vector<std::vector<double>> signal(n_samples);
+    std::vector<vec_type> signal(n_samples);
     for(auto& x : signal)
         x.resize(in_size, 0.0);
 
