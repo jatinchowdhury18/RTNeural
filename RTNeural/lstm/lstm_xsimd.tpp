@@ -11,17 +11,17 @@ LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
     , oWeights(in_size, out_size)
     , cWeights(in_size, out_size)
 {
-    ht1 = new T[out_size];
-    ct1 = new T[out_size];
+    ht1.resize(out_size, (T)0);
+    ct1.resize(out_size, (T)0);
 
-    fVec = new T[out_size];
-    iVec = new T[out_size];
-    oVec = new T[out_size];
-    ctVec = new T[out_size];
-    cVec = new T[out_size];
+    fVec.resize(out_size, (T)0);
+    iVec.resize(out_size, (T)0);
+    oVec.resize(out_size, (T)0);
+    ctVec.resize(out_size, (T)0);
+    cVec.resize(out_size, (T)0);
 
-    prod_in = new T[in_size];
-    prod_out = new T[out_size];
+    prod_in.resize(in_size, (T)0);
+    prod_out.resize(out_size, (T)0);
 }
 
 template <typename T>
@@ -45,54 +45,27 @@ LSTMLayer<T>& LSTMLayer<T>::operator=(const LSTMLayer<T>& other)
 template <typename T>
 LSTMLayer<T>::~LSTMLayer()
 {
-    delete[] ht1;
-    delete[] ct1;
-
-    delete[] fVec;
-    delete[] iVec;
-    delete[] oVec;
-    delete[] ctVec;
-    delete[] cVec;
-
-    delete[] prod_in;
-    delete[] prod_out;
 }
 
 template <typename T>
 void LSTMLayer<T>::reset()
 {
-    std::fill(ht1, ht1 + Layer<T>::out_size, (T)0);
-    std::fill(ct1, ct1 + Layer<T>::out_size, (T)0);
+    std::fill(ht1.begin(), ht1.end(), (T)0);
+    std::fill(ct1.begin(), ct1.end(), (T)0);
 }
 
 template <typename T>
 LSTMLayer<T>::WeightSet::WeightSet(size_t in_size, size_t out_size)
     : out_size(out_size)
 {
-    W = new T*[out_size];
-    U = new T*[out_size];
-    b = new T[out_size];
-
-    for(size_t i = 0; i < out_size; ++i)
-    {
-        W[i] = new T[in_size];
-        U[i] = new T[out_size];
-    }
+    W = vec2_type(out_size, vec_type(in_size, (T)0));
+    U = vec2_type(out_size, vec_type(out_size, (T)0));
+    b.resize(out_size, (T)0);
 }
 
 template <typename T>
 LSTMLayer<T>::WeightSet::~WeightSet()
 {
-    delete[] b;
-
-    for(size_t i = 0; i < out_size; ++i)
-    {
-        delete[] W[i];
-        delete[] U[i];
-    }
-
-    delete[] W;
-    delete[] U;
 }
 
 template <typename T>

@@ -33,8 +33,6 @@ public:
             delete l;
         layers.clear();
 
-        for(auto o : outs)
-            delete[] o;
         outs.clear();
     }
 
@@ -49,7 +47,7 @@ public:
     void addLayer(Layer<T>* layer)
     {
         layers.push_back(layer);
-        outs.push_back(new T[layer->out_size]);
+        outs.push_back(vec_type(layer->out_size, (T)0));
     }
 
     void reset()
@@ -60,26 +58,34 @@ public:
 
     inline T forward(const T* input)
     {
-        layers[0]->forward(input, outs[0]);
+        layers[0]->forward(input, outs[0].data());
 
         for(size_t i = 1; i < layers.size(); ++i)
         {
-            layers[i]->forward(outs[i - 1], outs[i]);
+            layers[i]->forward(outs[i - 1].data(), outs[i].data());
         }
 
         return outs.back()[0];
     }
 
-    inline T* getOutputs() const noexcept
+    inline const T* getOutputs() const noexcept
     {
-        return outs.back();
+        return outs.back().data();
     }
 
     std::vector<Layer<T>*> layers;
 
 private:
+#if USE_XSIMD
+    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+#elif USE_EIGEN
+    using vec_type = std::vector<T, Eigen::aligned_allocator<T>>;
+#else
+    using vec_type = std::vector<T>;
+#endif
+
     const size_t in_size;
-    std::vector<T*> outs;
+    std::vector<vec_type> outs;
 };
 
 } // namespace RTNeural
