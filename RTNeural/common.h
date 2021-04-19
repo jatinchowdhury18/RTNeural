@@ -8,20 +8,6 @@ namespace RTNeural
 {
 
 template <typename T>
-using EigenArray = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-
-template <typename T>
-struct Exp
-{
-    T operator()(T x) const { return std::exp(x); }
-};
-template <typename T>
-struct Log
-{
-    T operator()(T x) const { return std::log(x); }
-};
-
-template <typename T>
 static inline void
 sigmoid(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 {
@@ -32,8 +18,8 @@ template <typename T>
 static inline void
 softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 {
-    EigenArray<T> wMinusMax = vector.rowwise() - vector.colwise().maxCoeff();
-    vector = wMinusMax.rowwise() - wMinusMax.exp().colwise().sum().log();
+    vector = vector.array().exp();
+    vector = vector / vector.sum();
 }
 
 } // namespace RTNeural
@@ -239,14 +225,13 @@ template <typename T>
 static inline void softmax(T* values, size_t size) noexcept
 {
     T sum = 0;
-    const auto max_element { *std::max_element(values, values + (size - 1)) };
     std::transform(
         values,
         values + (size - 1),
         values,
         [&](T x)
         {
-            auto val = std::exp(x - max_element);
+            auto val = std::exp(x);
             sum += val;
             return val;
         });
