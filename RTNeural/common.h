@@ -218,6 +218,7 @@ static inline void softmax(const double* in, double* out, size_t dim) noexcept
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <functional>
 
 namespace RTNeural
 {
@@ -238,18 +239,24 @@ template <typename T>
 static inline void softmax(T* values, size_t size) noexcept
 {
     T sum = 0;
-    const auto max_element { std::max_element(values, values+(size-1)) };
+    const auto max_element { *std::max_element(values, values + (size - 1)) };
+    std::transform(
+        values,
+        values + (size - 1),
+        values,
+        [&](T x)
+        {
+            auto val = std::exp(x - max_element);
+            sum += val;
+            return val;
+        });
     std::transform(
         values,
         values+(size-1),
         values,
-        [&](T x)
-        {
-            auto val = std::exp(x-*max_element);
-            sum += val;
-            return val;
-        }
-    );
+        [&](T x) {
+            return x / sum;
+        });
 }
 
 } // namespace RTNeural
