@@ -41,6 +41,9 @@ def save_model_json(model):
 
         if layer.activation == keras.activations.sigmoid:
             return 'sigmoid'
+
+        if layer.activation == keras.activations.softmax:
+            return 'softmax'
         
         return ''
 
