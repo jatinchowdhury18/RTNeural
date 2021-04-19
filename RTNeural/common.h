@@ -103,23 +103,43 @@ static inline void sigmoid(const T* in, T* out, size_t dim) noexcept
         out[i] = 1.0 / (1.0 + std::exp(-in[i]));
 }
 
+template <typename T>
 static inline void softmax(const T* in, T* out, size_t dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
     auto inc = b_type::size;
+
+    T exp_sum = 0;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
     for(size_t i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = 1.0 / (1.0 + xsimd::exp(-x_vec));
+        b_type y_vec = xsimd::exp(x_vec);
+        exp_sum += xsimd::hadd(y_vec);
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = 1.0 / (1.0 + std::exp(-in[i]));
+    {
+        out[i] = std::exp(in[i]);
+        exp_sum += out[i];
+    }
+
+    for(size_t i = 0; i < vec_size; i += inc)
+    {
+        b_type x_vec = xsimd::load_aligned(&out[i]);
+        b_type y_vec = x_vec / exp_sum;
+        xsimd::store_aligned(&out[i], y_vec);
+    }
+
+    // Remaining part that cannot be vectorize
+    for (auto i = vec_size; i < dim; ++i)
+    {
+        out[i] /= exp_sum;
+    }
 }
 
 template <typename T>
@@ -180,8 +200,7 @@ static inline void softmax(const float* in, float* out, size_t dim) noexcept
     constexpr float neg_one = -1.0f;
     const auto dim_int = static_cast<int>(dim);
 
-    vDSP_vsmul(in, 1, &neg_one, out, 1, dim);
-    vvexpf(out, out, &dim_int);
+    vvexpf(in, out, &dim_int);
     vDSP_vsadd(out, 1, &one, out, 1, dim);
     vvrecf(out, out, &dim_int);
 }
@@ -192,8 +211,7 @@ static inline void softmax(const double* in, double* out, size_t dim) noexcept
     constexpr double neg_one = -1.0;
     const auto dim_int = static_cast<int>(dim);
 
-    vDSP_vsmulD(in, 1, &neg_one, out, 1, dim);
-    vvexp(out, out, &dim_int);
+    vvexp(in, out, &dim_int);
     vDSP_vsaddD(out, 1, &one, out, 1, dim);
     vvrec(out, out, &dim_int);
 }
