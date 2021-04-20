@@ -243,24 +243,17 @@ static inline T sigmoid(T value) noexcept
 template <typename T>
 static inline void softmax(T* values, size_t size) noexcept
 {
-    T sum = 0;
-    std::transform(
-        values,
-        values + (size - 1),
-        values,
-        [&](T x)
-        {
-            auto val = std::exp(x);
-            sum += val;
-            return val;
-        });
-    std::transform(
-        values,
-        values+(size-1),
-        values,
-        [&](T x) {
-            return x / sum;
-        });
+    T exp_sum = 0;
+    for (size_t i = 0; i < size; ++i)
+    {
+        values[i] = std::exp(values[i]);
+        exp_sum += values[i];
+    }
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        values[i] = values[i] / exp_sum;
+    }
 }
 
 } // namespace RTNeural

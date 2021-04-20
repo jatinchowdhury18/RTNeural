@@ -45,6 +45,7 @@ private:
 #else
 #include "../common.h"
 #include <cmath>
+#include <cstring>
 
 namespace RTNeural
 {
