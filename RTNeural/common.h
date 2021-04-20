@@ -241,18 +241,18 @@ static inline T sigmoid(T value) noexcept
 }
 
 template <typename T>
-static inline void softmax(T* values, size_t size) noexcept
+static inline void softmax(const T* input, T* out, size_t size) noexcept
 {
     T exp_sum = 0;
     for(size_t i = 0; i < size; ++i)
     {
-        values[i] = std::exp(values[i]);
-        exp_sum += values[i];
+        out[i] = std::exp(input[i]);
+        exp_sum += out[i];
     }
 
     for(size_t i = 0; i < size; ++i)
     {
-        values[i] = values[i] / exp_sum;
+        out[i] /= exp_sum;
     }
 }
 

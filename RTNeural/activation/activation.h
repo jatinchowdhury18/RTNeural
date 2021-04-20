@@ -45,7 +45,6 @@ private:
 #else
 #include "../common.h"
 #include <cmath>
-#include <cstring>
 
 namespace RTNeural
 {
@@ -121,9 +120,7 @@ public:
 
     inline void forward(const T* input, T* out) override
     {
-        // input dimensions should be the same as output dimensions.
-        memcpy(out, input, Layer<T>::out_size * sizeof(T));
-        softmax(out, Layer<T>::out_size);
+        softmax(input, out, Layer<T>::out_size);
     }
 };
 
