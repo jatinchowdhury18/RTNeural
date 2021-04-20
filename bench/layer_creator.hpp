@@ -175,9 +175,6 @@ create_layer(const std::string &layer_type, size_t in_size, size_t out_size) {
     return std::move(layer);
   }
 
-
-
-
   std::cout << "Layer type: " << layer_type << " not found!" << std::endl;
   return {};
 }

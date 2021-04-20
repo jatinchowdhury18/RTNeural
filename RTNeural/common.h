@@ -2,7 +2,6 @@
 
 #if defined(USE_EIGEN)
 #include <Eigen/Dense>
-#include <Eigen/LU>
 
 namespace RTNeural
 {
@@ -222,7 +221,6 @@ static inline void softmax(const double* in, double* out, size_t dim) noexcept
 #else // STL backend
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <numeric>
 
 namespace RTNeural

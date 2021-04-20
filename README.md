@@ -21,7 +21,7 @@ Currently supported activations:
   - [x] tanh
   - [x] ReLU
   - [x] Sigmoid
-  - [ ] SoftMax
+  - [x] SoftMax
 
 ## How To Use
 
