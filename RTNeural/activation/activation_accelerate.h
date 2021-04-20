@@ -101,6 +101,26 @@ public:
     }
 };
 
+template <typename T>
+class SoftmaxActivation : public Activation<T>
+{
+public:
+    SoftmaxActivation(size_t size)
+        : Activation<T>(size, {}, "softmax")
+    {
+    }
+
+    SoftmaxActivation(std::initializer_list<size_t> sizes)
+        : SoftmaxActivation(*sizes.begin())
+    {
+    }
+
+    inline void forward(const T* input, T* out) override
+    {
+        softmax(input, out, Layer<T>::in_size);
+    }
+};
+
 } // namespace RTNeural
 
 #endif // ACTIVATIONACCELERATE_H_INCLUDED
