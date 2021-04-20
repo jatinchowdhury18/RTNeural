@@ -14,11 +14,11 @@ public:
     Dense(size_t in_size, size_t out_size)
         : Layer<T>(in_size, out_size)
     {
-        prod = new T[in_size];
-        bias = new T[out_size];
-        weights = new T*[out_size];
-        for(size_t i = 0; i < out_size; ++i)
-            weights[i] = new T[in_size];
+        prod.resize(in_size, (T)0);
+        weights = vec2_type(out_size, vec_type(in_size, (T)0));
+
+        bias.resize(out_size, (T)0);
+        sums.resize(out_size, (T)0);
     }
 
     Dense(std::initializer_list<size_t> sizes)
@@ -38,21 +38,16 @@ public:
 
     virtual ~Dense()
     {
-        delete[] bias;
-        delete[] prod;
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
-            delete[] weights[i];
-        delete[] weights;
     }
 
     inline void forward(const T* input, T* out) override
     {
         for(size_t l = 0; l < Layer<T>::out_size; ++l)
         {
-            xsimd::transform(input, &input[Layer<T>::in_size], weights[l], prod,
+            xsimd::transform(input, &input[Layer<T>::in_size], weights[l].data(), prod.data(),
                 [](auto const& a, auto const& b) { return a * b; });
 
-            auto sum = xsimd::reduce(prod, &prod[Layer<T>::in_size], (T)0);
+            auto sum = xsimd::reduce(prod.data(), &prod[Layer<T>::in_size], (T)0);
             out[l] = sum + bias[l];
         }
     }
@@ -82,9 +77,13 @@ public:
     T getBias(size_t i) const noexcept { return bias[i]; }
 
 private:
-    T* bias;
-    T** weights;
-    T* prod;
+    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+    using vec2_type = std::vector<vec_type>;
+
+    vec_type bias;
+    vec2_type weights;
+    vec_type prod;
+    vec_type sums;
 };
 
 } // namespace RTNeural

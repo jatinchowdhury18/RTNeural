@@ -24,7 +24,7 @@ public:
 
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
             input, Layer<T>::in_size, 1);
         outVec = inVec.array().tanh();
 
@@ -53,7 +53,7 @@ public:
 
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
             input, Layer<T>::in_size, 1);
         outVec = inVec.array().max((T)0);
 
@@ -82,7 +82,7 @@ public:
 
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
             input, Layer<T>::in_size, 1);
         outVec = inVec.array();
         sigmoid(outVec);
