@@ -121,7 +121,6 @@ public:
     }
 };
 
-
 } // namespace RTNeural
 
 #endif // ACTIVATIONACCELERATE_H_INCLUDED

@@ -136,7 +136,7 @@ static inline void softmax(const T* in, T* out, size_t dim) noexcept
     }
 
     // Remaining part that cannot be vectorize
-    for (auto i = vec_size; i < dim; ++i)
+    for(auto i = vec_size; i < dim; ++i)
     {
         out[i] /= exp_sum;
     }
@@ -222,8 +222,8 @@ static inline void softmax(const double* in, double* out, size_t dim) noexcept
 #else // STL backend
 #include <algorithm>
 #include <cmath>
-#include <numeric>
 #include <functional>
+#include <numeric>
 
 namespace RTNeural
 {
@@ -244,13 +244,13 @@ template <typename T>
 static inline void softmax(T* values, size_t size) noexcept
 {
     T exp_sum = 0;
-    for (size_t i = 0; i < size; ++i)
+    for(size_t i = 0; i < size; ++i)
     {
         values[i] = std::exp(values[i]);
         exp_sum += values[i];
     }
 
-    for (size_t i = 0; i < size; ++i)
+    for(size_t i = 0; i < size; ++i)
     {
         values[i] = values[i] / exp_sum;
     }
