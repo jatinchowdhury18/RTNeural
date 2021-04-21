@@ -45,6 +45,8 @@ public:
         delete[] weights;
     }
 
+    std::string getName() const noexcept override { return "dense"; }
+
     inline void forward(const T* input, T* out)
     {
         forward_internal(input, out);

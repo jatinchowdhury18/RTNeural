@@ -88,6 +88,8 @@ public:
         delete[] subLayers;
     }
 
+    std::string getName() const noexcept override { return "dense"; }
+
     inline void forward(const T* input, T* out) override
     {
         for(size_t i = 0; i < Layer<T>::out_size; ++i)

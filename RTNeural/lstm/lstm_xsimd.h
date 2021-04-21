@@ -19,6 +19,9 @@ public:
     virtual ~LSTMLayer();
 
     void reset() override;
+
+    std::string getName() const noexcept override { return "lstm"; }
+
     virtual inline void forward(const T* input, T* h) override
     {
         for(size_t i = 0; i < Layer<T>::out_size; ++i)

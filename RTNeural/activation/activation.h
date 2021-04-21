@@ -18,7 +18,7 @@ public:
     {
     }
 
-    std::string getName() const noexcept { return name; }
+    std::string getName() const noexcept override { return name; }
 
     inline void forward(const T* input, T* out) override
     {

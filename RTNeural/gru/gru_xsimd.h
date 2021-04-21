@@ -19,6 +19,8 @@ public:
 
     void reset() override { std::fill(ht1.begin(), ht1.end(), (T)0); }
 
+    std::string getName() const noexcept override { return "gru"; }
+
     virtual inline void forward(const T* input, T* h) override
     {
         for(size_t i = 0; i < Layer<T>::out_size; ++i)

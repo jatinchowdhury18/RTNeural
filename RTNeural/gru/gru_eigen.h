@@ -22,6 +22,8 @@ public:
         std::fill(ht1.data(), ht1.data() + Layer<T>::out_size, (T)0);
     }
 
+    std::string getName() const noexcept override { return "gru"; }
+
     inline void forward(const T* input, T* h) override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(

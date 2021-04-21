@@ -30,6 +30,8 @@ public:
 
     void reset() override;
 
+    std::string getName() const noexcept override { return "conv1d"; }
+
     virtual inline void forward(const T* input, T* h) override
     {
         for(size_t k = 0; k < Layer<T>::in_size; ++k)
