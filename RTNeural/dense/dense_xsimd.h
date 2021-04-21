@@ -40,6 +40,8 @@ public:
     {
     }
 
+    std::string getName() const noexcept override { return "dense"; }
+
     inline void forward(const T* input, T* out) override
     {
         for(size_t l = 0; l < Layer<T>::out_size; ++l)

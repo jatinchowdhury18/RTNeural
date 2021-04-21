@@ -17,6 +17,8 @@ public:
     LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer() { }
 
+    std::string getName() const noexcept override { return "lstm"; }
+
     void reset() override;
     inline void forward(const T* input, T* h) override
     {
