@@ -194,7 +194,7 @@ public:
         }
 
         size_t json_stream_idx = 0;
-        modelt_detail::forEachInTuple([&](auto& layer, size_t idx) {
+        modelt_detail::forEachInTuple([&](auto& layer, size_t) {
             if(json_stream_idx >= json_layers.size())
             {
                 debug_print("Too many layers!", debug);
