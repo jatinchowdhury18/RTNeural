@@ -184,7 +184,7 @@ public:
         if(!shape.is_array() || !json_layers.is_array())
             return;
 
-        const auto nDims = shape.back().get<int>();
+        const auto nDims = shape.back().get<size_t>();
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         if(nDims != in_size)

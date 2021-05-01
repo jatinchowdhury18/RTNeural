@@ -81,7 +81,7 @@ protected:
         vDSP_vmul(zVec, 1, ht1, 1, ht1, 1, Layer<T>::out_size);
         vDSP_vadd(h, 1, ht1, 1, h, 1, Layer<T>::out_size);
 
-        cblas_scopy(Layer<T>::out_size, h, 1, ht1, 1);
+        cblas_scopy((int)Layer<T>::out_size, h, 1, ht1, 1);
     }
 
     template <typename FloatType = T>
