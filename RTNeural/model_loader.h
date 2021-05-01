@@ -72,7 +72,7 @@ namespace json_parser
 
     /** Loads weights for a Conv1D layer from a json representation of the layer weights */
     template <typename T>
-    void loadConv1D(Conv1D<T>& conv, size_t kernel_size, size_t dilation, const nlohmann::json& weights)
+    void loadConv1D(Conv1D<T>& conv, size_t kernel_size, size_t /*dilation*/, const nlohmann::json& weights)
     {
         // load weights
         std::vector<std::vector<std::vector<T>>> convWeights(conv.out_size);
