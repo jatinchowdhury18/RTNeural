@@ -195,7 +195,6 @@ static inline void sigmoid(const double* in, double* out, size_t dim) noexcept
 
 static inline void softmax(const float* in, float* out, size_t dim) noexcept
 {
-    constexpr float one = 1.0f;
     const auto dim_int = static_cast<int>(dim);
     float exp_sum;
 
@@ -206,8 +205,6 @@ static inline void softmax(const float* in, float* out, size_t dim) noexcept
 
 static inline void softmax(const double* in, double* out, size_t dim) noexcept
 {
-    constexpr double one = 1.0;
-    constexpr double neg_one = -1.0;
     const auto dim_int = static_cast<int>(dim);
     double exp_sum;
 

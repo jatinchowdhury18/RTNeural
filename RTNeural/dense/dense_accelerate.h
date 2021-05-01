@@ -47,7 +47,7 @@ public:
 
     std::string getName() const noexcept override { return "dense"; }
 
-    inline void forward(const T* input, T* out)
+    inline void forward(const T* input, T* out) override
     {
         forward_internal(input, out);
     }
@@ -81,7 +81,7 @@ private:
     inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
     forward_internal(const float* input, float* out)
     {
-        for(int l = 0; l < Layer<T>::out_size; ++l)
+        for(size_t l = 0; l < Layer<T>::out_size; ++l)
             vDSP_dotpr(input, 1, weights[l], 1, &sums[l], Layer<T>::in_size);
 
         vDSP_vadd(sums, 1, bias, 1, out, 1, Layer<T>::out_size);
