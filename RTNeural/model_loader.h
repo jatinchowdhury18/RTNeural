@@ -146,8 +146,8 @@ namespace json_parser
     }
 
     /** Loads weights for a GRU layer from a json representation of the layer weights */
-    template <typename T>
-    void loadGRU(GRULayer<T>& gru, const nlohmann::json& weights)
+    template <typename T, typename GRUType>
+    void loadGRU(GRUType& gru, const nlohmann::json& weights)
     {
         // load kernel weights
         std::vector<std::vector<T>> kernelWeights(gru.in_size);
@@ -200,13 +200,13 @@ namespace json_parser
     std::unique_ptr<GRULayer<T>> createGRU(size_t in_size, size_t out_size, const nlohmann::json& weights)
     {
         auto gru = std::make_unique<GRULayer<T>>(in_size, out_size);
-        loadGRU(*gru.get(), weights);
+        loadGRU<T>(*gru.get(), weights);
         return std::move(gru);
     }
 
     /** Checks that a GRU layer has the correct dimensions */
-    template <typename T>
-    bool checkGRU(const GRULayer<T>& gru, const std::string& type, size_t layerDims, const bool debug)
+    template <typename T, typename GRUType>
+    bool checkGRU(const GRUType& gru, const std::string& type, size_t layerDims, const bool debug)
     {
         if(type != "gru")
         {

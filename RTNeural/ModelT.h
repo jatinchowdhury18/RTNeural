@@ -101,6 +101,21 @@ namespace modelt_detail
         }
     }
 
+    template <typename T, size_t in_size, size_t out_size>
+    void loadLayer(GRULayerT<T, in_size, out_size>& gru, size_t& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, size_t layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto weights = l["weights"];
+
+        if(checkGRU<T>(gru, type, layerDims, debug))
+            loadGRU<T>(gru, weights);
+
+        json_stream_idx++;
+    }
 } // namespace modelt_detail
 
 template <typename T, size_t in_size, size_t out_size, typename... Layers>

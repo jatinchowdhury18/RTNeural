@@ -44,11 +44,11 @@ int model_test()
     {
         std::cout << "Loading templated model" << std::endl;
         RTNeural::ModelT<TestType, 1, 1,
-            RTNeural::DenseT<TestType, 1, 8>,
-            RTNeural::TanhActivationT<TestType, 8>,
+            RTNeural::DenseT<TestType, 1, 4>,
+            RTNeural::TanhActivationT<TestType, 4>,
             // RTNeural::Conv1D<TestType>,
             // RTNeural::TanhActivation<TestType>,
-            // RTNeural::GRULayer<TestType>,
+            RTNeural::GRULayerT<TestType, 4, 8>,
             RTNeural::DenseT<TestType, 8, 1>
         > modelT;
         // modelT ({ 1, 8, 8, 4, 4, 8, 1 }); //, {
