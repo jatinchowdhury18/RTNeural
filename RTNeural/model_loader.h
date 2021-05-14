@@ -19,8 +19,8 @@ namespace json_parser
     }
 
     /** Loads weights for a Dense layer from a json representation of the layer weights */
-    template <typename T>
-    void loadDense(Dense<T>& dense, const nlohmann::json& weights)
+    template <typename T, typename DenseType>
+    void loadDense(DenseType& dense, const nlohmann::json& weights)
     {
         // load weights
         std::vector<std::vector<T>> denseWeights(dense.out_size);
@@ -47,7 +47,7 @@ namespace json_parser
     std::unique_ptr<Dense<T>> createDense(size_t in_size, size_t out_size, const nlohmann::json& weights)
     {
         auto dense = std::make_unique<Dense<T>>(in_size, out_size);
-        loadDense(*dense.get(), weights);
+        loadDense<T>(*dense.get(), weights);
         return std::move(dense);
     }
 

@@ -14,6 +14,43 @@ namespace RTNeural
  */
 namespace modelt_detail
 {
+
+    /** Useful for parsing constructor args */
+    using init_list = std::vector<std::initializer_list<size_t>>;
+    using Liter = init_list::const_iterator;
+
+    /** Forward declaration. */
+    template <typename... Layers>
+    struct MakeLayersTupleImpl;
+
+    /** Base case. */
+    template <typename Layer>
+    struct MakeLayersTupleImpl<Layer>
+    {
+        std::tuple<Layer> operator()(Liter begin, Liter /*end*/) const
+        {
+            return std::tuple<Layer>(Layer(*begin));
+        }
+    };
+
+    /* Recursive case. */
+    template <typename Layer, typename... Layers>
+    struct MakeLayersTupleImpl<Layer, Layers...>
+    {
+        std::tuple<Layer, Layers...> operator()(Liter begin, Liter end) const
+        {
+            return std::tuple_cat(MakeLayersTupleImpl<Layer>()(begin, end),
+                MakeLayersTupleImpl<Layers...>()(begin + 1, end));
+        }
+    };
+
+    /* Delegate function. */
+    template <typename... Layers>
+    std::tuple<Layers...> makeLayersTuple(init_list l)
+    {
+        return MakeLayersTupleImpl<Layers...>()(l.begin(), l.end());
+    }
+
     /** utils for making offset index sequences */
     template <std::size_t N, typename Seq>
     struct offset_sequence;
@@ -70,6 +107,77 @@ namespace modelt_detail
         static void call(T&, IO&) { }
     };
 
+    template <typename T, typename LayerType>
+    void loadLayer(LayerType& layer, size_t& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, size_t layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        if(auto* actLayer = dynamic_cast<Activation<T>*>(&layer)) // activation layers don't need initialisation
+        {
+            if(!l.contains("activation"))
+            {
+                debug_print("No activation layer expected!", debug);
+                return;
+            }
+
+            const auto activationType = l["activation"].get<std::string>();
+            if(!activationType.empty())
+            {
+                debug_print("  activation: " + activationType, debug);
+                checkActivation(*actLayer, activationType, layerDims, debug);
+            }
+
+            json_stream_idx++;
+            return;
+        }
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto weights = l["weights"];
+
+        if(auto* dense = dynamic_cast<Dense<T>*>(&layer))
+        {
+            if(checkDense(*dense, type, layerDims, debug))
+                loadDense(*dense, weights);
+
+            if(!l.contains("activation"))
+                json_stream_idx++;
+        }
+        else if(auto* conv = dynamic_cast<Conv1D<T>*>(&layer))
+        {
+            const auto kernel_size = l["kernel_size"].back().get<size_t>();
+            const auto dilation = l["dilation"].back().get<size_t>();
+
+            if(checkConv1D(*conv, type, layerDims, kernel_size, dilation, debug))
+                loadConv1D(*conv, kernel_size, dilation, weights);
+
+            if(!l.contains("activation"))
+                json_stream_idx++;
+        }
+        else if(auto* gru = dynamic_cast<GRULayer<T>*>(&layer))
+        {
+            if(checkGRU(*gru, type, layerDims, debug))
+                loadGRU(*gru, weights);
+
+            json_stream_idx++;
+        }
+        else if(auto* lstm = dynamic_cast<LSTMLayer<T>*>(&layer))
+        {
+            if(checkLSTM(*lstm, type, layerDims, debug))
+                loadLSTM(*lstm, weights);
+
+            json_stream_idx++;
+        }
+        else
+        {
+            debug_print("Layer type not recognized!", debug);
+
+            if(!l.contains("activation"))
+                json_stream_idx++;
+        }
+    }
+
     template <typename T, size_t in_size, size_t out_size>
     void loadLayer(DenseT<T, in_size, out_size>& dense, size_t& json_stream_idx, const nlohmann::json& l,
         const std::string& type, size_t layerDims, bool debug)
@@ -81,18 +189,10 @@ namespace modelt_detail
         const auto weights = l["weights"];
 
         // if(checkDense(*dense, type, layerDims, debug))
-        loadDense<T>(dense, weights);
+        loadDense(dense, weights);
 
         if(!l.contains("activation"))
-        {
             json_stream_idx++;
-        }
-        else
-        {
-            const auto activationType = l["activation"].get<std::string>();
-            if(activationType.empty())
-                json_stream_idx++;
-        }
     }
 
 } // namespace modelt_detail
@@ -101,15 +201,32 @@ template <typename T, typename... Layers>
 class ModelT
 {
 public:
-    ModelT(std::initializer_list<size_t> sizes)
+    using init_list = std::vector<std::initializer_list<size_t>>;
+    ModelT(std::initializer_list<size_t> sizes, init_list layer_inits)
         : in_size(*sizes.begin())
+        , layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
         , sizes(sizes)
+        , layer_inits(layer_inits)
     {
         for(size_t i = 1; i < sizes.size(); ++i)
         {
             auto out_size = *(sizes.begin() + i);
             outs[i - 1].resize(out_size, (T)0);
         }
+    }
+
+    ModelT(const ModelT& other)
+        : ModelT(other.sizes, other.layer_inits)
+    {
+    }
+
+    ModelT& operator=(const ModelT& other)
+    {
+        return *this = ModelT(other);
+    }
+
+    ~ModelT()
+    {
     }
 
     /** Get a reference to the layer at index `Index`. */
@@ -177,7 +294,7 @@ public:
             const auto layerShape = l["shape"];
             const auto layerDims = layerShape.back().get<size_t>();
 
-            modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug);
+            loadLayer(layer, json_stream_idx, l, type, layerDims, debug);
         },
             layers);
     }
@@ -207,6 +324,7 @@ private:
 
     // needed for copy constructor
     std::initializer_list<size_t> sizes;
+    init_list layer_inits;
 };
 
 } // namespace RTNeural
