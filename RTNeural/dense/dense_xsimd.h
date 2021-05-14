@@ -109,9 +109,13 @@ public:
 
         for (size_t i = 0; i < v_out_size; ++i)
             bias[i] = v_type ((T) 0.0);
+
+        for (size_t i = 0; i < v_out_size; ++i)
+            outs[i] = v_type ((T) 0.0);
     }
 
     std::string getName() const noexcept { return "dense"; }
+    constexpr bool isActivation() const noexcept { return false; }
 
     void reset() {}
 
@@ -185,9 +189,12 @@ public:
     {
         for (size_t i = 0; i < v_in_size; ++i)
             weights[i] = v_type ((T) 0.0);
+
+        outs[0] = v_type ((T) 0.0);
     }
 
     std::string getName() const noexcept { return "dense"; }
+    constexpr bool isActivation() const noexcept { return false; }
 
     void reset() {}
 
@@ -199,7 +206,7 @@ public:
             y += xsimd::hadd (ins[k] * weights[k]);
         }
 
-        outs[0] = v_type (y + bias);
+        outs[0] = set_value(outs[0], 0, y + bias);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)

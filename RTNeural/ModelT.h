@@ -70,6 +70,12 @@ namespace modelt_detail
         static void call(T&) {}
     };
 
+    template <typename T, typename LayerType>
+    void loadLayer(LayerType&, size_t&, const nlohmann::json&, const std::string&, size_t, bool debug)
+    {
+        json_parser::debug_print("Loading a no-op layer!", debug);
+    }
+
     template <typename T, size_t in_size, size_t out_size>
     void loadLayer(DenseT<T, in_size, out_size>& dense, size_t& json_stream_idx, const nlohmann::json& l,
         const std::string& type, size_t layerDims, bool debug)
@@ -179,6 +185,25 @@ public:
             const auto type = l["type"].get<std::string>();
             const auto layerShape = l["shape"];
             const auto layerDims = layerShape.back().get<size_t>();
+
+            if(layer.isActivation()) // activation layers don't need initialisation
+            {
+                if(!l.contains("activation"))
+                {
+                    debug_print("No activation layer expected!", debug);
+                    return;
+                }
+
+                const auto activationType = l["activation"].get<std::string>();
+                if(!activationType.empty())
+                {
+                    debug_print("  activation: " + activationType, debug);
+                    checkActivation(layer, activationType, layerDims, debug);
+                }
+
+                json_stream_idx++;
+                return;
+            }
 
             modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug);
         },
