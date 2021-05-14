@@ -27,8 +27,8 @@ void runBench(ModelType& model, double length_seconds)
 
 int main(int argc, char* argv[])
 {
-    const std::string model_file = "models/full_model.json";
-    constexpr double bench_time = 50.0;
+    const std::string model_file = "models/model_dense.json";
+    constexpr double bench_time = 1000.0;
 
     // non-templated model
     {
@@ -41,21 +41,14 @@ int main(int argc, char* argv[])
     // templated model
     {
         std::cout << "Measuring templated model..." << std::endl;
-        RTNeural::ModelT<double,
-            RTNeural::Dense<double>,
-            RTNeural::TanhActivation<double>,
-            RTNeural::Conv1D<double>,
-            RTNeural::TanhActivation<double>,
-            RTNeural::GRULayer<double>,
-            RTNeural::Dense<double>>
-            modelT({ 1, 8, 8, 4, 4, 8, 1 }, {
-                                                { 1, 8 }, // Dense
-                                                { 8 }, // Tanh
-                                                { 8, 4, 3, 2 }, // Conv1D
-                                                { 4 }, // Tanh
-                                                { 4, 8 }, // GRU
-                                                { 8, 1 } // Dense
-                                            });
+        RTNeural::ModelT<double, 1, 1,
+            RTNeural::DenseT<double, 1, 8>,
+            RTNeural::TanhActivationT<double, 8>,
+            // RTNeural::Conv1D<double>,
+            // RTNeural::TanhActivation<double>,
+            // RTNeural::GRULayer<double>,
+            RTNeural::DenseT<double, 8, 1>> modelT;
+
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream);
         runBench(modelT, bench_time);
