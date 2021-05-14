@@ -55,19 +55,19 @@ namespace modelt_detail
     template <size_t idx, size_t Niter>
     struct forward_unroll
     {
-        template <typename T, typename IO>
-        static void call(T& t, IO& io)
+        template <typename T>
+        static void call(T& t)
         {
-            std::get<idx>(t).forward(io[idx - 1].data(), io[idx].data());
-            forward_unroll<idx + 1, Niter - 1>::call(t, io);
+            std::get<idx>(t).forward(std::get<idx-1>(t).outs);
+            forward_unroll<idx + 1, Niter - 1>::call(t);
         }
     };
 
     template <size_t idx>
     struct forward_unroll<idx, 0>
     {
-        template <typename T, typename IO>
-        static void call(T&, IO&) { }
+        template <typename T>
+        static void call(T&) {}
     };
 
     template <typename T, size_t in_size, size_t out_size>
@@ -80,8 +80,8 @@ namespace modelt_detail
         debug_print("  Dims: " + std::to_string(layerDims), debug);
         const auto weights = l["weights"];
 
-        // if(checkDense(*dense, type, layerDims, debug))
-        loadDense<T>(dense, weights);
+        if(checkDense<T>(dense, type, layerDims, debug))
+            loadDense<T>(dense, weights);
 
         if(!l.contains("activation"))
         {
@@ -97,19 +97,14 @@ namespace modelt_detail
 
 } // namespace modelt_detail
 
-template <typename T, typename... Layers>
+template <typename T, size_t in_size, size_t out_size, typename... Layers>
 class ModelT
 {
 public:
-    ModelT(std::initializer_list<size_t> sizes)
-        : in_size(*sizes.begin())
-        , sizes(sizes)
+    ModelT()
     {
-        for(size_t i = 1; i < sizes.size(); ++i)
-        {
-            auto out_size = *(sizes.begin() + i);
-            outs[i - 1].resize(out_size, (T)0);
-        }
+        for(size_t i = 0; i < v_in_size; ++i)
+            v_ins[i] = v_type ((T) 0);
     }
 
     /** Get a reference to the layer at index `Index`. */
@@ -133,10 +128,18 @@ public:
 
     inline T forward(const T* input)
     {
-        std::get<0>(layers).forward(input, outs[0].data());
-        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers, outs);
+#if USE_XSIMD
+        for(size_t i = 0; i < in_size; ++i)
+            v_ins[i / v_size] = set_value(v_ins[i / v_size], i % v_size, input[i]);
+#endif
+        std::get<0>(layers).forward(v_ins);
+        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
-        return outs.back()[0];
+#if USE_XSIMD
+        for(size_t i = 0; i < out_size; ++i)
+            outs[i] = get_value<T>(get<n_layers-1>().outs[i / v_size], i % v_size);
+#endif
+        return outs[0];
     }
 
     inline const T* getOutputs() const noexcept
@@ -192,21 +195,21 @@ public:
 
 private:
 #if USE_XSIMD
-    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_in_size = ceil_div(in_size, v_size);
+    static constexpr auto v_out_size = ceil_div(out_size, v_size);
 #elif USE_EIGEN
     using vec_type = std::vector<T, Eigen::aligned_allocator<T>>;
 #else
     using vec_type = std::vector<T>;
 #endif
 
-    const size_t in_size;
+    v_type v_ins[v_in_size];
+    T outs alignas(16)[out_size];
+
     std::tuple<Layers...> layers;
-
     static constexpr size_t n_layers = sizeof...(Layers);
-    std::array<vec_type, n_layers> outs;
-
-    // needed for copy constructor
-    std::initializer_list<size_t> sizes;
 };
 
 } // namespace RTNeural

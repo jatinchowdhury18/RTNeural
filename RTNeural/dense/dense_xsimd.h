@@ -104,9 +104,6 @@ public:
 
     DenseT()
     {
-        for (size_t i = 0; i < v_in_size; ++i)
-            ins[i] = v_type ((T) 0.0);
-
         for (size_t i = 0; i < weights_size; ++i)
             weights[i] = v_type ((T) 0.0);
 
@@ -118,12 +115,8 @@ public:
 
     void reset() {}
 
-    inline void forward(const T* input, T* out)
+    inline void forward(const v_type (&ins)[v_in_size])
     {
-        // load inputs (REMOVE LATER)
-        for(size_t i = 0; i < v_in_size; ++i)
-            ins[i] = v_type (input + i * v_size);
-
         for(size_t i = 0; i < v_out_size; ++i)
             outs[i] = v_type ((T) 0);
 
@@ -138,10 +131,6 @@ public:
 
             outs[i] += bias[i];
         }   
-
-        // REMOVE LATER
-        for(size_t i = 0; i < v_out_size; ++i)
-            xsimd::store_aligned(out + i * v_size, outs[i]);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
@@ -175,14 +164,9 @@ public:
 
     }
 
-    // T getWeight(size_t i, size_t k) const noexcept { return weights[i][k]; }
-
-    // T getBias(size_t i) const noexcept { return bias[i]; }
-
     v_type outs[v_out_size];
 
 private:
-    v_type ins[v_in_size];
     v_type bias[v_out_size];
     v_type weights[weights_size];
 };
@@ -200,9 +184,6 @@ public:
     DenseT()
     {
         for (size_t i = 0; i < v_in_size; ++i)
-            ins[i] = v_type ((T) 0.0);
-
-        for (size_t i = 0; i < v_in_size; ++i)
             weights[i] = v_type ((T) 0.0);
     }
 
@@ -210,12 +191,8 @@ public:
 
     void reset() {}
 
-    inline void forward(const T* input, T* out)
+    inline void forward(const v_type (&ins)[v_in_size])
     {
-        // load inputs (REMOVE LATER)
-        for(size_t i = 0; i < v_in_size; ++i)
-            ins[i] = v_type (input + i * v_size);
-
         T y = (T) 0;
         for (size_t k = 0; k < v_in_size; ++k)
         {
@@ -223,10 +200,6 @@ public:
         }
 
         outs[0] = v_type (y + bias);
-
-        // REMOVE LATER
-        for(size_t i = 0; i < 1; ++i)
-            xsimd::store_aligned(out + i * v_size, outs[i]);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
@@ -262,7 +235,6 @@ public:
 
 private:
     T bias;
-    v_type ins[v_in_size];
     v_type weights[v_in_size];
 };
 

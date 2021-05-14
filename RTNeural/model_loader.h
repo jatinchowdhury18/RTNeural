@@ -52,8 +52,8 @@ namespace json_parser
     }
 
     /** Checks that a dense layer has the correct dimensions */
-    template <typename T>
-    bool checkDense(const Dense<T>& dense, const std::string& type, size_t layerDims, const bool debug)
+    template <typename T, typename DenseType>
+    bool checkDense(const DenseType& dense, const std::string& type, size_t layerDims, const bool debug)
     {
         if(type != "dense" && type != "time-distributed-dense")
         {

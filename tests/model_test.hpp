@@ -43,14 +43,14 @@ int model_test()
     std::vector<TestType> yData(xData.size(), (TestType)0);
     {
         std::cout << "Loading templated model" << std::endl;
-        RTNeural::ModelT<TestType,
+        RTNeural::ModelT<TestType, 1, 1,
             RTNeural::DenseT<TestType, 1, 8>,
             // RTNeural::TanhActivation<TestType>,
             // RTNeural::Conv1D<TestType>,
             // RTNeural::TanhActivation<TestType>,
             // RTNeural::GRULayer<TestType>,
             RTNeural::DenseT<TestType, 8, 1>
-        > modelT ({ 1, 8, 1 });
+        > modelT;
         // modelT ({ 1, 8, 8, 4, 4, 8, 1 }); //, {
         //     { 1, 8 }, // Dense
         //     { 8 }, // Tanh
