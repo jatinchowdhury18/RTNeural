@@ -39,6 +39,7 @@ int model_test()
         processModel(*modelRef.get(), xData, yRefData);
     }
 
+#if USE_XSIMD
     // templated model
     std::vector<TestType> yData(xData.size(), (TestType)0);
     {
@@ -88,6 +89,7 @@ int model_test()
         std::cout << "Maximum error: " << max_error << std::endl;
         return 1;
     }
+#endif
 
     std::cout << "SUCCESS" << std::endl;
     return 0;
