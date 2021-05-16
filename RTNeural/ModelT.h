@@ -150,15 +150,15 @@ public:
     inline T forward(const T* input)
     {
 #if USE_XSIMD
-        for(size_t i = 0; i < in_size; ++i)
-            v_ins[i / v_size] = set_value(v_ins[i / v_size], i % v_size, input[i]);
+        for(size_t i = 0; i < v_in_size; ++i)
+            v_ins[i] = xsimd::load_aligned(input + i * v_size);
 #endif
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
 #if USE_XSIMD
-        for(size_t i = 0; i < out_size; ++i)
-            outs[i] = get_value<T>(get<n_layers-1>().outs[i / v_size], i % v_size);
+        for(size_t i = 0; i < v_out_size; ++i)
+            xsimd::store_aligned(outs + i * v_size, get<n_layers-1>().outs[i]);
 #endif
         return outs[0];
     }

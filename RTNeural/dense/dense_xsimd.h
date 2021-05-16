@@ -122,18 +122,15 @@ public:
     inline void forward(const v_type (&ins)[v_in_size])
     {
         for(size_t i = 0; i < v_out_size; ++i)
-            outs[i] = v_type ((T) 0);
-
-
-        for(size_t i = 0; i < v_out_size; ++i)
         {
+            T out_sum alignas(16)[v_size] { (T) 0 };
             for(size_t k = 0; k < v_in_size; ++k)
             {
                 for(size_t j = 0; j < v_size; ++j)
-                    outs[i] = set_value(outs[i], j, get_value<T>(outs[i], j) + xsimd::hadd(ins[k] * weights[(i * v_size + j) * v_in_size + k]));
+                    out_sum[j] += xsimd::hadd(ins[k] * weights[(i * v_size + j) * v_in_size + k]);
             }
 
-            outs[i] += bias[i];
+            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
         }   
     }
 
@@ -203,10 +200,10 @@ public:
         T y = (T) 0;
         for (size_t k = 0; k < v_in_size; ++k)
         {
-            y += xsimd::hadd (ins[k] * weights[k]);
+            y += xsimd::hadd(ins[k] * weights[k]);
         }
 
-        outs[0] = set_value(outs[0], 0, y + bias);
+        outs[0] = v_type (y + bias);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
