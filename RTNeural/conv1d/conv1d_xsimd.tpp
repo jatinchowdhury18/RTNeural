@@ -63,4 +63,29 @@ void Conv1D<T>::setBias(const std::vector<T>& biasVals)
         bias[i] = biasVals[i];
 }
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT()
+{
+
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::reset()
+{
+
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setWeights(const std::vector<std::vector<std::vector<T>>>& weights)
+{
+
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setBias(const std::vector<T>& biasVals)
+{
+
+}
+
 } // namespace RTNeural

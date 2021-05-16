@@ -71,8 +71,8 @@ namespace json_parser
     }
 
     /** Loads weights for a Conv1D layer from a json representation of the layer weights */
-    template <typename T>
-    void loadConv1D(Conv1D<T>& conv, size_t kernel_size, size_t /*dilation*/, const nlohmann::json& weights)
+    template <typename T, typename Conv1DType>
+    void loadConv1D(Conv1DType& conv, size_t kernel_size, size_t /*dilation*/, const nlohmann::json& weights)
     {
         // load weights
         std::vector<std::vector<std::vector<T>>> convWeights(conv.out_size);
@@ -109,13 +109,13 @@ namespace json_parser
         size_t kernel_size, size_t dilation, const nlohmann::json& weights)
     {
         auto conv = std::make_unique<Conv1D<T>>(in_size, out_size, kernel_size, dilation);
-        loadConv1D(*conv.get(), kernel_size, dilation, weights);
+        loadConv1D<T>(*conv.get(), kernel_size, dilation, weights);
         return std::move(conv);
     }
 
     /** Checks that a Conv1D layer has the correct dimensions */
-    template <typename T>
-    bool checkConv1D(const Conv1D<T>& conv, const std::string& type, size_t layerDims,
+    template <typename T, typename Conv1DType>
+    bool checkConv1D(const Conv1DType& conv, const std::string& type, size_t layerDims,
         size_t kernel_size, size_t dilation_rate, const bool debug)
     {
         if(type != "conv1d")

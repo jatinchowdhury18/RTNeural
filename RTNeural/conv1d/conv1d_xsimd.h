@@ -64,6 +64,44 @@ private:
     vec_type prod_state;
 };
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+class Conv1DT
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
+    static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
+    static constexpr auto state_size = kernel_size * dilation_rate;
+    static constexpr auto v_state_size = ceil_div(state_size, v_size);
+
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+
+    Conv1DT();
+
+    std::string getName() const noexcept { return "conv1d"; }
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset();
+
+    inline void forward(const v_type (&ins)[v_in_size])
+    {
+
+    }
+
+    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    void setBias(const std::vector<T>& biasVals);
+
+    constexpr size_t getKernelSize() const { return kernel_size; }
+    constexpr size_t getDilationRate() const { return dilation_rate; }
+
+    v_type outs[v_out_size];
+
+private:
+};
+
 } // namespace RTNeural
 
 #endif // CONV1DXSIMD_H_INCLUDED

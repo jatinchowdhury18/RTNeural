@@ -103,6 +103,33 @@ namespace modelt_detail
         }
     }
 
+    template <typename T, size_t in_size, size_t out_size, size_t kernel_size, size_t dilation_rate>
+    void loadLayer(Conv1DT<T, in_size, out_size, kernel_size, dilation_rate>& conv, size_t& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, size_t layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto weights = l["weights"];
+        const auto kernel = l["kernel_size"].back().get<size_t>();
+        const auto dilation = l["dilation"].back().get<size_t>();
+
+        if(checkConv1D<T>(conv, type, layerDims, kernel, dilation, debug))
+            loadConv1D<T>(conv, kernel, dilation, weights);
+
+        if(!l.contains("activation"))
+        {
+            json_stream_idx++;
+        }
+        else
+        {
+            const auto activationType = l["activation"].get<std::string>();
+            if(activationType.empty())
+                json_stream_idx++;
+        }
+    }
+
     template <typename T, size_t in_size, size_t out_size>
     void loadLayer(GRULayerT<T, in_size, out_size>& gru, size_t& json_stream_idx, const nlohmann::json& l,
         const std::string& type, size_t layerDims, bool debug)
