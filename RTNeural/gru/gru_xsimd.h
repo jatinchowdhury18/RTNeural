@@ -176,32 +176,34 @@ public:
 private:
     static inline void recurrent_mat_mul(const v_type (&vec)[v_out_size], const v_type (&mat)[out_size][v_out_size], v_type (&out)[v_out_size]) noexcept
     {
+        T sums alignas(16)[out_size] { (T) 0 };
         for(size_t i = 0; i < v_size; ++i)
         {
             for(size_t j = 0; j < v_out_size; ++j)
             {
-                T sum = (T) 0.0;
                 for(size_t k = 0; k < v_out_size; ++k)
-                    sum += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
-
-                out[j] = set_value(out[j], i, sum);
+                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
             }
         }
+
+        for(size_t i = 0; i < v_out_size; ++i)
+            out[i] = xsimd::load_aligned(sums + i * v_size);
     }
 
     static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[out_size][v_in_size], v_type (&out)[v_out_size]) noexcept
     {
+        T sums alignas(16)[out_size] { (T) 0 };
         for(size_t i = 0; i < v_size; ++i)
         {
             for(size_t j = 0; j < v_out_size; ++j)
             {
-                T sum = (T) 0.0;
                 for(size_t k = 0; k < v_in_size; ++k)
-                    sum += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
-
-                out[j] = set_value(out[j], i, sum);
+                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
             }
         }
+
+        for(size_t i = 0; i < v_out_size; ++i)
+            out[i] = xsimd::load_aligned(sums + i * v_size);
     }
 
     static inline v_type sigmoid(v_type x) noexcept

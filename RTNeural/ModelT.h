@@ -147,11 +147,30 @@ public:
         modelt_detail::forEachInTuple([&](auto& layer, size_t) { layer.reset(); }, layers);
     }
 
-    inline T forward(const T* input)
+    template <size_t N = in_size>
+    inline typename std::enable_if<(N > 1), T>::type
+    forward(const T* input)
     {
 #if USE_XSIMD
         for(size_t i = 0; i < v_in_size; ++i)
             v_ins[i] = xsimd::load_aligned(input + i * v_size);
+#endif
+        std::get<0>(layers).forward(v_ins);
+        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
+
+#if USE_XSIMD
+        for(size_t i = 0; i < v_out_size; ++i)
+            xsimd::store_aligned(outs + i * v_size, get<n_layers-1>().outs[i]);
+#endif
+        return outs[0];
+    }
+
+    template <size_t N = in_size>
+    inline typename std::enable_if<N == 1, T>::type
+    forward(const T* input)
+    {
+#if USE_XSIMD
+        v_ins[0] = (v_type) input[0];
 #endif
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
