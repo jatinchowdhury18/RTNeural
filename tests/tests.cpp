@@ -1,34 +1,10 @@
 #include "load_csv.hpp"
 #include "model_test.hpp"
+#include "templated_tests.hpp"
+#include "test_configs.hpp"
 #include "util_tests.hpp"
-#include <iostream>
-#include <map>
-#include <string>
 
 // @TODO: make tests for both float and double precision
-
-struct TestConfig
-{
-    std::string name;
-    std::string model_file;
-    std::string x_data_file;
-    std::string y_data_file;
-    const double threshold;
-};
-
-static std::map<std::string, TestConfig> tests {
-    { "conv1d",
-        TestConfig { "CONV1D", "models/conv.json", "test_data/conv_x_python.csv",
-            "test_data/conv_y_python.csv", 1.0e-6 } },
-    { "dense",
-        TestConfig { "DENSE", "models/dense.json", "test_data/dense_x_python.csv",
-            "test_data/dense_y_python.csv", 2.0e-8 } },
-    { "gru", TestConfig { "GRU", "models/gru.json", "test_data/gru_x_python.csv", "test_data/gru_y_python.csv", 5.0e-6 } },
-    { "lstm",
-        TestConfig { "LSTM", "models/lstm.json", "test_data/lstm_x_python.csv",
-            "test_data/lstm_y_python.csv", 1.0e-6 } },
-};
-
 void help()
 {
     std::cout << "RTNeural test suite:" << std::endl;
@@ -119,7 +95,10 @@ int main(int argc, char* argv[])
         result |= model_test::model_test();
 
         for(auto& testConfig : tests)
+        {
             result |= runTest<TestType>(testConfig.second);
+            result |= templatedTests(testConfig.first);
+        }
 
         return result;
     }
@@ -137,7 +116,10 @@ int main(int argc, char* argv[])
 
     if(tests.find(arg) != tests.end())
     {
-        return runTest<TestType>(tests.at(arg));
+        int result = 0;
+        result |= runTest<TestType>(tests.at(arg));
+        result |= templatedTests(arg);
+        return result;
     }
 
     std::cout << "Test: " << arg << " not found!" << std::endl;
