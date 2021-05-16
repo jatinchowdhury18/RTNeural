@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
         runBench(*model.get(), bench_time);
     }
 
+#if USE_XSIMD
     // templated model
     {
         std::cout << "Measuring templated model..." << std::endl;
@@ -54,4 +55,5 @@ int main(int argc, char* argv[])
         modelT.parseJson(jsonStream);
         runBench(modelT, bench_time);
     }
+#endif
 }
