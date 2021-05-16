@@ -89,7 +89,7 @@ private:
 };
 
 //====================================================
-template<typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, size_t in_sizet, size_t out_sizet>
 class DenseT
 {
     using v_type = xsimd::simd_type<T>;
@@ -104,26 +104,26 @@ public:
 
     DenseT()
     {
-        for (size_t i = 0; i < weights_size; ++i)
-            weights[i] = v_type ((T) 0.0);
+        for(size_t i = 0; i < weights_size; ++i)
+            weights[i] = v_type((T)0.0);
 
-        for (size_t i = 0; i < v_out_size; ++i)
-            bias[i] = v_type ((T) 0.0);
+        for(size_t i = 0; i < v_out_size; ++i)
+            bias[i] = v_type((T)0.0);
 
-        for (size_t i = 0; i < v_out_size; ++i)
-            outs[i] = v_type ((T) 0.0);
+        for(size_t i = 0; i < v_out_size; ++i)
+            outs[i] = v_type((T)0.0);
     }
 
     std::string getName() const noexcept { return "dense"; }
     constexpr bool isActivation() const noexcept { return false; }
 
-    void reset() {}
+    void reset() { }
 
     inline void forward(const v_type (&ins)[v_in_size])
     {
         for(size_t i = 0; i < v_out_size; ++i)
         {
-            T out_sum alignas(16)[v_size] { (T) 0 };
+            T out_sum alignas(16)[v_size] { (T)0 };
             for(size_t k = 0; k < v_in_size; ++k)
             {
                 for(size_t j = 0; j < v_size; ++j)
@@ -131,7 +131,7 @@ public:
             }
 
             outs[i] = xsimd::load_aligned(out_sum) + bias[i];
-        }   
+        }
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
@@ -162,7 +162,6 @@ public:
     {
         for(size_t i = 0; i < out_size; ++i)
             bias[i / v_size] = set_value(bias[i / v_size], i % v_size, b[i]);
-
     }
 
     v_type outs[v_out_size];
@@ -172,38 +171,39 @@ private:
     v_type weights[weights_size];
 };
 
-template<typename T, size_t in_sizet>
+template <typename T, size_t in_sizet>
 class DenseT<T, in_sizet, 1>
 {
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = v_type::size;
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
+
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = 1;
 
     DenseT()
     {
-        for (size_t i = 0; i < v_in_size; ++i)
-            weights[i] = v_type ((T) 0.0);
+        for(size_t i = 0; i < v_in_size; ++i)
+            weights[i] = v_type((T)0.0);
 
-        outs[0] = v_type ((T) 0.0);
+        outs[0] = v_type((T)0.0);
     }
 
     std::string getName() const noexcept { return "dense"; }
     constexpr bool isActivation() const noexcept { return false; }
 
-    void reset() {}
+    void reset() { }
 
     inline void forward(const v_type (&ins)[v_in_size])
     {
-        T y = (T) 0;
-        for (size_t k = 0; k < v_in_size; ++k)
+        T y = (T)0;
+        for(size_t k = 0; k < v_in_size; ++k)
         {
             y += xsimd::hadd(ins[k] * weights[k]);
         }
 
-        outs[0] = v_type (y + bias);
+        outs[0] = v_type(y + bias);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)

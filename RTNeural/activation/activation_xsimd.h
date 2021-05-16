@@ -32,6 +32,7 @@ class TanhActivationT
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -39,12 +40,12 @@ public:
     TanhActivationT()
     {
         for(size_t i = 0; i < v_io_size; ++i)
-            outs[i] = v_type ((T) 0);
+            outs[i] = v_type((T)0);
     }
 
     std::string getName() const noexcept { return "tanh"; }
     constexpr bool isActivation() const noexcept { return true; }
-    void reset() {}
+    void reset() { }
 
     inline void forward(const v_type (&ins)[v_io_size])
     {
@@ -86,6 +87,7 @@ class ReLuActivationT
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -93,17 +95,17 @@ public:
     ReLuActivationT()
     {
         for(size_t i = 0; i < v_io_size; ++i)
-            outs[i] = v_type ((T) 0);
+            outs[i] = v_type((T)0);
     }
 
     std::string getName() const noexcept { return "relu"; }
     constexpr bool isActivation() const noexcept { return true; }
-    void reset() {}
+    void reset() { }
 
     inline void forward(const v_type (&ins)[v_io_size])
     {
         for(size_t i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::max(ins[i], v_type ((T) 0));
+            outs[i] = xsimd::max(ins[i], v_type((T)0));
     }
 
     v_type outs[v_io_size];
@@ -135,6 +137,7 @@ class SigmoidActivationT
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -142,17 +145,17 @@ public:
     SigmoidActivationT()
     {
         for(size_t i = 0; i < v_io_size; ++i)
-            outs[i] = v_type ((T) 0);
+            outs[i] = v_type((T)0);
     }
 
     std::string getName() const noexcept { return "sigmoid"; }
     constexpr bool isActivation() const noexcept { return true; }
-    void reset() {}
+    void reset() { }
 
     inline void forward(const v_type (&ins)[v_io_size])
     {
         for(size_t i = 0; i < v_io_size; ++i)
-            outs[i] = (T) 1.0 / ((T) 1.0 + xsimd::exp(-ins[i]));
+            outs[i] = (T)1.0 / ((T)1.0 + xsimd::exp(-ins[i]));
     }
 
     v_type outs[v_io_size];
@@ -184,6 +187,7 @@ class SoftmaxActivationT
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -191,23 +195,23 @@ public:
     SoftmaxActivationT()
     {
         for(size_t i = 0; i < v_io_size; ++i)
-            outs[i] = v_type ((T) 0);
+            outs[i] = v_type((T)0);
     }
 
     std::string getName() const noexcept { return "softmax"; }
     constexpr bool isActivation() const noexcept { return true; }
-    void reset() {}
+    void reset() { }
 
     inline void forward(const v_type (&ins)[v_io_size])
     {
-        auto exp_sum = (T) 0.0;
+        auto exp_sum = (T)0.0;
         for(size_t i = 0; i < v_io_size; ++i)
         {
             outs[i] = xsimd::exp(ins[i]);
             exp_sum += xsimd::hadd(outs[i]);
         }
 
-        auto v_exp_sum = (v_type) exp_sum;
+        auto v_exp_sum = (v_type)exp_sum;
         for(size_t i = 0; i < v_io_size; ++i)
             outs[i] = outs[i] / v_exp_sum;
     }

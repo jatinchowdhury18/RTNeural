@@ -200,27 +200,27 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
 }
 
 //====================================================
-template<typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, size_t in_sizet, size_t out_sizet>
 GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
 {
     for(size_t i = 0; i < v_out_size; ++i)
     {
         // single-input kernel weights
-        Wz_1[i] = v_type ((T) 0);
-        Wr_1[i] = v_type ((T) 0);
-        Wh_1[i] = v_type ((T) 0);
+        Wz_1[i] = v_type((T)0);
+        Wr_1[i] = v_type((T)0);
+        Wh_1[i] = v_type((T)0);
 
         // biases
-        bz[i] = v_type ((T) 0);
-        br[i] = v_type ((T) 0);
-        bh0[i] = v_type ((T) 0);
-        bh1[i] = v_type ((T) 0);
-    
+        bz[i] = v_type((T)0);
+        br[i] = v_type((T)0);
+        bh0[i] = v_type((T)0);
+        bh1[i] = v_type((T)0);
+
         // intermediate vars
-        zt[i] = v_type ((T) 0);
-        rt[i] = v_type ((T) 0);
-        ct[i] = v_type ((T) 0);
-        ht[i] = v_type ((T) 0);
+        zt[i] = v_type((T)0);
+        rt[i] = v_type((T)0);
+        ct[i] = v_type((T)0);
+        ht[i] = v_type((T)0);
 
         reset();
     }
@@ -230,76 +230,76 @@ GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
         // recurrent weights
         for(size_t k = 0; k < v_out_size; ++k)
         {
-            Uz[i][k] = v_type ((T) 0);
-            Ur[i][k] = v_type ((T) 0);
-            Uh[i][k] = v_type ((T) 0);
+            Uz[i][k] = v_type((T)0);
+            Ur[i][k] = v_type((T)0);
+            Uh[i][k] = v_type((T)0);
         }
 
         // kernel weights
         for(size_t k = 0; k < v_in_size; ++k)
         {
-            Wz[i][k] = v_type ((T) 0);
-            Wr[i][k] = v_type ((T) 0);
-            Wh[i][k] = v_type ((T) 0);
+            Wz[i][k] = v_type((T)0);
+            Wr[i][k] = v_type((T)0);
+            Wh[i][k] = v_type((T)0);
         }
     }
 }
 
-template<typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, size_t in_sizet, size_t out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::reset()
 {
     // reset output state
     for(size_t i = 0; i < v_out_size; ++i)
-        outs[i] = v_type ((T) 0);
+        outs[i] = v_type((T)0);
 }
 
 // kernel weights
-template<typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, size_t in_sizet, size_t out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for (size_t i = 0; i < in_size; ++i)
+    for(size_t i = 0; i < in_size; ++i)
     {
-        for (size_t j = 0; j < out_size; ++j)
+        for(size_t j = 0; j < out_size; ++j)
         {
-            Wz[j][i / v_size] = set_value (Wz[j][i / v_size], i % v_size, wVals[i][j]);
-            Wr[j][i / v_size] = set_value (Wr[j][i / v_size], i % v_size, wVals[i][j + out_size]);
-            Wh[j][i / v_size] = set_value (Wh[j][i / v_size], i % v_size, wVals[i][j + 2 * out_size]);
+            Wz[j][i / v_size] = set_value(Wz[j][i / v_size], i % v_size, wVals[i][j]);
+            Wr[j][i / v_size] = set_value(Wr[j][i / v_size], i % v_size, wVals[i][j + out_size]);
+            Wh[j][i / v_size] = set_value(Wh[j][i / v_size], i % v_size, wVals[i][j + 2 * out_size]);
         }
     }
 
-    for (size_t j = 0; j < out_size; ++j)
+    for(size_t j = 0; j < out_size; ++j)
     {
-        Wz_1[j / v_size] = set_value (Wz_1[j / v_size], j % v_size, wVals[0][j]);
-        Wr_1[j / v_size] = set_value (Wr_1[j / v_size], j % v_size, wVals[0][j + out_size]);
-        Wh_1[j / v_size] = set_value (Wh_1[j / v_size], j % v_size, wVals[0][j + 2 * out_size]);
+        Wz_1[j / v_size] = set_value(Wz_1[j / v_size], j % v_size, wVals[0][j]);
+        Wr_1[j / v_size] = set_value(Wr_1[j / v_size], j % v_size, wVals[0][j + out_size]);
+        Wh_1[j / v_size] = set_value(Wh_1[j / v_size], j % v_size, wVals[0][j + 2 * out_size]);
     }
 }
 
 // recurrent weights
-template<typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, size_t in_sizet, size_t out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
-    for (size_t i = 0; i < out_size; ++i)
+    for(size_t i = 0; i < out_size; ++i)
     {
-        for (size_t j = 0; j < out_size; ++j)
+        for(size_t j = 0; j < out_size; ++j)
         {
-            Uz[j][i / v_size] = set_value (Uz[j][i / v_size], i % v_size, uVals[i][j]);
-            Ur[j][i / v_size] = set_value (Ur[j][i / v_size], i % v_size, uVals[i][j + out_size]);
-            Uh[j][i / v_size] = set_value (Uh[j][i / v_size], i % v_size, uVals[i][j + 2 * out_size]);
+            Uz[j][i / v_size] = set_value(Uz[j][i / v_size], i % v_size, uVals[i][j]);
+            Ur[j][i / v_size] = set_value(Ur[j][i / v_size], i % v_size, uVals[i][j + out_size]);
+            Uh[j][i / v_size] = set_value(Uh[j][i / v_size], i % v_size, uVals[i][j + 2 * out_size]);
         }
     }
 }
 
 // biases
-template<typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, size_t in_sizet, size_t out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
-    for (size_t k = 0; k < out_size; ++k)
+    for(size_t k = 0; k < out_size; ++k)
     {
-        bz[k / v_size] = set_value (bz[k / v_size], k % v_size, bVals[0][k] + bVals[1][k]);
-        br[k / v_size] = set_value (br[k / v_size], k % v_size, bVals[0][k + out_size] + bVals[1][k + out_size]);
-        bh0[k / v_size] = set_value (bh0[k / v_size], k % v_size, bVals[0][k + 2 * out_size]);
-        bh1[k / v_size] = set_value (bh1[k / v_size], k % v_size, bVals[1][k + 2 * out_size]);
+        bz[k / v_size] = set_value(bz[k / v_size], k % v_size, bVals[0][k] + bVals[1][k]);
+        br[k / v_size] = set_value(br[k / v_size], k % v_size, bVals[0][k + out_size] + bVals[1][k + out_size]);
+        bh0[k / v_size] = set_value(bh0[k / v_size], k % v_size, bVals[0][k + 2 * out_size]);
+        bh1[k / v_size] = set_value(bh1[k / v_size], k % v_size, bVals[1][k + 2 * out_size]);
     }
 }
 

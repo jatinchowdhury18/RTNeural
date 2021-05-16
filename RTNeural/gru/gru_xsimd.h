@@ -97,7 +97,7 @@ protected:
 };
 
 //====================================================
-template<typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, size_t in_sizet, size_t out_sizet>
 class GRULayerT
 {
     using v_type = xsimd::simd_type<T>;
@@ -140,7 +140,7 @@ public:
 
         // compute output
         for(size_t i = 0; i < v_out_size; ++i)
-            outs[i] = (v_type ((T) 1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
+            outs[i] = (v_type((T)1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
     }
 
     template <size_t N = in_size>
@@ -164,7 +164,7 @@ public:
 
         // compute output
         for(size_t i = 0; i < v_out_size; ++i)
-            outs[i] = (v_type ((T) 1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
+            outs[i] = (v_type((T)1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
     }
 
     void setWVals(const std::vector<std::vector<T>>& wVals);
@@ -176,7 +176,7 @@ public:
 private:
     static inline void recurrent_mat_mul(const v_type (&vec)[v_out_size], const v_type (&mat)[out_size][v_out_size], v_type (&out)[v_out_size]) noexcept
     {
-        T sums alignas(16)[out_size] { (T) 0 };
+        T sums alignas(16)[out_size] { (T)0 };
         for(size_t i = 0; i < v_size; ++i)
         {
             for(size_t j = 0; j < v_out_size; ++j)
@@ -192,7 +192,7 @@ private:
 
     static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[out_size][v_in_size], v_type (&out)[v_out_size]) noexcept
     {
-        T sums alignas(16)[out_size] { (T) 0 };
+        T sums alignas(16)[out_size] { (T)0 };
         for(size_t i = 0; i < v_size; ++i)
         {
             for(size_t j = 0; j < v_out_size; ++j)
@@ -208,7 +208,7 @@ private:
 
     static inline v_type sigmoid(v_type x) noexcept
     {
-        return (T) 1.0 / ((T) 1.0 + xsimd::exp(-x));
+        return (T)1.0 / ((T)1.0 + xsimd::exp(-x));
     }
 
     // kernel weights

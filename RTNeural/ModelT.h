@@ -58,7 +58,7 @@ namespace modelt_detail
         template <typename T>
         static void call(T& t)
         {
-            std::get<idx>(t).forward(std::get<idx-1>(t).outs);
+            std::get<idx>(t).forward(std::get<idx - 1>(t).outs);
             forward_unroll<idx + 1, Niter - 1>::call(t);
         }
     };
@@ -67,7 +67,7 @@ namespace modelt_detail
     struct forward_unroll<idx, 0>
     {
         template <typename T>
-        static void call(T&) {}
+        static void call(T&) { }
     };
 
     template <typename T, typename LayerType>
@@ -125,7 +125,7 @@ public:
     ModelT()
     {
         for(size_t i = 0; i < v_in_size; ++i)
-            v_ins[i] = v_type ((T) 0);
+            v_ins[i] = v_type((T)0);
     }
 
     /** Get a reference to the layer at index `Index`. */
@@ -160,7 +160,7 @@ public:
 
 #if USE_XSIMD
         for(size_t i = 0; i < v_out_size; ++i)
-            xsimd::store_aligned(outs + i * v_size, get<n_layers-1>().outs[i]);
+            xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
 #endif
         return outs[0];
     }
@@ -170,14 +170,14 @@ public:
     forward(const T* input)
     {
 #if USE_XSIMD
-        v_ins[0] = (v_type) input[0];
+        v_ins[0] = (v_type)input[0];
 #endif
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
 #if USE_XSIMD
         for(size_t i = 0; i < v_out_size; ++i)
-            xsimd::store_aligned(outs + i * v_size, get<n_layers-1>().outs[i]);
+            xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
 #endif
         return outs[0];
     }

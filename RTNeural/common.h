@@ -40,21 +40,29 @@ softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 namespace RTNeural
 {
 
-template<typename T>
-static inline xsimd::simd_type<T> set_value (xsimd::simd_type<T> x, size_t idx, T value)
+template <typename T>
+static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, size_t idx, T value)
 {
-    union UnionType { xsimd::simd_type<T> v; T s[xsimd::simd_type<T>::size]; };
-    UnionType u {x};
+    union UnionType
+    {
+        xsimd::simd_type<T> v;
+        T s[xsimd::simd_type<T>::size];
+    };
+    UnionType u { x };
 
     u.s[idx] = value;
     return u.v;
 }
 
-template<typename T>
-static inline T get_value (xsimd::simd_type<T> x, size_t idx)
+template <typename T>
+static inline T get_value(xsimd::simd_type<T> x, size_t idx)
 {
-    union UnionType { xsimd::simd_type<T> v; T s[xsimd::simd_type<T>::size]; };
-    UnionType u {x};
+    union UnionType
+    {
+        xsimd::simd_type<T> v;
+        T s[xsimd::simd_type<T>::size];
+    };
+    UnionType u { x };
 
     return u.s[idx];
 }
