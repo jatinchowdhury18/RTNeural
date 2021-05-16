@@ -14,6 +14,43 @@ namespace RTNeural
  */
 namespace modelt_detail
 {
+
+    /** Useful for parsing constructor args */
+    using init_list = std::vector<std::initializer_list<size_t>>;
+    using Liter = init_list::const_iterator;
+
+    /** Forward declaration. */
+    template <typename... Layers>
+    struct MakeLayersTupleImpl;
+
+    /** Base case. */
+    template <typename Layer>
+    struct MakeLayersTupleImpl<Layer>
+    {
+        std::tuple<Layer> operator()(Liter begin, Liter /*end*/) const
+        {
+            return std::tuple<Layer>(Layer(*begin));
+        }
+    };
+
+    /* Recursive case. */
+    template <typename Layer, typename... Layers>
+    struct MakeLayersTupleImpl<Layer, Layers...>
+    {
+        std::tuple<Layer, Layers...> operator()(Liter begin, Liter end) const
+        {
+            return std::tuple_cat(MakeLayersTupleImpl<Layer>()(begin, end),
+                MakeLayersTupleImpl<Layers...>()(begin + 1, end));
+        }
+    };
+
+    /* Delegate function. */
+    template <typename... Layers>
+    std::tuple<Layers...> makeLayersTuple(init_list l)
+    {
+        return MakeLayersTupleImpl<Layers...>()(l.begin(), l.end());
+    }
+
     /** utils for making offset index sequences */
     template <std::size_t N, typename Seq>
     struct offset_sequence;
@@ -55,25 +92,90 @@ namespace modelt_detail
     template <size_t idx, size_t Niter>
     struct forward_unroll
     {
-        template <typename T>
-        static void call(T& t)
+        template <typename T, typename IO>
+        static void call(T& t, IO& io)
         {
-            std::get<idx>(t).forward(std::get<idx-1>(t).outs);
-            forward_unroll<idx + 1, Niter - 1>::call(t);
+            std::get<idx>(t).forward(io[idx - 1].data(), io[idx].data());
+            forward_unroll<idx + 1, Niter - 1>::call(t, io);
         }
     };
 
     template <size_t idx>
     struct forward_unroll<idx, 0>
     {
-        template <typename T>
-        static void call(T&) {}
+        template <typename T, typename IO>
+        static void call(T&, IO&) { }
     };
 
     template <typename T, typename LayerType>
-    void loadLayer(LayerType&, size_t&, const nlohmann::json&, const std::string&, size_t, bool debug)
+    void loadLayer(LayerType& layer, size_t& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, size_t layerDims, bool debug)
     {
-        json_parser::debug_print("Loading a no-op layer!", debug);
+        using namespace json_parser;
+
+        if(auto* actLayer = dynamic_cast<Activation<T>*>(&layer)) // activation layers don't need initialisation
+        {
+            if(!l.contains("activation"))
+            {
+                debug_print("No activation layer expected!", debug);
+                return;
+            }
+
+            const auto activationType = l["activation"].get<std::string>();
+            if(!activationType.empty())
+            {
+                debug_print("  activation: " + activationType, debug);
+                checkActivation(*actLayer, activationType, layerDims, debug);
+            }
+
+            json_stream_idx++;
+            return;
+        }
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto weights = l["weights"];
+
+        if(auto* dense = dynamic_cast<Dense<T>*>(&layer))
+        {
+            if(checkDense(*dense, type, layerDims, debug))
+                loadDense(*dense, weights);
+
+            if(!l.contains("activation"))
+                json_stream_idx++;
+        }
+        else if(auto* conv = dynamic_cast<Conv1D<T>*>(&layer))
+        {
+            const auto kernel_size = l["kernel_size"].back().get<size_t>();
+            const auto dilation = l["dilation"].back().get<size_t>();
+
+            if(checkConv1D(*conv, type, layerDims, kernel_size, dilation, debug))
+                loadConv1D(*conv, kernel_size, dilation, weights);
+
+            if(!l.contains("activation"))
+                json_stream_idx++;
+        }
+        else if(auto* gru = dynamic_cast<GRULayer<T>*>(&layer))
+        {
+            if(checkGRU(*gru, type, layerDims, debug))
+                loadGRU(*gru, weights);
+
+            json_stream_idx++;
+        }
+        else if(auto* lstm = dynamic_cast<LSTMLayer<T>*>(&layer))
+        {
+            if(checkLSTM(*lstm, type, layerDims, debug))
+                loadLSTM(*lstm, weights);
+
+            json_stream_idx++;
+        }
+        else
+        {
+            debug_print("Layer type not recognized!", debug);
+
+            if(!l.contains("activation"))
+                json_stream_idx++;
+        }
     }
 
     template <typename T, size_t in_size, size_t out_size>
@@ -86,46 +188,45 @@ namespace modelt_detail
         debug_print("  Dims: " + std::to_string(layerDims), debug);
         const auto weights = l["weights"];
 
-        if(checkDense<T>(dense, type, layerDims, debug))
-            loadDense<T>(dense, weights);
+        // if(checkDense(*dense, type, layerDims, debug))
+        loadDense(dense, weights);
 
         if(!l.contains("activation"))
-        {
             json_stream_idx++;
-        }
-        else
-        {
-            const auto activationType = l["activation"].get<std::string>();
-            if(activationType.empty())
-                json_stream_idx++;
-        }
     }
 
-    template <typename T, size_t in_size, size_t out_size>
-    void loadLayer(GRULayerT<T, in_size, out_size>& gru, size_t& json_stream_idx, const nlohmann::json& l,
-        const std::string& type, size_t layerDims, bool debug)
-    {
-        using namespace json_parser;
-
-        debug_print("Layer: " + type, debug);
-        debug_print("  Dims: " + std::to_string(layerDims), debug);
-        const auto weights = l["weights"];
-
-        if(checkGRU<T>(gru, type, layerDims, debug))
-            loadGRU<T>(gru, weights);
-
-        json_stream_idx++;
-    }
 } // namespace modelt_detail
 
-template <typename T, size_t in_size, size_t out_size, typename... Layers>
+template <typename T, typename... Layers>
 class ModelT
 {
 public:
-    ModelT()
+    using init_list = std::vector<std::initializer_list<size_t>>;
+    ModelT(std::initializer_list<size_t> sizes, init_list layer_inits)
+        : in_size(*sizes.begin())
+        , layers(modelt_detail::makeLayersTuple<Layers...>(layer_inits))
+        , sizes(sizes)
+        , layer_inits(layer_inits)
     {
-        for(size_t i = 0; i < v_in_size; ++i)
-            v_ins[i] = v_type ((T) 0);
+        for(size_t i = 1; i < sizes.size(); ++i)
+        {
+            auto out_size = *(sizes.begin() + i);
+            outs[i - 1].resize(out_size, (T)0);
+        }
+    }
+
+    ModelT(const ModelT& other)
+        : ModelT(other.sizes, other.layer_inits)
+    {
+    }
+
+    ModelT& operator=(const ModelT& other)
+    {
+        return *this = ModelT(other);
+    }
+
+    ~ModelT()
+    {
     }
 
     /** Get a reference to the layer at index `Index`. */
@@ -147,39 +248,12 @@ public:
         modelt_detail::forEachInTuple([&](auto& layer, size_t) { layer.reset(); }, layers);
     }
 
-    template <size_t N = in_size>
-    inline typename std::enable_if<(N > 1), T>::type
-    forward(const T* input)
+    inline T forward(const T* input)
     {
-#if USE_XSIMD
-        for(size_t i = 0; i < v_in_size; ++i)
-            v_ins[i] = xsimd::load_aligned(input + i * v_size);
-#endif
-        std::get<0>(layers).forward(v_ins);
-        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
+        std::get<0>(layers).forward(input, outs[0].data());
+        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers, outs);
 
-#if USE_XSIMD
-        for(size_t i = 0; i < v_out_size; ++i)
-            xsimd::store_aligned(outs + i * v_size, get<n_layers-1>().outs[i]);
-#endif
-        return outs[0];
-    }
-
-    template <size_t N = in_size>
-    inline typename std::enable_if<N == 1, T>::type
-    forward(const T* input)
-    {
-#if USE_XSIMD
-        v_ins[0] = (v_type) input[0];
-#endif
-        std::get<0>(layers).forward(v_ins);
-        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
-
-#if USE_XSIMD
-        for(size_t i = 0; i < v_out_size; ++i)
-            xsimd::store_aligned(outs + i * v_size, get<n_layers-1>().outs[i]);
-#endif
-        return outs[0];
+        return outs.back()[0];
     }
 
     inline const T* getOutputs() const noexcept
@@ -220,26 +294,7 @@ public:
             const auto layerShape = l["shape"];
             const auto layerDims = layerShape.back().get<size_t>();
 
-            if(layer.isActivation()) // activation layers don't need initialisation
-            {
-                if(!l.contains("activation"))
-                {
-                    debug_print("No activation layer expected!", debug);
-                    return;
-                }
-
-                const auto activationType = l["activation"].get<std::string>();
-                if(!activationType.empty())
-                {
-                    debug_print("  activation: " + activationType, debug);
-                    checkActivation(layer, activationType, layerDims, debug);
-                }
-
-                json_stream_idx++;
-                return;
-            }
-
-            modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug);
+            loadLayer(layer, json_stream_idx, l, type, layerDims, debug);
         },
             layers);
     }
@@ -254,21 +309,22 @@ public:
 
 private:
 #if USE_XSIMD
-    using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = v_type::size;
-    static constexpr auto v_in_size = ceil_div(in_size, v_size);
-    static constexpr auto v_out_size = ceil_div(out_size, v_size);
+    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
 #elif USE_EIGEN
     using vec_type = std::vector<T, Eigen::aligned_allocator<T>>;
 #else
     using vec_type = std::vector<T>;
 #endif
 
-    v_type v_ins[v_in_size];
-    T outs alignas(16)[out_size];
-
+    const size_t in_size;
     std::tuple<Layers...> layers;
+
     static constexpr size_t n_layers = sizeof...(Layers);
+    std::array<vec_type, n_layers> outs;
+
+    // needed for copy constructor
+    std::initializer_list<size_t> sizes;
+    init_list layer_inits;
 };
 
 } // namespace RTNeural
