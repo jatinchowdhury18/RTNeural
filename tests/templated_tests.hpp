@@ -76,8 +76,7 @@ int templatedTests(std::string arg)
                             DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
-
-    if(arg == "gru")
+    else if(arg == "gru")
     {
         using ModelType = ModelT<TestType, 1, 1,
                             DenseT<TestType, 1, 8>,
@@ -88,13 +87,28 @@ int templatedTests(std::string arg)
                             DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
-
-    if(arg == "lstm")
+    else if(arg == "gru_1d")
+    {
+        using ModelType = ModelT<TestType, 1, 1,
+                            GRULayerT<TestType, 1, 8>,
+                            DenseT<TestType, 8, 8>,
+                            SigmoidActivationT<TestType, 8>,
+                            DenseT<TestType, 8, 1>>;
+        result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
+    }
+    else if(arg == "lstm")
     {
         using ModelType = ModelT<TestType, 1, 1,
                             DenseT<TestType, 1, 8>,
                             TanhActivationT<TestType, 8>,
                             LSTMLayerT<TestType, 8, 8>,
+                            DenseT<TestType, 8, 1>>;
+        result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
+    }
+    else if(arg == "lstm_1d")
+    {
+        using ModelType = ModelT<TestType, 1, 1,
+                            LSTMLayerT<TestType, 1, 8>,
                             DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }

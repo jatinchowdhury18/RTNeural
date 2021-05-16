@@ -150,12 +150,12 @@ public:
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
         for(size_t i = 0; i < v_out_size; ++i)
-            zt[i] = sigmoid(zt[i] + bz[0] + (Wz_1[i] * ins[0]));
+            zt[i] = sigmoid(zt[i] + bz[i] + (Wz_1[i] * ins[0]));
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         for(size_t i = 0; i < v_out_size; ++i)
-            rt[i] = sigmoid(rt[i] + br[0] + (Wr_1[i] * ins[0]));
+            rt[i] = sigmoid(rt[i] + br[i] + (Wr_1[i] * ins[0]));
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
