@@ -1,7 +1,7 @@
 #include "bench_utils.hpp"
 #include "layer_creator.hpp"
+#include "templated_bench.hpp"
 #include <RTNeural.h>
-#include <chrono>
 #include <iostream>
 
 void help()
@@ -54,14 +54,26 @@ int main(int argc, char* argv[])
     using clock_t = std::chrono::high_resolution_clock;
     using second_t = std::chrono::duration<double>;
 
-    auto start = clock_t::now();
-    for(size_t i = 0; i < n_samples; ++i)
-        layer->forward(signal[i].data(), output.data());
-    auto duration = std::chrono::duration_cast<second_t>(clock_t::now() - start).count();
+    {
+        auto start = clock_t::now();
+        for(size_t i = 0; i < n_samples; ++i)
+            layer->forward(signal[i].data(), output.data());
+        auto duration = std::chrono::duration_cast<second_t>(clock_t::now() - start).count();
 
-    std::cout << "Processed " << length_seconds << " seconds of signal in "
-              << duration << " seconds" << std::endl;
-    std::cout << length_seconds / duration << "x real-time" << std::endl;
+        std::cout << "Processed " << length_seconds << " seconds of signal in "
+                  << duration << " seconds" << std::endl;
+        std::cout << length_seconds / duration << "x real-time" << std::endl;
+    }
+
+#if USE_XSIMD // TODO
+    std::cout << "Testing templated implementation..." << std::endl;
+    {
+        auto duration = runTemplatedBench(signal, n_samples, layer_type, in_size, out_size);
+        std::cout << "Processed " << length_seconds << " seconds of signal in "
+                  << duration << " seconds" << std::endl;
+        std::cout << length_seconds / duration << "x real-time" << std::endl;
+    }
+#endif
 
     return 0;
 }

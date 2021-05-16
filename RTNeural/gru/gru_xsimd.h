@@ -96,6 +96,150 @@ protected:
     vec_type ones;
 };
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+class GRULayerT
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
+    static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
+
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+
+    GRULayerT();
+
+    std::string getName() const noexcept { return "gru"; }
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset();
+
+    template <size_t N = in_size>
+    inline typename std::enable_if<(N > 1), void>::type
+    forward(const v_type (&ins)[v_in_size])
+    {
+        // compute zt
+        recurrent_mat_mul(outs, Uz, zt);
+        kernel_mat_mul(ins, Wz, kernel_outs);
+        for(size_t i = 0; i < v_out_size; ++i)
+            zt[i] = sigmoid(zt[i] + bz[i] + kernel_outs[i]);
+
+        // compute rt
+        recurrent_mat_mul(outs, Ur, rt);
+        kernel_mat_mul(ins, Wr, kernel_outs);
+        for(size_t i = 0; i < v_out_size; ++i)
+            rt[i] = sigmoid(rt[i] + br[i] + kernel_outs[i]);
+
+        // compute h_hat
+        recurrent_mat_mul(outs, Uh, ct);
+        kernel_mat_mul(ins, Wh, kernel_outs);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ht[i] = xsimd::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + kernel_outs[i]);
+
+        // compute output
+        for(size_t i = 0; i < v_out_size; ++i)
+            outs[i] = (v_type((T)1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
+    }
+
+    template <size_t N = in_size>
+    inline typename std::enable_if<N == 1, void>::type
+    forward(const v_type (&ins)[v_in_size])
+    {
+        // compute zt
+        recurrent_mat_mul(outs, Uz, zt);
+        for(size_t i = 0; i < v_out_size; ++i)
+            zt[i] = sigmoid(zt[i] + bz[0] + (Wz_1[i] * ins[0]));
+
+        // compute rt
+        recurrent_mat_mul(outs, Ur, rt);
+        for(size_t i = 0; i < v_out_size; ++i)
+            rt[i] = sigmoid(rt[i] + br[0] + (Wr_1[i] * ins[0]));
+
+        // compute h_hat
+        recurrent_mat_mul(outs, Uh, ct);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ht[i] = xsimd::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + (Wh_1[i] * ins[0]));
+
+        // compute output
+        for(size_t i = 0; i < v_out_size; ++i)
+            outs[i] = (v_type((T)1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
+    }
+
+    void setWVals(const std::vector<std::vector<T>>& wVals);
+    void setUVals(const std::vector<std::vector<T>>& uVals);
+    void setBVals(const std::vector<std::vector<T>>& bVals);
+
+    v_type outs[v_out_size];
+
+private:
+    static inline void recurrent_mat_mul(const v_type (&vec)[v_out_size], const v_type (&mat)[out_size][v_out_size], v_type (&out)[v_out_size]) noexcept
+    {
+        T sums alignas(16)[out_size] { (T)0 };
+        for(size_t i = 0; i < v_size; ++i)
+        {
+            for(size_t j = 0; j < v_out_size; ++j)
+            {
+                for(size_t k = 0; k < v_out_size; ++k)
+                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
+            }
+        }
+
+        for(size_t i = 0; i < v_out_size; ++i)
+            out[i] = xsimd::load_aligned(sums + i * v_size);
+    }
+
+    static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[out_size][v_in_size], v_type (&out)[v_out_size]) noexcept
+    {
+        T sums alignas(16)[out_size] { (T)0 };
+        for(size_t i = 0; i < v_size; ++i)
+        {
+            for(size_t j = 0; j < v_out_size; ++j)
+            {
+                for(size_t k = 0; k < v_in_size; ++k)
+                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
+            }
+        }
+
+        for(size_t i = 0; i < v_out_size; ++i)
+            out[i] = xsimd::load_aligned(sums + i * v_size);
+    }
+
+    static inline v_type sigmoid(v_type x) noexcept
+    {
+        return (T)1.0 / ((T)1.0 + xsimd::exp(-x));
+    }
+
+    // kernel weights
+    v_type Wz[out_size][v_in_size];
+    v_type Wr[out_size][v_in_size];
+    v_type Wh[out_size][v_in_size];
+    v_type kernel_outs[v_out_size];
+
+    // single-input kernel weights
+    v_type Wz_1[v_out_size];
+    v_type Wr_1[v_out_size];
+    v_type Wh_1[v_out_size];
+
+    // recurrent weights
+    v_type Uz[out_size][v_out_size];
+    v_type Ur[out_size][v_out_size];
+    v_type Uh[out_size][v_out_size];
+
+    // biases
+    v_type bz[v_out_size];
+    v_type br[v_out_size];
+    v_type bh0[v_out_size];
+    v_type bh1[v_out_size];
+
+    // intermediate vars
+    v_type zt[v_out_size];
+    v_type rt[v_out_size];
+    v_type ct[v_out_size];
+    v_type ht[v_out_size];
+};
+
 } // namespace RTNeural
 
 #endif // GRUXSIMD_H_INCLUDED

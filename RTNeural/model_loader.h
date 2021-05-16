@@ -19,8 +19,8 @@ namespace json_parser
     }
 
     /** Loads weights for a Dense layer from a json representation of the layer weights */
-    template <typename T>
-    void loadDense(Dense<T>& dense, const nlohmann::json& weights)
+    template <typename T, typename DenseType>
+    void loadDense(DenseType& dense, const nlohmann::json& weights)
     {
         // load weights
         std::vector<std::vector<T>> denseWeights(dense.out_size);
@@ -47,13 +47,13 @@ namespace json_parser
     std::unique_ptr<Dense<T>> createDense(size_t in_size, size_t out_size, const nlohmann::json& weights)
     {
         auto dense = std::make_unique<Dense<T>>(in_size, out_size);
-        loadDense(*dense.get(), weights);
+        loadDense<T>(*dense.get(), weights);
         return std::move(dense);
     }
 
     /** Checks that a dense layer has the correct dimensions */
-    template <typename T>
-    bool checkDense(const Dense<T>& dense, const std::string& type, size_t layerDims, const bool debug)
+    template <typename T, typename DenseType>
+    bool checkDense(const DenseType& dense, const std::string& type, size_t layerDims, const bool debug)
     {
         if(type != "dense" && type != "time-distributed-dense")
         {
@@ -146,8 +146,8 @@ namespace json_parser
     }
 
     /** Loads weights for a GRU layer from a json representation of the layer weights */
-    template <typename T>
-    void loadGRU(GRULayer<T>& gru, const nlohmann::json& weights)
+    template <typename T, typename GRUType>
+    void loadGRU(GRUType& gru, const nlohmann::json& weights)
     {
         // load kernel weights
         std::vector<std::vector<T>> kernelWeights(gru.in_size);
@@ -200,13 +200,13 @@ namespace json_parser
     std::unique_ptr<GRULayer<T>> createGRU(size_t in_size, size_t out_size, const nlohmann::json& weights)
     {
         auto gru = std::make_unique<GRULayer<T>>(in_size, out_size);
-        loadGRU(*gru.get(), weights);
+        loadGRU<T>(*gru.get(), weights);
         return std::move(gru);
     }
 
     /** Checks that a GRU layer has the correct dimensions */
-    template <typename T>
-    bool checkGRU(const GRULayer<T>& gru, const std::string& type, size_t layerDims, const bool debug)
+    template <typename T, typename GRUType>
+    bool checkGRU(const GRUType& gru, const std::string& type, size_t layerDims, const bool debug)
     {
         if(type != "gru")
         {

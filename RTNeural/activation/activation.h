@@ -13,8 +13,8 @@ class Activation : public Layer<T>
 public:
     Activation(size_t size, std::function<T(T)> func, std::string name)
         : Layer<T>(size, size)
-        , func(func)
         , name(name)
+        , func(func)
     {
     }
 

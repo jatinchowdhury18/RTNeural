@@ -1,5 +1,16 @@
 #pragma once
 
+namespace RTNeural
+{
+
+template <typename T>
+constexpr T ceil_div(T num, T den)
+{
+    return (num + den - 1) / den;
+}
+
+} // namespace RTNeural
+
 #if defined(USE_EIGEN)
 #include <Eigen/Dense>
 
@@ -28,6 +39,33 @@ softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 
 namespace RTNeural
 {
+
+template <typename T>
+static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, size_t idx, T value)
+{
+    union UnionType
+    {
+        xsimd::simd_type<T> v;
+        T s[xsimd::simd_type<T>::size];
+    };
+    UnionType u { x };
+
+    u.s[idx] = value;
+    return u.v;
+}
+
+template <typename T>
+static inline T get_value(xsimd::simd_type<T> x, size_t idx)
+{
+    union UnionType
+    {
+        xsimd::simd_type<T> v;
+        T s[xsimd::simd_type<T>::size];
+    };
+    UnionType u { x };
+
+    return u.s[idx];
+}
 
 template <typename T>
 static inline T vMult(const T* arg1, const T* arg2, T* prod,
