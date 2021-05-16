@@ -2,7 +2,6 @@
 #include "layer_creator.hpp"
 #include "templated_bench.hpp"
 #include <RTNeural.h>
-#include <chrono>
 #include <iostream>
 
 void help()

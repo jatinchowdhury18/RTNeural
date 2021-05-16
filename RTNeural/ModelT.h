@@ -2,6 +2,8 @@
 
 #include "model_loader.h"
 
+#if USE_XSIMD // for now only implemented
+
 namespace RTNeural
 {
 
@@ -124,6 +126,7 @@ class ModelT
 public:
     ModelT()
     {
+#if USE_XSIMD
         for(size_t i = 0; i < v_in_size; ++i)
             v_ins[i] = v_type((T)0);
     }
@@ -272,3 +275,5 @@ private:
 };
 
 } // namespace RTNeural
+
+#endif

@@ -2,7 +2,10 @@
 
 #include "bench_utils.hpp"
 #include "layer_creator.hpp"
+#include <chrono>
 #include <RTNeural.h>
+
+#if USE_XSIMD
 
 double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_samples,
     const std::string& layer_type, size_t in_size, size_t out_size)
@@ -137,3 +140,5 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
 
     return duration;
 }
+
+#endif
