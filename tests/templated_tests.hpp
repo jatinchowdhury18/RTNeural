@@ -89,6 +89,16 @@ int templatedTests(std::string arg)
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
 
+    if(arg == "lstm")
+    {
+        using ModelType = ModelT<TestType, 1, 1,
+                            DenseT<TestType, 1, 8>,
+                            TanhActivationT<TestType, 8>,
+                            LSTMLayerT<TestType, 8, 8>,
+                            DenseT<TestType, 8, 1>>;
+        result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
+    }
+
     return result;
 
 #else // @TODO
