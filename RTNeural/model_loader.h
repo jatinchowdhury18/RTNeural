@@ -71,8 +71,8 @@ namespace json_parser
     }
 
     /** Loads weights for a Conv1D layer from a json representation of the layer weights */
-    template <typename T>
-    void loadConv1D(Conv1D<T>& conv, size_t kernel_size, size_t /*dilation*/, const nlohmann::json& weights)
+    template <typename T, typename Conv1DType>
+    void loadConv1D(Conv1DType& conv, size_t kernel_size, size_t /*dilation*/, const nlohmann::json& weights)
     {
         // load weights
         std::vector<std::vector<std::vector<T>>> convWeights(conv.out_size);
@@ -109,13 +109,13 @@ namespace json_parser
         size_t kernel_size, size_t dilation, const nlohmann::json& weights)
     {
         auto conv = std::make_unique<Conv1D<T>>(in_size, out_size, kernel_size, dilation);
-        loadConv1D(*conv.get(), kernel_size, dilation, weights);
+        loadConv1D<T>(*conv.get(), kernel_size, dilation, weights);
         return std::move(conv);
     }
 
     /** Checks that a Conv1D layer has the correct dimensions */
-    template <typename T>
-    bool checkConv1D(const Conv1D<T>& conv, const std::string& type, size_t layerDims,
+    template <typename T, typename Conv1DType>
+    bool checkConv1D(const Conv1DType& conv, const std::string& type, size_t layerDims,
         size_t kernel_size, size_t dilation_rate, const bool debug)
     {
         if(type != "conv1d")
@@ -224,8 +224,8 @@ namespace json_parser
     }
 
     /** Loads weights for a LSTM layer from a json representation of the layer weights */
-    template <typename T>
-    void loadLSTM(LSTMLayer<T>& lstm, const nlohmann::json& weights)
+    template <typename T, typename LSTMType>
+    void loadLSTM(LSTMType& lstm, const nlohmann::json& weights)
     {
         // load kernel weights
         std::vector<std::vector<T>> kernelWeights(lstm.in_size);
@@ -267,13 +267,13 @@ namespace json_parser
     std::unique_ptr<LSTMLayer<T>> createLSTM(size_t in_size, size_t out_size, const nlohmann::json& weights)
     {
         auto lstm = std::make_unique<LSTMLayer<T>>(in_size, out_size);
-        loadLSTM(*lstm.get(), weights);
+        loadLSTM<T>(*lstm.get(), weights);
         return std::move(lstm);
     }
 
     /** Checks that a LSTM layer has the correct dimensions */
-    template <typename T>
-    bool checkLSTM(const LSTMLayer<T>& lstm, const std::string& type, size_t layerDims, const bool debug)
+    template <typename T,typename LSTMType>
+    bool checkLSTM(const LSTMType& lstm, const std::string& type, size_t layerDims, const bool debug)
     {
         if(type != "lstm")
         {

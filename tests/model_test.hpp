@@ -23,7 +23,7 @@ int model_test()
 {
     std::cout << "TESTING FULL MODEL..." << std::endl;
 
-    const std::string model_file = "models/model_dense.json";
+    const std::string model_file = "models/full_model.json";
     const std::string data_file = "test_data/dense_x_python.csv";
     constexpr double threshold = 1.0e-12;
 
@@ -45,21 +45,13 @@ int model_test()
     {
         std::cout << "Loading templated model" << std::endl;
         RTNeural::ModelT<TestType, 1, 1,
-            RTNeural::DenseT<TestType, 1, 4>,
+            RTNeural::DenseT<TestType, 1, 8>,
+            RTNeural::TanhActivationT<TestType, 8>,
+            RTNeural::Conv1DT<TestType, 8, 4, 3, 2>,
             RTNeural::TanhActivationT<TestType, 4>,
-            // RTNeural::Conv1D<TestType>,
-            // RTNeural::TanhActivation<TestType>,
             RTNeural::GRULayerT<TestType, 4, 8>,
             RTNeural::DenseT<TestType, 8, 1>
         > modelT;
-        // modelT ({ 1, 8, 8, 4, 4, 8, 1 }); //, {
-        //     { 1, 8 }, // Dense
-        //     { 8 }, // Tanh
-        //     { 8, 4, 3, 2 }, // Conv1D
-        //     { 4 }, // Tanh
-        //     { 4, 8 }, // GRU
-        //     { 8, 1 } // Dense
-        // });
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream, true);
         processModel(modelT, xData, yData);

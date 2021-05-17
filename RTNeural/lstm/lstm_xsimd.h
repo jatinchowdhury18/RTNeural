@@ -92,6 +92,165 @@ protected:
     vec_type prod_out;
 };
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+class LSTMLayerT
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
+    static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
+
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+
+    LSTMLayerT();
+
+    std::string getName() const noexcept { return "lstm"; }
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset();
+
+    template <size_t N = in_size>
+    inline typename std::enable_if<(N > 1), void>::type
+    forward(const v_type (&ins)[v_in_size])
+    {
+        // compute ft
+        recurrent_mat_mul(outs, Uf, ft);
+        kernel_mat_mul(ins, Wf, kernel_outs);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ft[i] = sigmoid(ft[i] + bf[i] + kernel_outs[i]);
+
+        // compute it
+        recurrent_mat_mul(outs, Ui, it);
+        kernel_mat_mul(ins, Wi, kernel_outs);
+        for(size_t i = 0; i < v_out_size; ++i)
+            it[i] = sigmoid(it[i] + bi[i] + kernel_outs[i]);
+
+        // compute ot
+        recurrent_mat_mul(outs, Uo, ot);
+        kernel_mat_mul(ins, Wo, kernel_outs);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ot[i] = sigmoid(ot[i] + bo[i] + kernel_outs[i]);
+
+        // compute ct
+        recurrent_mat_mul(outs, Uc, ht);
+        kernel_mat_mul(ins, Wc, kernel_outs);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ct[i] = it[i] * xsimd::tanh(ht[i] + bc[i] + kernel_outs[i]) + ft[i] * ct[i];
+
+        // compute output
+        for(size_t i = 0; i < v_out_size; ++i)
+            outs[i] = ot[i] * xsimd::tanh(ct[i]);
+    }
+
+    template <size_t N = in_size>
+    inline typename std::enable_if<N == 1, void>::type
+    forward(const v_type (&ins)[v_in_size])
+    {
+        // compute ft
+        recurrent_mat_mul(outs, Uf, ft);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ft[i] = sigmoid(ft[i] + bf[i] + (Wf_1[i] * ins[0]));
+
+        // compute it
+        recurrent_mat_mul(outs, Ui, it);
+        for(size_t i = 0; i < v_out_size; ++i)
+            it[i] = sigmoid(it[i] + bi[i] + (Wi_1[i] * ins[0]));
+
+        // compute ot
+        recurrent_mat_mul(outs, Uo, ot);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ot[i] = sigmoid(ot[i] + bo[i] + (Wo_1[i] * ins[0]));
+
+        // compute ct
+        recurrent_mat_mul(outs, Uc, ht);
+        for(size_t i = 0; i < v_out_size; ++i)
+            ct[i] = it[i] * xsimd::tanh(ht[i] + bc[i] + (Wc_1[i] * ins[0])) + ft[i] * ct[i];
+
+        // compute output
+        for(size_t i = 0; i < v_out_size; ++i)
+            outs[i] = ot[i] * xsimd::tanh(ct[i]);
+    }
+
+    void setWVals(const std::vector<std::vector<T>>& wVals);
+    void setUVals(const std::vector<std::vector<T>>& uVals);
+    void setBVals(const std::vector<T>& bVals);
+
+    v_type outs[v_out_size];
+
+private:
+    static inline void recurrent_mat_mul(const v_type (&vec)[v_out_size], const v_type (&mat)[out_size][v_out_size], v_type (&out)[v_out_size]) noexcept
+    {
+        T sums alignas(16)[out_size] { (T)0 };
+        for(size_t i = 0; i < v_size; ++i)
+        {
+            for(size_t j = 0; j < v_out_size; ++j)
+            {
+                for(size_t k = 0; k < v_out_size; ++k)
+                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
+            }
+        }
+
+        for(size_t i = 0; i < v_out_size; ++i)
+            out[i] = xsimd::load_aligned(sums + i * v_size);
+    }
+
+    static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[out_size][v_in_size], v_type (&out)[v_out_size]) noexcept
+    {
+        T sums alignas(16)[out_size] { (T)0 };
+        for(size_t i = 0; i < v_size; ++i)
+        {
+            for(size_t j = 0; j < v_out_size; ++j)
+            {
+                for(size_t k = 0; k < v_in_size; ++k)
+                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
+            }
+        }
+
+        for(size_t i = 0; i < v_out_size; ++i)
+            out[i] = xsimd::load_aligned(sums + i * v_size);
+    }
+
+    static inline v_type sigmoid(v_type x) noexcept
+    {
+        return (T)1.0 / ((T)1.0 + xsimd::exp(-x));
+    }
+
+    // kernel weights
+    v_type Wf[out_size][v_in_size];
+    v_type Wi[out_size][v_in_size];
+    v_type Wo[out_size][v_in_size];
+    v_type Wc[out_size][v_in_size];
+    v_type kernel_outs[v_out_size];
+
+    // single-input kernel weights
+    v_type Wf_1[v_out_size];
+    v_type Wi_1[v_out_size];
+    v_type Wo_1[v_out_size];
+    v_type Wc_1[v_out_size];
+
+    // recurrent weights
+    v_type Uf[out_size][v_out_size];
+    v_type Ui[out_size][v_out_size];
+    v_type Uo[out_size][v_out_size];
+    v_type Uc[out_size][v_out_size];
+
+    // biases
+    v_type bf[v_out_size];
+    v_type bi[v_out_size];
+    v_type bo[v_out_size];
+    v_type bc[v_out_size];
+
+    // intermediate vars
+    v_type ft[v_out_size];
+    v_type it[v_out_size];
+    v_type ot[v_out_size];
+    v_type ht[v_out_size];
+    v_type ct[v_out_size];
+};
+
 } // namespace RTNeural
 
 #endif // LSTM_XSIMD_H_INCLUDED
