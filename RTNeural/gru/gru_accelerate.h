@@ -119,7 +119,7 @@ protected:
         vDSP_vmulD(cTmp, 1, rVec, 1, cTmp, 1, Layer<T>::out_size);
         vDSP_vaddD(cTmp, 1, cVec, 1, cVec, 1, Layer<T>::out_size);
         vDSP_vaddD(cVec, 1, cWeights.b[0], 1, cVec, 1, Layer<T>::out_size);
-        const auto dim_int = static_cast<int>(Layer<T>::in_size);
+        const auto dim_int = static_cast<int>(Layer<T>::out_size);
         vvtanh(cVec, cVec, &dim_int);
 
         vDSP_vsubD(zVec, 1, ones, 1, h, 1, Layer<T>::out_size);

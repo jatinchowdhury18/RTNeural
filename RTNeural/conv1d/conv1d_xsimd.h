@@ -64,6 +64,70 @@ private:
     vec_type prod_state;
 };
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+class Conv1DT
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
+    static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
+    static constexpr auto state_size = kernel_size * dilation_rate;
+    static constexpr auto v_state_size = ceil_div(state_size, v_size);
+
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+
+    Conv1DT();
+
+    std::string getName() const noexcept { return "conv1d"; }
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset();
+
+    inline void forward(const v_type (&ins)[v_in_size])
+    {
+        for(size_t k = 0; k < v_in_size; ++k)
+        {
+            state[k][state_ptr] = ins[k];
+            state[k][state_ptr + state_size] = ins[k];
+        }
+
+        for(size_t i = 0; i < v_out_size; ++i)
+        {
+            T out_sum alignas(16)[v_size] { (T)0 };
+            for(size_t j = 0; j < v_in_size; ++j)
+            {
+                for(size_t k = 0; k < v_size; ++k)
+                {
+                    for(size_t l = 0; l < state_size; ++l)
+                        out_sum[k] += xsimd::hadd(state[j][state_ptr + l] * weights[i * v_size + k][j][l]);
+                }
+            }
+
+            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        }
+
+        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+    }
+
+    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    void setBias(const std::vector<T>& biasVals);
+
+    constexpr size_t getKernelSize() const { return kernel_size; }
+    constexpr size_t getDilationRate() const { return dilation_rate; }
+
+    v_type outs[v_out_size];
+
+private:
+    v_type state[v_in_size][state_size * 2];
+    size_t state_ptr = 0;
+
+    v_type weights[out_size][v_in_size][state_size];
+    v_type bias[v_out_size];
+};
+
 } // namespace RTNeural
 
 #endif // CONV1DXSIMD_H_INCLUDED
