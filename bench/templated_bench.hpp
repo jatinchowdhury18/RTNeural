@@ -44,6 +44,30 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             duration = run_layer(model);
         }
     }
+    else if(layer_type == "conv1d")
+    {
+        if(in_size == 4 && out_size == 4)
+        {
+            constexpr size_t kernel_size = 3; // in_size - 1
+            ModelT<double, 4, 4, Conv1DT<double, 4, 4, kernel_size, 1>> model;
+            randomise_conv1d (model.get<0>(), kernel_size);
+            duration = run_layer(model);
+        }
+        else if(in_size == 8 && out_size == 8)
+        {
+            constexpr size_t kernel_size = 7; // in_size - 1
+            ModelT<double, 8, 8, Conv1DT<double, 8, 8, kernel_size, 1>> model;
+            randomise_conv1d (model.get<0>(), kernel_size);
+            duration = run_layer(model);
+        }
+        else if(in_size == 16 && out_size == 16)
+        {
+            constexpr size_t kernel_size = 15; // in_size - 1
+            ModelT<double, 16, 16, Conv1DT<double, 16, 16, kernel_size, 1>> model;
+            randomise_conv1d (model.get<0>(), kernel_size);
+            duration = run_layer(model);
+        }
+    }
     else if(layer_type == "gru")
     {
         if(in_size == 4 && out_size == 4)
@@ -62,6 +86,27 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
         {
             ModelT<double, 16, 16, GRULayerT<double, 16, 16>> model;
             randomise_gru (model.get<0>());
+            duration = run_layer(model);
+        }
+    }
+    else if(layer_type == "lstm")
+    {
+        if(in_size == 4 && out_size == 4)
+        {
+            ModelT<double, 4, 4, LSTMLayerT<double, 4, 4>> model;
+            randomise_lstm (model.get<0>());
+            duration = run_layer(model);
+        }
+        else if(in_size == 8 && out_size == 8)
+        {
+            ModelT<double, 8, 8, LSTMLayerT<double, 8, 8>> model;
+            randomise_lstm (model.get<0>());
+            duration = run_layer(model);
+        }
+        else if(in_size == 16 && out_size == 16)
+        {
+            ModelT<double, 16, 16, LSTMLayerT<double, 16, 16>> model;
+            randomise_lstm (model.get<0>());
             duration = run_layer(model);
         }
     }

@@ -3,7 +3,7 @@
 #include <chrono>
 
 template <typename ModelType>
-void runBench(ModelType& model, double length_seconds)
+double runBench(ModelType& model, double length_seconds)
 {
     // generate audio
     constexpr double sample_rate = 48000.0;
@@ -23,37 +23,43 @@ void runBench(ModelType& model, double length_seconds)
     std::cout << "Processed " << length_seconds << " seconds of signal in "
               << duration << " seconds" << std::endl;
     std::cout << length_seconds / duration << "x real-time" << std::endl;
+
+    return duration;
 }
 
 int main(int argc, char* argv[])
 {
-    const std::string model_file = "models/model_dense.json";
+    const std::string model_file = "models/full_model.json";
     constexpr double bench_time = 100.0;
+    double nonTemplatedDur = 0.0;
 
     // non-templated model
     {
         std::cout << "Measuring non-templated model..." << std::endl;
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         auto model = RTNeural::json_parser::parseJson<double>(jsonStream);
-        runBench(*model.get(), bench_time);
+        nonTemplatedDur = runBench(*model.get(), bench_time);
     }
 
 #if USE_XSIMD
     // templated model
+    double templatedDur = 0.0;
     {
         std::cout << "Measuring templated model..." << std::endl;
         RTNeural::ModelT<double, 1, 1,
-            RTNeural::DenseT<double, 1, 4>,
+            RTNeural::DenseT<double, 1, 8>,
+            RTNeural::TanhActivationT<double, 8>,
+            RTNeural::Conv1DT<double, 8, 4, 3, 2>,
             RTNeural::TanhActivationT<double, 4>,
-            // RTNeural::Conv1D<double>,
-            // RTNeural::TanhActivation<double>,
             RTNeural::GRULayerT<double, 4, 8>,
-            RTNeural::DenseT<double, 8, 1>>
-            modelT;
+            RTNeural::DenseT<double, 8, 1>
+        > modelT;
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream);
-        runBench(modelT, bench_time);
+        templatedDur = runBench(modelT, bench_time);
     }
+
+    std::cout << "Templated model is " << nonTemplatedDur / templatedDur << "x faster!" << std::endl;
 #endif
 }
