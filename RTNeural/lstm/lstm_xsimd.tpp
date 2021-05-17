@@ -133,8 +133,6 @@ LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
         it[i] = v_type((T)0);
         ot[i] = v_type((T)0);
         ht[i] = v_type((T)0);
-
-        reset();
     }
 
     for(size_t i = 0; i < out_size; ++i)
@@ -157,6 +155,8 @@ LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
             Wc[i][k] = v_type((T)0);
         }
     }
+
+    reset();
 }
 
 template <typename T, size_t in_sizet, size_t out_sizet>

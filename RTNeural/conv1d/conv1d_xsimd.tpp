@@ -67,25 +67,50 @@ void Conv1D<T>::setBias(const std::vector<T>& biasVals)
 template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
 Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT()
 {
+    for(size_t i = 0; i < out_size; ++i)
+        for(size_t j = 0; j < v_in_size; ++j)
+            for(size_t k = 0; k < state_size; ++k)
+                weights[i][j][k] = v_type((T)0.0);
 
+    for(size_t i = 0; i < v_out_size; ++i)
+            bias[i] = v_type((T)0.0);
+
+    for(size_t i = 0; i < v_out_size; ++i)
+            outs[i] = v_type((T)0.0);
+
+    reset();
 }
 
 template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
 void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::reset()
 {
-
+    state_ptr = 0;
+    for(size_t k = 0; k < v_in_size; ++k)
+        for(size_t i = 0; i < 2 * state_size; ++i)
+            state[k][i] = v_type((T)0.0);
 }
 
 template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
-void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setWeights(const std::vector<std::vector<std::vector<T>>>& weights)
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setWeights(const std::vector<std::vector<std::vector<T>>>& ws)
 {
-
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        for(size_t k = 0; k < in_size; ++k)
+        {
+            for(size_t j = 0; j < kernel_size; ++j)
+            {
+                auto& w = weights[i][k / v_size][j * dilation_rate];
+                w = set_value(w, k % v_size, ws[i][k][j]);
+            }
+        }
+    }
 }
 
 template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
 void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setBias(const std::vector<T>& biasVals)
 {
-
+    for(size_t i = 0; i < out_size; ++i)
+        bias[i / v_size] = set_value(bias[i / v_size], i % v_size, biasVals[i]);
 }
 
 } // namespace RTNeural

@@ -88,7 +88,28 @@ public:
 
     inline void forward(const v_type (&ins)[v_in_size])
     {
+        for(size_t k = 0; k < v_in_size; ++k)
+        {
+            state[k][state_ptr] = ins[k];
+            state[k][state_ptr + state_size] = ins[k];
+        }
 
+        for(size_t i = 0; i < v_out_size; ++i)
+        {
+            T out_sum alignas(16)[v_size] { (T)0 };
+            for(size_t j = 0; j < v_in_size; ++j)
+            {
+                for(size_t k = 0; k < v_size; ++k)
+                {
+                    for(size_t l = 0; l < state_size; ++l)
+                        out_sum[k] += xsimd::hadd(state[j][state_ptr + l] * weights[i * v_size + k][j][l]);
+                }
+            }
+
+            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        }
+
+        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
     }
 
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
@@ -100,6 +121,11 @@ public:
     v_type outs[v_out_size];
 
 private:
+    v_type state[v_in_size][state_size * 2];
+    size_t state_ptr = 0;
+
+    v_type weights[out_size][v_in_size][state_size];
+    v_type bias[v_out_size];
 };
 
 } // namespace RTNeural
