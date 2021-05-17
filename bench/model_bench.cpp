@@ -52,8 +52,8 @@ int main(int argc, char* argv[])
             RTNeural::Conv1DT<double, 8, 4, 3, 2>,
             RTNeural::TanhActivationT<double, 4>,
             RTNeural::GRULayerT<double, 4, 8>,
-            RTNeural::DenseT<double, 8, 1>
-        > modelT;
+            RTNeural::DenseT<double, 8, 1>>
+            modelT;
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream);

@@ -272,7 +272,7 @@ namespace json_parser
     }
 
     /** Checks that a LSTM layer has the correct dimensions */
-    template <typename T,typename LSTMType>
+    template <typename T, typename LSTMType>
     bool checkLSTM(const LSTMType& lstm, const std::string& type, size_t layerDims, const bool debug)
     {
         if(type != "lstm")

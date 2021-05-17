@@ -73,10 +73,10 @@ Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT()
                 weights[i][j][k] = v_type((T)0.0);
 
     for(size_t i = 0; i < v_out_size; ++i)
-            bias[i] = v_type((T)0.0);
+        bias[i] = v_type((T)0.0);
 
     for(size_t i = 0; i < v_out_size; ++i)
-            outs[i] = v_type((T)0.0);
+        outs[i] = v_type((T)0.0);
 
     reset();
 }
