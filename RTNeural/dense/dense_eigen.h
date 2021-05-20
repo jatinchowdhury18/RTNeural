@@ -85,12 +85,13 @@ class DenseT
 {
     using vec_type = Eigen::Matrix<T, out_sizet, 1>;
     using mat_type = Eigen::Matrix<T, out_sizet, in_sizet>;
+
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
 
-    DenseT() :
-        outs(outs_internal)
+    DenseT()
+        : outs(outs_internal)
     {
         weights = mat_type::Zero();
         bias = vec_type::Zero();
@@ -102,7 +103,7 @@ public:
 
     void reset() { }
 
-    inline void forward (const Eigen::Matrix<T, in_size, 1>& ins)
+    inline void forward(const Eigen::Matrix<T, in_size, 1>& ins)
     {
         outs = weights * ins + bias;
     }

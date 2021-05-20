@@ -83,6 +83,7 @@ class GRULayerT
 
     using in_type = Eigen::Matrix<T, in_sizet, 1>;
     using out_type = Eigen::Matrix<T, out_sizet, 1>;
+
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
@@ -94,7 +95,7 @@ public:
 
     void reset();
 
-    inline  void forward(const in_type& ins)
+    inline void forward(const in_type& ins)
     {
         zVec = sigmoid(wVec_z * ins + uVec_z * outs + bVec_z);
         rVec = sigmoid(wVec_r * ins + uVec_r * outs + bVec_r);
@@ -111,7 +112,7 @@ public:
 
 private:
     T outs_internal alignas(16)[out_size];
-    
+
     static inline out_type sigmoid(const out_type& x) noexcept
     {
         return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);

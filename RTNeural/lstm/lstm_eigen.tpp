@@ -102,7 +102,8 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 
 //====================================================
 template <typename T, size_t in_sizet, size_t out_sizet>
-LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT() : outs(outs_internal)
+LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
+    : outs(outs_internal)
 {
     Wf = k_type::Zero();
     Wi = k_type::Zero();
@@ -113,7 +114,7 @@ LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT() : outs(outs_internal)
     Ui = r_type::Zero();
     Uo = r_type::Zero();
     Uc = r_type::Zero();
-    
+
     bf = b_type::Zero();
     bi = b_type::Zero();
     bo = b_type::Zero();

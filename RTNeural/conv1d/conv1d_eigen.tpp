@@ -68,7 +68,8 @@ void Conv1D<T>::setBias(const std::vector<T>& biasVals)
 
 //====================================================
 template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
-Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT() : outs(outs_internal)
+Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT()
+    : outs(outs_internal)
 {
     for(size_t k = 0; k < out_size; ++k)
         weights[k] = weights_type::Zero();

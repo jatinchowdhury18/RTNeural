@@ -177,7 +177,7 @@ public:
             v_ins[i] = v_type((T)0);
 #elif USE_EIGEN
         auto& layer_outs = get<n_layers - 1>().outs;
-        new (&layer_outs) Eigen::Map<Eigen::Matrix<T, out_size, 1>, Eigen::Aligned16>(outs);
+        new(&layer_outs) Eigen::Map<Eigen::Matrix<T, out_size, 1>, Eigen::Aligned16>(outs);
 #endif
     }
 

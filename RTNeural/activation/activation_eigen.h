@@ -39,6 +39,7 @@ template <typename T, size_t size>
 class TanhActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -93,6 +94,7 @@ template <typename T, size_t size>
 class ReLuActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -148,6 +150,7 @@ template <typename T, size_t size>
 class SigmoidActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -203,6 +206,7 @@ template <typename T, size_t size>
 class SoftmaxActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;

@@ -168,7 +168,8 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
 
 //====================================================
 template <typename T, size_t in_sizet, size_t out_sizet>
-GRULayerT<T, in_sizet, out_sizet>::GRULayerT() : outs(outs_internal)
+GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
+    : outs(outs_internal)
 {
     wVec_z = k_type::Zero();
     wVec_r = k_type::Zero();
@@ -177,7 +178,7 @@ GRULayerT<T, in_sizet, out_sizet>::GRULayerT() : outs(outs_internal)
     uVec_z = r_type::Zero();
     uVec_r = r_type::Zero();
     uVec_c = r_type::Zero();
-    
+
     bVec_z = b_type::Zero();
     bVec_r = b_type::Zero();
     bVec_c0 = b_type::Zero();
