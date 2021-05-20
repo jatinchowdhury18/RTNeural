@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
         std::cout << length_seconds / nonTemplatedDur << "x real-time" << std::endl;
     }
 
-#if USE_XSIMD // TODO
+#if MODELT_AVAILABLE
     std::cout << "Testing templated implementation..." << std::endl;
     double templatedDur = 0.0;
     {

@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
         nonTemplatedDur = runBench(*model.get(), bench_time);
     }
 
-#if USE_XSIMD
+#if MODELT_AVAILABLE
     // templated model
     double templatedDur = 0.0;
     {

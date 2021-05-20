@@ -100,4 +100,79 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
     }
 }
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT() : outs(outs_internal)
+{
+    Wf = k_type::Zero();
+    Wi = k_type::Zero();
+    Wo = k_type::Zero();
+    Wc = k_type::Zero();
+
+    Uf = r_type::Zero();
+    Ui = r_type::Zero();
+    Uo = r_type::Zero();
+    Uc = r_type::Zero();
+    
+    bf = b_type::Zero();
+    bi = b_type::Zero();
+    bo = b_type::Zero();
+    bc = b_type::Zero();
+
+    reset();
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::reset()
+{
+    // reset output state
+    outs = out_type::Zero();
+    cVec = out_type::Zero();
+}
+
+// kernel weights
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
+{
+    for(size_t i = 0; i < in_size; ++i)
+    {
+        for(size_t k = 0; k < out_size; ++k)
+        {
+            Wi(k, i) = wVals[i][k];
+            Wf(k, i) = wVals[i][k + out_size];
+            Wc(k, i) = wVals[i][k + out_size * 2];
+            Wo(k, i) = wVals[i][k + out_size * 3];
+        }
+    }
+}
+
+// recurrent weights
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
+{
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        for(size_t k = 0; k < out_size; ++k)
+        {
+            Ui(k, i) = uVals[i][k];
+            Uf(k, i) = uVals[i][k + out_size];
+            Uc(k, i) = uVals[i][k + out_size * 2];
+            Uo(k, i) = uVals[i][k + out_size * 3];
+        }
+    }
+}
+
+// biases
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<T>& bVals)
+{
+    for(size_t k = 0; k < out_size; ++k)
+    {
+        bi(k) = bVals[k];
+        bf(k) = bVals[k + out_size];
+        bc(k) = bVals[k + out_size * 2];
+        bo(k) = bVals[k + out_size * 3];
+    }
+}
+
 } // namespace RTNeural
