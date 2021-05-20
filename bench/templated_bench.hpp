@@ -5,7 +5,7 @@
 #include <chrono>
 #include <RTNeural.h>
 
-#if USE_XSIMD
+#if MODELT_AVAILABLE
 
 double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_samples,
     const std::string& layer_type, size_t in_size, size_t out_size)
@@ -43,6 +43,10 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             randomise_dense (model.get<0>());
             duration = run_layer(model);
         }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
+        }
     }
     else if(layer_type == "conv1d")
     {
@@ -67,6 +71,10 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             randomise_conv1d (model.get<0>(), kernel_size);
             duration = run_layer(model);
         }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
+        }
     }
     else if(layer_type == "gru")
     {
@@ -87,6 +95,10 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             ModelT<double, 16, 16, GRULayerT<double, 16, 16>> model;
             randomise_gru (model.get<0>());
             duration = run_layer(model);
+        }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
         }
     }
     else if(layer_type == "lstm")
@@ -109,6 +121,10 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             randomise_lstm (model.get<0>());
             duration = run_layer(model);
         }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
+        }
     }
     else if(layer_type == "tanh")
     {
@@ -126,6 +142,10 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
         {
             ModelT<double, 16, 16, TanhActivationT<double, 16>> model;
             duration = run_layer(model);
+        }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
         }
     }
     else if(layer_type == "relu")
@@ -145,6 +165,10 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             ModelT<double, 16, 16, ReLuActivationT<double, 16>> model;
             duration = run_layer(model);
         }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
+        }
     }
     else if(layer_type == "sigmoid")
     {
@@ -162,6 +186,10 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
         {
             ModelT<double, 16, 16, SigmoidActivationT<double, 16>> model;
             duration = run_layer(model);
+        }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
         }
     }
     else if(layer_type == "softmax")
@@ -181,9 +209,13 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             ModelT<double, 16, 16, SoftmaxActivationT<double, 16>> model;
             duration = run_layer(model);
         }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
+        }
     }
 
     return duration;
 }
 
-#endif
+#endif // MODELT_AVAILABLE
