@@ -79,6 +79,64 @@ private:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+class DenseT
+{
+    using vec_type = Eigen::Matrix<T, out_sizet, 1>;
+    using mat_type = Eigen::Matrix<T, out_sizet, in_sizet>;
+
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+
+    DenseT()
+        : outs(outs_internal)
+    {
+        weights = mat_type::Zero();
+        bias = vec_type::Zero();
+        outs = vec_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "dense"; }
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset() { }
+
+    inline void forward(const Eigen::Matrix<T, in_size, 1>& ins)
+    {
+        outs = weights * ins + bias;
+    }
+
+    void setWeights(const std::vector<std::vector<T>>& newWeights)
+    {
+        for(size_t i = 0; i < out_size; ++i)
+            for(size_t k = 0; k < in_size; ++k)
+                weights(i, k) = newWeights[i][k];
+    }
+
+    void setWeights(T** newWeights)
+    {
+        for(size_t i = 0; i < out_size; ++i)
+            for(size_t k = 0; k < in_size; ++k)
+                weights(i, k) = newWeights[i][k];
+    }
+
+    void setBias(T* b)
+    {
+        for(size_t i = 0; i < out_size; ++i)
+            bias(i, 0) = b[i];
+    }
+
+    Eigen::Map<vec_type, Eigen::Aligned16> outs;
+
+private:
+    T outs_internal alignas(16)[out_size];
+
+    mat_type weights;
+    vec_type bias;
+};
+
 } // namespace RTNeural
 
 #endif // DENSEEIGEN_H_INCLUDED

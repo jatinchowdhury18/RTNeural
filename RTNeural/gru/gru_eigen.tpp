@@ -166,6 +166,77 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
     return set(k % Layer<T>::out_size, i);
 }
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
+    : outs(outs_internal)
+{
+    wVec_z = k_type::Zero();
+    wVec_r = k_type::Zero();
+    wVec_c = k_type::Zero();
+
+    uVec_z = r_type::Zero();
+    uVec_r = r_type::Zero();
+    uVec_c = r_type::Zero();
+
+    bVec_z = b_type::Zero();
+    bVec_r = b_type::Zero();
+    bVec_c0 = b_type::Zero();
+    bVec_c1 = b_type::Zero();
+
+    reset();
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::reset()
+{
+    // reset output state
+    outs = out_type::Zero();
+}
+
+// kernel weights
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
+{
+    for(size_t i = 0; i < in_size; ++i)
+    {
+        for(size_t k = 0; k < out_size; ++k)
+        {
+            wVec_z(k, i) = wVals[i][k];
+            wVec_r(k, i) = wVals[i][k + out_size];
+            wVec_c(k, i) = wVals[i][k + out_size * 2];
+        }
+    }
+}
+
+// recurrent weights
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
+{
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        for(size_t k = 0; k < out_size; ++k)
+        {
+            uVec_z(k, i) = uVals[i][k];
+            uVec_r(k, i) = uVals[i][k + out_size];
+            uVec_c(k, i) = uVals[i][k + out_size * 2];
+        }
+    }
+}
+
+// biases
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<std::vector<T>>& bVals)
+{
+    for(size_t k = 0; k < out_size; ++k)
+    {
+        bVec_z(k) = bVals[0][k] + bVals[1][k];
+        bVec_r(k) = bVals[0][k + out_size] + bVals[1][k + out_size];
+        bVec_c0(k) = bVals[0][k + 2 * out_size];
+        bVec_c1(k) = bVals[1][k + 2 * out_size];
+    }
+}
+
 } // namespace RTNeural
 
 #endif // USE_EIGEN

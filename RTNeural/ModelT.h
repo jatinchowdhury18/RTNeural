@@ -2,7 +2,9 @@
 
 #include "model_loader.h"
 
-#if USE_XSIMD // for now only implemented
+#define MODELT_AVAILABLE (USE_XSIMD || USE_EIGEN)
+
+#if MODELT_AVAILABLE
 
 namespace RTNeural
 {
@@ -161,6 +163,7 @@ namespace modelt_detail
 
         json_stream_idx++;
     }
+
 } // namespace modelt_detail
 
 template <typename T, size_t in_size, size_t out_size, typename... Layers>
@@ -172,6 +175,10 @@ public:
 #if USE_XSIMD
         for(size_t i = 0; i < v_in_size; ++i)
             v_ins[i] = v_type((T)0);
+#elif USE_EIGEN
+        auto& layer_outs = get<n_layers - 1>().outs;
+        new(&layer_outs) Eigen::Map<Eigen::Matrix<T, out_size, 1>, Eigen::Aligned16>(outs);
+#endif
     }
 
     /** Get a reference to the layer at index `Index`. */
@@ -200,6 +207,8 @@ public:
 #if USE_XSIMD
         for(size_t i = 0; i < v_in_size; ++i)
             v_ins[i] = xsimd::load_aligned(input + i * v_size);
+#elif USE_EIGEN
+        auto v_ins = Eigen::Map<const vec_type, Eigen::Aligned16>(input);
 #endif
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
@@ -217,7 +226,10 @@ public:
     {
 #if USE_XSIMD
         v_ins[0] = (v_type)input[0];
+#elif USE_EIGEN
+        const auto v_ins = vec_type::Constant(input[0]);
 #endif
+
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
@@ -304,13 +316,13 @@ private:
     static constexpr auto v_size = v_type::size;
     static constexpr auto v_in_size = ceil_div(in_size, v_size);
     static constexpr auto v_out_size = ceil_div(out_size, v_size);
+    v_type v_ins[v_in_size];
 #elif USE_EIGEN
-    using vec_type = std::vector<T, Eigen::aligned_allocator<T>>;
+    using vec_type = Eigen::Matrix<T, in_size, 1>;
 #else
     using vec_type = std::vector<T>;
 #endif
 
-    v_type v_ins[v_in_size];
     T outs alignas(16)[out_size];
 
     std::tuple<Layers...> layers;
@@ -319,6 +331,4 @@ private:
 
 } // namespace RTNeural
 
-#endif
-
-#endif
+#endif // MODELT_AVAILABLE

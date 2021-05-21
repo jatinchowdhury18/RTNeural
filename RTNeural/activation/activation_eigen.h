@@ -35,6 +35,32 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
+template <typename T, size_t size>
+class TanhActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    TanhActivationT()
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "tanh"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const v_type& ins)
+    {
+        outs = ins.array().tanh();
+    }
+
+    v_type outs;
+};
+
 template <typename T>
 class ReLuActivation : public Activation<T>
 {
@@ -62,6 +88,32 @@ public:
 
     Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+};
+
+template <typename T, size_t size>
+class ReLuActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    ReLuActivationT()
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "relu"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const v_type& ins)
+    {
+        outs = ins.array().max((T)0);
+    }
+
+    v_type outs;
 };
 
 template <typename T>
@@ -94,6 +146,32 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
+template <typename T, size_t size>
+class SigmoidActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    SigmoidActivationT()
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "sigmoid"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const v_type& ins)
+    {
+        outs = (T)1 / (((T)-1 * ins.array()).array().exp() + (T)1);
+    }
+
+    v_type outs;
+};
+
 template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
@@ -122,6 +200,33 @@ public:
 
     Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+};
+
+template <typename T, size_t size>
+class SoftmaxActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    SoftmaxActivationT()
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "softmax"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const v_type& ins)
+    {
+        outs = ins.array().exp();
+        outs = outs / outs.sum();
+    }
+
+    v_type outs;
 };
 
 } // namespace RTNeural
