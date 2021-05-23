@@ -155,7 +155,7 @@ public:
     inline void forward(const T (&ins)[in_size])
     {
         for(size_t i = 0; i < out_size; ++i)
-            outs[i] = std::inner_product (ins, ins + in_size, &weights[i * in_size], (T) 0) + bias[i];
+            outs[i] = std::inner_product(ins, ins + in_size, &weights[i * in_size], (T)0) + bias[i];
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)

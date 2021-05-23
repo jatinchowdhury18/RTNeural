@@ -103,7 +103,7 @@ public:
         {
             outs[i] = bias[i];
             for(size_t k = 0; k < in_size; ++k)
-                outs[i] += std::inner_product(&state[k][state_ptr], &state[k][state_ptr + state_size], weights[i][k], (T) 0);
+                outs[i] += std::inner_product(&state[k][state_ptr], &state[k][state_ptr + state_size], weights[i][k], (T)0);
         }
 
         state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse

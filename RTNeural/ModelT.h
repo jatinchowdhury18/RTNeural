@@ -2,7 +2,7 @@
 
 #include "model_loader.h"
 
-#define MODELT_AVAILABLE (! USE_ACCELERATE)
+#define MODELT_AVAILABLE (!USE_ACCELERATE)
 
 #if MODELT_AVAILABLE
 

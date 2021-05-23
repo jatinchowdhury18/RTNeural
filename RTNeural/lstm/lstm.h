@@ -166,13 +166,13 @@ private:
     static inline void recurrent_mat_mul(const T (&vec)[out_size], const T (&mat)[out_size][out_size], T (&out)[out_size]) noexcept
     {
         for(size_t j = 0; j < out_size; ++j)
-            out[j] = std::inner_product(mat[j], mat[j] + out_size, vec, (T) 0);
+            out[j] = std::inner_product(mat[j], mat[j] + out_size, vec, (T)0);
     }
 
     static inline void kernel_mat_mul(const T (&vec)[in_size], const T (&mat)[out_size][in_size], T (&out)[out_size]) noexcept
     {
         for(size_t j = 0; j < out_size; ++j)
-            out[j] = std::inner_product(mat[j], mat[j] + in_size, vec, (T) 0);
+            out[j] = std::inner_product(mat[j], mat[j] + in_size, vec, (T)0);
     }
 
     // kernel weights
