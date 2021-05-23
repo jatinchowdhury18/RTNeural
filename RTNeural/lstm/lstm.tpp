@@ -133,6 +133,116 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
     }
 }
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
+{
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        // single-input kernel weights
+        Wf_1[i] = (T)0;
+        Wi_1[i] = (T)0;
+        Wo_1[i] = (T)0;
+        Wc_1[i] = (T)0;
+
+        // biases
+        bf[i] = (T)0;
+        bi[i] = (T)0;
+        bo[i] = (T)0;
+        bc[i] = (T)0;
+
+        // intermediate vars
+        ft[i] = (T)0;
+        it[i] = (T)0;
+        ot[i] = (T)0;
+        ht[i] = (T)0;
+    }
+
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        // recurrent weights
+        for(size_t k = 0; k < out_size; ++k)
+        {
+            Uf[i][k] = (T)0;
+            Ui[i][k] = (T)0;
+            Uo[i][k] = (T)0;
+            Uc[i][k] = (T)0;
+        }
+
+        // kernel weights
+        for(size_t k = 0; k < in_size; ++k)
+        {
+            Wf[i][k] = (T)0;
+            Wi[i][k] = (T)0;
+            Wo[i][k] = (T)0;
+            Wc[i][k] = (T)0;
+        }
+    }
+
+    reset();
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::reset()
+{
+    // reset output state
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        ct[i] = (T)0;
+        outs[i] = (T)0;
+    }
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
+{
+    for(size_t i = 0; i < in_size; ++i)
+    {
+        for(size_t j = 0; j < out_size; ++j)
+        {
+            Wi[j][i] = wVals[i][j];
+            Wf[j][i] = wVals[i][j + out_size];
+            Wc[j][i] = wVals[i][j + 2 * out_size];
+            Wo[j][i] = wVals[i][j + 3 * out_size];
+        }
+    }
+
+    for(size_t j = 0; j < out_size; ++j)
+    {
+        Wi_1[j] = wVals[0][j];
+        Wf_1[j] = wVals[0][j + out_size];
+        Wc_1[j] = wVals[0][j + 2 * out_size];
+        Wo_1[j] = wVals[0][j + 3 * out_size];
+    }
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
+{
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        for(size_t j = 0; j < out_size; ++j)
+        {
+            Ui[j][i] = uVals[i][j];
+            Uf[j][i] = uVals[i][j + out_size];
+            Uc[j][i] = uVals[i][j + 2 * out_size];
+            Uo[j][i] = uVals[i][j + 3 * out_size];
+        }
+    }
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<T>& bVals)
+{
+    for(size_t k = 0; k < out_size; ++k)
+    {
+        bi[k] = bVals[k];
+        bf[k] = bVals[k + out_size];
+        bc[k] = bVals[k + 2 * out_size];
+        bo[k] = bVals[k + 3 * out_size];
+    }
+}
+
 #endif // !defined(USE_EIGEN) && !defined(USE_XSIMD)
 
 } // namespace RTNeural

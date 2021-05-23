@@ -2,7 +2,7 @@
 
 #include "model_loader.h"
 
-#define MODELT_AVAILABLE (USE_XSIMD || USE_EIGEN)
+#define MODELT_AVAILABLE (! USE_ACCELERATE)
 
 #if MODELT_AVAILABLE
 
@@ -209,6 +209,8 @@ public:
             v_ins[i] = xsimd::load_aligned(input + i * v_size);
 #elif USE_EIGEN
         auto v_ins = Eigen::Map<const vec_type, Eigen::Aligned16>(input);
+#else // USE_STL
+        std::copy(input, input + in_size, v_ins);
 #endif
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
@@ -216,6 +218,10 @@ public:
 #if USE_XSIMD
         for(size_t i = 0; i < v_out_size; ++i)
             xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
+#elif USE_EIGEN
+#else // USE_STL
+        auto& layer_outs = get<n_layers - 1>().outs;
+        std::copy(layer_outs, layer_outs + out_size, outs);
 #endif
         return outs[0];
     }
@@ -228,6 +234,8 @@ public:
         v_ins[0] = (v_type)input[0];
 #elif USE_EIGEN
         const auto v_ins = vec_type::Constant(input[0]);
+#else // USE_STL
+        v_ins[0] = input[0];
 #endif
 
         std::get<0>(layers).forward(v_ins);
@@ -236,6 +244,10 @@ public:
 #if USE_XSIMD
         for(size_t i = 0; i < v_out_size; ++i)
             xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
+#elif USE_EIGEN
+#else // USE_STL
+        auto& layer_outs = get<n_layers - 1>().outs;
+        std::copy(layer_outs, layer_outs + out_size, outs);
 #endif
         return outs[0];
     }
@@ -319,8 +331,8 @@ private:
     v_type v_ins[v_in_size];
 #elif USE_EIGEN
     using vec_type = Eigen::Matrix<T, in_size, 1>;
-#else
-    using vec_type = std::vector<T>;
+#else // USE_STL
+    T v_ins alignas(16)[in_size];
 #endif
 
     T outs alignas(16)[out_size];

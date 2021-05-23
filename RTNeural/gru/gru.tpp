@@ -213,6 +213,111 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
 
     return set[i][k];
 }
+
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
+{
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        // single-input kernel weights
+        Wz_1[i] = (T)0;
+        Wr_1[i] = (T)0;
+        Wh_1[i] = (T)0;
+
+        // biases
+        bz[i] = (T)0;
+        br[i] = (T)0;
+        bh0[i] = (T)0;
+        bh1[i] = (T)0;
+
+        // intermediate vars
+        zt[i] = (T)0;
+        rt[i] = (T)0;
+        ct[i] = (T)0;
+        ht[i] = (T)0;
+    }
+
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        // recurrent weights
+        for(size_t k = 0; k < out_size; ++k)
+        {
+            Uz[i][k] = (T)0;
+            Ur[i][k] = (T)0;
+            Uh[i][k] = (T)0;
+        }
+
+        // kernel weights
+        for(size_t k = 0; k < in_size; ++k)
+        {
+            Wz[i][k] = (T)0;
+            Wr[i][k] = (T)0;
+            Wh[i][k] = (T)0;
+        }
+    }
+
+    reset();
+}
+
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::reset()
+{
+    // reset output state
+    for(size_t i = 0; i < out_size; ++i)
+        outs[i] = (T)0;
+}
+
+// kernel weights
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
+{
+    for(size_t i = 0; i < in_size; ++i)
+    {
+        for(size_t j = 0; j < out_size; ++j)
+        {
+            Wz[j][i] = wVals[i][j];
+            Wr[j][i] = wVals[i][j + out_size];
+            Wh[j][i] = wVals[i][j + 2 * out_size];
+        }
+    }
+
+    for(size_t j = 0; j < out_size; ++j)
+    {
+        Wz_1[j] = wVals[0][j];
+        Wr_1[j] = wVals[0][j + out_size];
+        Wh_1[j] = wVals[0][j + 2 * out_size];
+    }
+}
+
+// recurrent weights
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
+{
+    for(size_t i = 0; i < out_size; ++i)
+    {
+        for(size_t j = 0; j < out_size; ++j)
+        {
+            Uz[j][i] = uVals[i][j];
+            Ur[j][i] = uVals[i][j + out_size];
+            Uh[j][i] = uVals[i][j + 2 * out_size];
+        }
+    }
+}
+
+// biases
+template <typename T, size_t in_sizet, size_t out_sizet>
+void GRULayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<std::vector<T>>& bVals)
+{
+    for(size_t k = 0; k < out_size; ++k)
+    {
+        bz[k] = bVals[0][k] + bVals[1][k];
+        br[k] = bVals[0][k + out_size] + bVals[1][k + out_size];
+        bh0[k] = bVals[0][k + 2 * out_size];
+        bh1[k] = bVals[1][k + 2 * out_size];
+    }
+}
+
 #endif // !defined(USE_EIGEN) && !defined(USE_XSIMD)
 
 } // namespace RTNeural
