@@ -39,7 +39,7 @@ int model_test()
         processModel(*modelRef.get(), xData, yRefData);
     }
 
-#if USE_XSIMD
+#if MODELT_AVAILABLE
     // templated model
     std::vector<TestType> yData(xData.size(), (TestType)0);
     {
