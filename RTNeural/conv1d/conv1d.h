@@ -74,6 +74,57 @@ private:
     size_t state_ptr = 0;
 };
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+class Conv1DT
+{
+    static constexpr auto state_size = kernel_size * dilation_rate;
+
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+
+    Conv1DT();
+
+    std::string getName() const noexcept { return "conv1d"; }
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset();
+
+    inline void forward(const T (&ins)[in_size])
+    {
+        for(size_t k = 0; k < in_size; ++k)
+        {
+            state[k][state_ptr] = ins[k];
+            state[k][state_ptr + state_size] = ins[k];
+        }
+
+        for(size_t i = 0; i < out_size; ++i)
+        {
+            outs[i] = bias[i];
+            for(size_t k = 0; k < in_size; ++k)
+                outs[i] += std::inner_product(&state[k][state_ptr], &state[k][state_ptr + state_size], weights[i][k], (T)0);
+        }
+
+        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+    }
+
+    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    void setBias(const std::vector<T>& biasVals);
+
+    constexpr size_t getKernelSize() const { return kernel_size; }
+    constexpr size_t getDilationRate() const { return dilation_rate; }
+
+    T outs alignas(16)[out_size];
+
+private:
+    T state alignas(16)[in_size][state_size * 2];
+    size_t state_ptr = 0;
+
+    T weights alignas(16)[out_size][in_size][state_size];
+    T bias alignas(16)[out_size];
+};
+
 } // namespace RTNeural
 
 #endif

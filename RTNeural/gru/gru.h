@@ -82,6 +82,120 @@ protected:
     T* cVec;
 };
 
+//====================================================
+template <typename T, size_t in_sizet, size_t out_sizet>
+class GRULayerT
+{
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+
+    GRULayerT();
+
+    std::string getName() const noexcept { return "gru"; }
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset();
+
+    template <size_t N = in_size>
+    inline typename std::enable_if<(N > 1), void>::type
+    forward(const T (&ins)[in_size])
+    {
+        // compute zt
+        recurrent_mat_mul(outs, Uz, zt);
+        kernel_mat_mul(ins, Wz, kernel_outs);
+        for(size_t i = 0; i < out_size; ++i)
+            zt[i] = sigmoid(zt[i] + bz[i] + kernel_outs[i]);
+
+        // compute rt
+        recurrent_mat_mul(outs, Ur, rt);
+        kernel_mat_mul(ins, Wr, kernel_outs);
+        for(size_t i = 0; i < out_size; ++i)
+            rt[i] = sigmoid(rt[i] + br[i] + kernel_outs[i]);
+
+        // compute h_hat
+        recurrent_mat_mul(outs, Uh, ct);
+        kernel_mat_mul(ins, Wh, kernel_outs);
+        for(size_t i = 0; i < out_size; ++i)
+            ht[i] = std::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + kernel_outs[i]);
+
+        // compute output
+        for(size_t i = 0; i < out_size; ++i)
+            outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
+    }
+
+    template <size_t N = in_size>
+    inline typename std::enable_if<N == 1, void>::type
+    forward(const T (&ins)[in_size])
+    {
+        // compute zt
+        recurrent_mat_mul(outs, Uz, zt);
+        for(size_t i = 0; i < out_size; ++i)
+            zt[i] = sigmoid(zt[i] + bz[i] + (Wz_1[i] * ins[0]));
+
+        // compute rt
+        recurrent_mat_mul(outs, Ur, rt);
+        for(size_t i = 0; i < out_size; ++i)
+            rt[i] = sigmoid(rt[i] + br[i] + (Wr_1[i] * ins[0]));
+
+        // compute h_hat
+        recurrent_mat_mul(outs, Uh, ct);
+        for(size_t i = 0; i < out_size; ++i)
+            ht[i] = std::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + (Wh_1[i] * ins[0]));
+
+        // compute output
+        for(size_t i = 0; i < out_size; ++i)
+            outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
+    }
+
+    void setWVals(const std::vector<std::vector<T>>& wVals);
+    void setUVals(const std::vector<std::vector<T>>& uVals);
+    void setBVals(const std::vector<std::vector<T>>& bVals);
+
+    T outs alignas(16)[out_size];
+
+private:
+    static inline void recurrent_mat_mul(const T (&vec)[out_size], const T (&mat)[out_size][out_size], T (&out)[out_size]) noexcept
+    {
+        for(size_t j = 0; j < out_size; ++j)
+            out[j] = std::inner_product(mat[j], mat[j] + out_size, vec, (T)0);
+    }
+
+    static inline void kernel_mat_mul(const T (&vec)[in_size], const T (&mat)[out_size][in_size], T (&out)[out_size]) noexcept
+    {
+        for(size_t j = 0; j < out_size; ++j)
+            out[j] = std::inner_product(mat[j], mat[j] + in_size, vec, (T)0);
+    }
+
+    // kernel weights
+    T Wr alignas(16)[out_size][in_size];
+    T Wz alignas(16)[out_size][in_size];
+    T Wh alignas(16)[out_size][in_size];
+    T kernel_outs alignas(16)[out_size];
+
+    // single-input kernel weights
+    T Wz_1 alignas(16)[out_size];
+    T Wr_1 alignas(16)[out_size];
+    T Wh_1 alignas(16)[out_size];
+
+    // recurrent weights
+    T Uz alignas(16)[out_size][out_size];
+    T Ur alignas(16)[out_size][out_size];
+    T Uh alignas(16)[out_size][out_size];
+
+    // biases
+    T bz alignas(16)[out_size];
+    T br alignas(16)[out_size];
+    T bh0 alignas(16)[out_size];
+    T bh1 alignas(16)[out_size];
+
+    // intermediate vars
+    T zt alignas(16)[out_size];
+    T rt alignas(16)[out_size];
+    T ct alignas(16)[out_size];
+    T ht alignas(16)[out_size];
+};
+
 } // namespace RTNeural
 
 #endif // USE_EIGEN

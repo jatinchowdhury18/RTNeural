@@ -71,6 +71,28 @@ public:
     }
 };
 
+template <typename T, size_t size>
+class TanhActivationT
+{
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    TanhActivationT() = default;
+
+    std::string getName() const noexcept { return "tanh"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const T (&ins)[size])
+    {
+        for(size_t i = 0; i < size; ++i)
+            outs[i] = std::tanh(ins[i]);
+    }
+
+    T outs alignas(16)[size];
+};
+
 template <typename T>
 class ReLuActivation : public Activation<T>
 {
@@ -87,6 +109,28 @@ public:
     }
 };
 
+template <typename T, size_t size>
+class ReLuActivationT
+{
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    ReLuActivationT() = default;
+
+    std::string getName() const noexcept { return "relu"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const T (&ins)[size])
+    {
+        for(size_t i = 0; i < size; ++i)
+            outs[i] = std::max((T)0, ins[i]);
+    }
+
+    T outs alignas(16)[size];
+};
+
 template <typename T>
 class SigmoidActivation : public Activation<T>
 {
@@ -101,6 +145,28 @@ public:
         : SigmoidActivation(*sizes.begin())
     {
     }
+};
+
+template <typename T, size_t size>
+class SigmoidActivationT
+{
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    SigmoidActivationT() = default;
+
+    std::string getName() const noexcept { return "sigmoid"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const T (&ins)[size])
+    {
+        for(size_t i = 0; i < size; ++i)
+            outs[i] = sigmoid(ins[i]);
+    }
+
+    T outs alignas(16)[size];
 };
 
 template <typename T>
@@ -122,6 +188,37 @@ public:
     {
         softmax(input, out, Layer<T>::out_size);
     }
+};
+
+template <typename T, size_t size>
+class SoftmaxActivationT
+{
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    SoftmaxActivationT() = default;
+
+    std::string getName() const noexcept { return "softmax"; }
+    constexpr bool isActivation() const noexcept { return true; }
+    void reset() { }
+
+    inline void forward(const T (&ins)[size])
+    {
+        T exp_sum = 0;
+        for(size_t i = 0; i < size; ++i)
+        {
+            outs[i] = std::exp(ins[i]);
+            exp_sum += outs[i];
+        }
+
+        for(size_t i = 0; i < size; ++i)
+        {
+            outs[i] /= exp_sum;
+        }
+    }
+
+    T outs alignas(16)[size];
 };
 
 } // namespace RTNeural
