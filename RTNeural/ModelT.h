@@ -9,6 +9,7 @@
 namespace RTNeural
 {
 
+#ifndef DOXYGEN
 /**
  * Some utilities for constructing and working
  * with variadic templates of layers.
@@ -165,6 +166,7 @@ namespace modelt_detail
     }
 
 } // namespace modelt_detail
+#endif // DOXYGEN
 
 template <typename T, int in_size, int out_size, typename... Layers>
 class ModelT

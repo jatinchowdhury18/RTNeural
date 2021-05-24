@@ -1,4 +1,4 @@
 /.vscode
 /build*
 __pycache__
-
+/docs

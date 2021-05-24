@@ -17,6 +17,8 @@
 namespace RTNeural
 {
 
+#ifndef DOXYGEN
+/** Single-output dense layer used internally */
 template <typename T>
 class Dense1
 {
@@ -52,6 +54,7 @@ private:
 
     T* weights;
 };
+#endif // DOXYGEN
 
 template <typename T>
 class Dense : public Layer<T>

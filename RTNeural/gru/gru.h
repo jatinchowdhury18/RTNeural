@@ -62,6 +62,7 @@ public:
 protected:
     T* ht1;
 
+    /** Struct to hold layer weights (used internally) */
     struct WeightSet
     {
         WeightSet(int in_size, int out_size);
