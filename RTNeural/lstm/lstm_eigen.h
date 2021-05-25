@@ -11,8 +11,8 @@ template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
-    LSTMLayer(size_t in_size, size_t out_size);
-    LSTMLayer(std::initializer_list<size_t> sizes);
+    LSTMLayer(int in_size, int out_size);
+    LSTMLayer(std::initializer_list<int> sizes);
     LSTMLayer(const LSTMLayer& other);
     LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer() { }
@@ -72,7 +72,7 @@ private:
 };
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 class LSTMLayerT
 {
     using b_type = Eigen::Matrix<T, out_sizet, 1>;

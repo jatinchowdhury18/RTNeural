@@ -21,7 +21,7 @@ template <typename T>
 class Layer
 {
 public:
-    Layer(size_t in_size, size_t out_size)
+    Layer(int in_size, int out_size)
         : in_size(in_size)
         , out_size(out_size)
     {
@@ -34,8 +34,8 @@ public:
     virtual void reset() { }
     virtual void forward(const T* input, T* out) = 0;
 
-    const size_t in_size;
-    const size_t out_size;
+    const int in_size;
+    const int out_size;
 };
 
 } // namespace RTNeural

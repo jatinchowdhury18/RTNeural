@@ -22,8 +22,8 @@ template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
-    LSTMLayer(size_t in_size, size_t out_size);
-    LSTMLayer(std::initializer_list<size_t> sizes);
+    LSTMLayer(int in_size, int out_size);
+    LSTMLayer(std::initializer_list<int> sizes);
     LSTMLayer(const LSTMLayer& other);
     LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer();
@@ -34,7 +34,7 @@ public:
 
     virtual inline void forward(const T* input, T* h) override
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             fVec[i] = sigmoid(vMult(fWeights.W[i], input, Layer<T>::in_size) + vMult(fWeights.U[i], ht1, Layer<T>::out_size) + fWeights.b[i]);
             iVec[i] = sigmoid(vMult(iWeights.W[i], input, Layer<T>::in_size) + vMult(iWeights.U[i], ht1, Layer<T>::out_size) + iWeights.b[i]);
@@ -58,13 +58,13 @@ protected:
 
     struct WeightSet
     {
-        WeightSet(size_t in_size, size_t out_size);
+        WeightSet(int in_size, int out_size);
         ~WeightSet();
 
         T** W;
         T** U;
         T* b;
-        const size_t out_size;
+        const int out_size;
     };
 
     WeightSet fWeights;
@@ -80,7 +80,7 @@ protected:
 };
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 class LSTMLayerT
 {
 public:
@@ -94,65 +94,65 @@ public:
 
     void reset();
 
-    template <size_t N = in_size>
+    template <int N = in_size>
     inline typename std::enable_if<(N > 1), void>::type
     forward(const T (&ins)[in_size])
     {
         // compute ft
         recurrent_mat_mul(outs, Uf, ft);
         kernel_mat_mul(ins, Wf, kernel_outs);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             ft[i] = sigmoid(ft[i] + bf[i] + kernel_outs[i]);
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
         kernel_mat_mul(ins, Wi, kernel_outs);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             it[i] = sigmoid(it[i] + bi[i] + kernel_outs[i]);
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
         kernel_mat_mul(ins, Wo, kernel_outs);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             ot[i] = sigmoid(ot[i] + bo[i] + kernel_outs[i]);
 
         // compute ct
         recurrent_mat_mul(outs, Uc, ht);
         kernel_mat_mul(ins, Wc, kernel_outs);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             ct[i] = it[i] * std::tanh(ht[i] + bc[i] + kernel_outs[i]) + ft[i] * ct[i];
 
         // compute output
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             outs[i] = ot[i] * std::tanh(ct[i]);
     }
 
-    template <size_t N = in_size>
+    template <int N = in_size>
     inline typename std::enable_if<N == 1, void>::type
     forward(const T (&ins)[in_size])
     {
         // compute ft
         recurrent_mat_mul(outs, Uf, ft);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             ft[i] = sigmoid(ft[i] + bf[i] + (Wf_1[i] * ins[0]));
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             it[i] = sigmoid(it[i] + bi[i] + (Wi_1[i] * ins[0]));
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             ot[i] = sigmoid(ot[i] + bo[i] + (Wo_1[i] * ins[0]));
 
         // compute ct
         recurrent_mat_mul(outs, Uc, ht);
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             ct[i] = it[i] * std::tanh(ht[i] + bc[i] + (Wc_1[i] * ins[0])) + ft[i] * ct[i];
 
         // compute output
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             outs[i] = ot[i] * std::tanh(ct[i]);
     }
 
@@ -165,13 +165,13 @@ public:
 private:
     static inline void recurrent_mat_mul(const T (&vec)[out_size], const T (&mat)[out_size][out_size], T (&out)[out_size]) noexcept
     {
-        for(size_t j = 0; j < out_size; ++j)
+        for(int j = 0; j < out_size; ++j)
             out[j] = std::inner_product(mat[j], mat[j] + out_size, vec, (T)0);
     }
 
     static inline void kernel_mat_mul(const T (&vec)[in_size], const T (&mat)[out_size][in_size], T (&out)[out_size]) noexcept
     {
-        for(size_t j = 0; j < out_size; ++j)
+        for(int j = 0; j < out_size; ++j)
             out[j] = std::inner_product(mat[j], mat[j] + in_size, vec, (T)0);
     }
 

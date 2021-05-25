@@ -22,8 +22,8 @@ template <typename T>
 class Conv1D : public Layer<T>
 {
 public:
-    Conv1D(size_t in_size, size_t out_size, size_t kernel_size, size_t dilation);
-    Conv1D(std::initializer_list<size_t> sizes);
+    Conv1D(int in_size, int out_size, int kernel_size, int dilation);
+    Conv1D(std::initializer_list<int> sizes);
     Conv1D(const Conv1D& other);
     Conv1D& operator=(const Conv1D& other);
     virtual ~Conv1D();
@@ -34,16 +34,16 @@ public:
 
     virtual inline void forward(const T* input, T* h) override
     {
-        for(size_t k = 0; k < Layer<T>::in_size; ++k)
+        for(int k = 0; k < Layer<T>::in_size; ++k)
         {
             state[k][state_ptr] = input[k];
             state[k][state_ptr + state_size] = input[k];
         }
 
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             h[i] = (T)0;
-            for(size_t k = 0; k < Layer<T>::in_size; ++k)
+            for(int k = 0; k < Layer<T>::in_size; ++k)
                 h[i] += vMult(&state[k][state_ptr], kernelWeights[i][k], state_size);
 
             h[i] += bias[i];
@@ -55,27 +55,27 @@ public:
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
     void setBias(const std::vector<T>& biasVals);
 
-    const T getWeight(size_t outIndex, size_t inIndex, size_t kernelIndex)
+    const T getWeight(int outIndex, int inIndex, int kernelIndex)
     {
         return kernelWeights[outIndex][inIndex][kernelIndex];
     }
 
-    size_t getKernelSize() const noexcept { return kernel_size; }
-    size_t getDilationRate() const noexcept { return dilation_rate; }
+    int getKernelSize() const noexcept { return kernel_size; }
+    int getDilationRate() const noexcept { return dilation_rate; }
 
 private:
-    const size_t dilation_rate;
-    const size_t kernel_size;
-    const size_t state_size;
+    const int dilation_rate;
+    const int kernel_size;
+    const int state_size;
 
     T*** kernelWeights;
     T* bias;
     T** state;
-    size_t state_ptr = 0;
+    int state_ptr = 0;
 };
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet, size_t kernel_size, size_t dilation_rate>
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
 class Conv1DT
 {
     static constexpr auto state_size = kernel_size * dilation_rate;
@@ -93,16 +93,16 @@ public:
 
     inline void forward(const T (&ins)[in_size])
     {
-        for(size_t k = 0; k < in_size; ++k)
+        for(int k = 0; k < in_size; ++k)
         {
             state[k][state_ptr] = ins[k];
             state[k][state_ptr + state_size] = ins[k];
         }
 
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
         {
             outs[i] = bias[i];
-            for(size_t k = 0; k < in_size; ++k)
+            for(int k = 0; k < in_size; ++k)
                 outs[i] += std::inner_product(&state[k][state_ptr], &state[k][state_ptr + state_size], weights[i][k], (T)0);
         }
 
@@ -112,14 +112,14 @@ public:
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
     void setBias(const std::vector<T>& biasVals);
 
-    constexpr size_t getKernelSize() const { return kernel_size; }
-    constexpr size_t getDilationRate() const { return dilation_rate; }
+    constexpr int getKernelSize() const { return kernel_size; }
+    constexpr int getDilationRate() const { return dilation_rate; }
 
     T outs alignas(16)[out_size];
 
 private:
     T state alignas(16)[in_size][state_size * 2];
-    size_t state_ptr = 0;
+    int state_ptr = 0;
 
     T weights alignas(16)[out_size][in_size][state_size];
     T bias alignas(16)[out_size];

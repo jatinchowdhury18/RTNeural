@@ -44,7 +44,7 @@ namespace json_parser
 
     /** Creates a dense layer from a json representation of the layer weights */
     template <typename T>
-    std::unique_ptr<Dense<T>> createDense(size_t in_size, size_t out_size, const nlohmann::json& weights)
+    std::unique_ptr<Dense<T>> createDense(int in_size, int out_size, const nlohmann::json& weights)
     {
         auto dense = std::make_unique<Dense<T>>(in_size, out_size);
         loadDense<T>(*dense.get(), weights);
@@ -53,7 +53,7 @@ namespace json_parser
 
     /** Checks that a dense layer has the correct dimensions */
     template <typename T, typename DenseType>
-    bool checkDense(const DenseType& dense, const std::string& type, size_t layerDims, const bool debug)
+    bool checkDense(const DenseType& dense, const std::string& type, int layerDims, const bool debug)
     {
         if(type != "dense" && type != "time-distributed-dense")
         {
@@ -72,7 +72,7 @@ namespace json_parser
 
     /** Loads weights for a Conv1D layer from a json representation of the layer weights */
     template <typename T, typename Conv1DType>
-    void loadConv1D(Conv1DType& conv, size_t kernel_size, size_t /*dilation*/, const nlohmann::json& weights)
+    void loadConv1D(Conv1DType& conv, int kernel_size, int /*dilation*/, const nlohmann::json& weights)
     {
         // load weights
         std::vector<std::vector<std::vector<T>>> convWeights(conv.out_size);
@@ -105,8 +105,8 @@ namespace json_parser
 
     /** Creates a Conv1D layer from a json representation of the layer weights */
     template <typename T>
-    std::unique_ptr<Conv1D<T>> createConv1D(size_t in_size, size_t out_size,
-        size_t kernel_size, size_t dilation, const nlohmann::json& weights)
+    std::unique_ptr<Conv1D<T>> createConv1D(int in_size, int out_size,
+        int kernel_size, int dilation, const nlohmann::json& weights)
     {
         auto conv = std::make_unique<Conv1D<T>>(in_size, out_size, kernel_size, dilation);
         loadConv1D<T>(*conv.get(), kernel_size, dilation, weights);
@@ -115,8 +115,8 @@ namespace json_parser
 
     /** Checks that a Conv1D layer has the correct dimensions */
     template <typename T, typename Conv1DType>
-    bool checkConv1D(const Conv1DType& conv, const std::string& type, size_t layerDims,
-        size_t kernel_size, size_t dilation_rate, const bool debug)
+    bool checkConv1D(const Conv1DType& conv, const std::string& type, int layerDims,
+        int kernel_size, int dilation_rate, const bool debug)
     {
         if(type != "conv1d")
         {
@@ -197,7 +197,7 @@ namespace json_parser
 
     /** Creates a GRU layer from a json representation of the layer weights */
     template <typename T>
-    std::unique_ptr<GRULayer<T>> createGRU(size_t in_size, size_t out_size, const nlohmann::json& weights)
+    std::unique_ptr<GRULayer<T>> createGRU(int in_size, int out_size, const nlohmann::json& weights)
     {
         auto gru = std::make_unique<GRULayer<T>>(in_size, out_size);
         loadGRU<T>(*gru.get(), weights);
@@ -206,7 +206,7 @@ namespace json_parser
 
     /** Checks that a GRU layer has the correct dimensions */
     template <typename T, typename GRUType>
-    bool checkGRU(const GRUType& gru, const std::string& type, size_t layerDims, const bool debug)
+    bool checkGRU(const GRUType& gru, const std::string& type, int layerDims, const bool debug)
     {
         if(type != "gru")
         {
@@ -264,7 +264,7 @@ namespace json_parser
 
     /** Creates a LSTM layer from a json representation of the layer weights */
     template <typename T>
-    std::unique_ptr<LSTMLayer<T>> createLSTM(size_t in_size, size_t out_size, const nlohmann::json& weights)
+    std::unique_ptr<LSTMLayer<T>> createLSTM(int in_size, int out_size, const nlohmann::json& weights)
     {
         auto lstm = std::make_unique<LSTMLayer<T>>(in_size, out_size);
         loadLSTM<T>(*lstm.get(), weights);
@@ -273,7 +273,7 @@ namespace json_parser
 
     /** Checks that a LSTM layer has the correct dimensions */
     template <typename T, typename LSTMType>
-    bool checkLSTM(const LSTMType& lstm, const std::string& type, size_t layerDims, const bool debug)
+    bool checkLSTM(const LSTMType& lstm, const std::string& type, int layerDims, const bool debug)
     {
         if(type != "lstm")
         {
@@ -293,7 +293,7 @@ namespace json_parser
     /** Creates an activation layer of a given type */
     template <typename T>
     std::unique_ptr<Activation<T>>
-    createActivation(const std::string& activationType, size_t dims)
+    createActivation(const std::string& activationType, int dims)
     {
         if(activationType == "tanh")
             return std::make_unique<TanhActivation<T>>(dims);
@@ -312,7 +312,7 @@ namespace json_parser
 
     /** Checks that an Activation layer has the correct dimensions */
     template <typename LayerType>
-    bool checkActivation(const LayerType& actLayer, const std::string& activationType, size_t dims, const bool debug)
+    bool checkActivation(const LayerType& actLayer, const std::string& activationType, int dims, const bool debug)
     {
         if(dims != actLayer.out_size)
         {
@@ -350,7 +350,7 @@ namespace json_parser
             debug_print("Layer: " + type, debug);
 
             const auto layerShape = l["shape"];
-            const auto layerDims = layerShape.back().get<size_t>();
+            const auto layerDims = layerShape.back().get<int>();
             debug_print("  Dims: " + std::to_string(layerDims), debug);
 
             const auto weights = l["weights"];
@@ -376,8 +376,8 @@ namespace json_parser
             }
             else if(type == "conv1d")
             {
-                const auto kernel_size = l["kernel_size"].back().get<size_t>();
-                const auto dilation = l["dilation"].back().get<size_t>();
+                const auto kernel_size = l["kernel_size"].back().get<int>();
+                const auto dilation = l["dilation"].back().get<int>();
 
                 auto conv = createConv1D<T>(model->getNextInSize(), layerDims, kernel_size, dilation, weights);
                 model->addLayer(conv.release());

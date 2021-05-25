@@ -6,7 +6,7 @@ namespace RTNeural
 {
 
 template <typename T>
-GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
+GRULayer<T>::GRULayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
 {
     wVec_z = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
@@ -29,7 +29,7 @@ GRULayer<T>::GRULayer(size_t in_size, size_t out_size)
 }
 
 template <typename T>
-GRULayer<T>::GRULayer(std::initializer_list<size_t> sizes)
+GRULayer<T>::GRULayer(std::initializer_list<int> sizes)
     : GRULayer<T>(*sizes.begin(), *(sizes.begin() + 1))
 {
 }
@@ -49,9 +49,9 @@ GRULayer<T>& GRULayer<T>::operator=(const GRULayer<T>& other)
 template <typename T>
 void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for(size_t i = 0; i < Layer<T>::in_size; ++i)
+    for(int i = 0; i < Layer<T>::in_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             wVec_z(k, i) = wVals[i][k];
             wVec_r(k, i) = wVals[i][k + Layer<T>::out_size];
@@ -63,9 +63,9 @@ void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 template <typename T>
 void GRULayer<T>::setWVals(T** wVals)
 {
-    for(size_t i = 0; i < Layer<T>::in_size; ++i)
+    for(int i = 0; i < Layer<T>::in_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             wVec_z(k, i) = wVals[i][k];
             wVec_r(k, i) = wVals[i][k + Layer<T>::out_size];
@@ -77,9 +77,9 @@ void GRULayer<T>::setWVals(T** wVals)
 template <typename T>
 void GRULayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
-    for(size_t i = 0; i < Layer<T>::out_size; ++i)
+    for(int i = 0; i < Layer<T>::out_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             uVec_z(k, i) = uVals[i][k];
             uVec_r(k, i) = uVals[i][k + Layer<T>::out_size];
@@ -91,9 +91,9 @@ void GRULayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 template <typename T>
 void GRULayer<T>::setUVals(T** uVals)
 {
-    for(size_t i = 0; i < Layer<T>::out_size; ++i)
+    for(int i = 0; i < Layer<T>::out_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             uVec_z(k, i) = uVals[i][k];
             uVec_r(k, i) = uVals[i][k + Layer<T>::out_size];
@@ -105,9 +105,9 @@ void GRULayer<T>::setUVals(T** uVals)
 template <typename T>
 void GRULayer<T>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
-    for(size_t i = 0; i < 2; ++i)
+    for(int i = 0; i < 2; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             bVec_z(k, i) = bVals[i][k];
             bVec_r(k, i) = bVals[i][k + Layer<T>::out_size];
@@ -119,9 +119,9 @@ void GRULayer<T>::setBVals(const std::vector<std::vector<T>>& bVals)
 template <typename T>
 void GRULayer<T>::setBVals(T** bVals)
 {
-    for(size_t i = 0; i < 2; ++i)
+    for(int i = 0; i < 2; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             bVec_z(k, i) = bVals[i][k];
             bVec_r(k, i) = bVals[i][k + Layer<T>::out_size];
@@ -131,7 +131,7 @@ void GRULayer<T>::setBVals(T** bVals)
 }
 
 template <typename T>
-T GRULayer<T>::getWVal(size_t i, size_t k) const noexcept
+T GRULayer<T>::getWVal(int i, int k) const noexcept
 {
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> set = wVec_z;
     if(k > 2 * Layer<T>::out_size)
@@ -143,7 +143,7 @@ T GRULayer<T>::getWVal(size_t i, size_t k) const noexcept
 }
 
 template <typename T>
-T GRULayer<T>::getUVal(size_t i, size_t k) const noexcept
+T GRULayer<T>::getUVal(int i, int k) const noexcept
 {
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> set = uVec_z;
     if(k > 2 * Layer<T>::out_size)
@@ -155,7 +155,7 @@ T GRULayer<T>::getUVal(size_t i, size_t k) const noexcept
 }
 
 template <typename T>
-T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
+T GRULayer<T>::getBVal(int i, int k) const noexcept
 {
     Eigen::Matrix<T, Eigen::Dynamic, 2> set = bVec_z;
     if(k > 2 * Layer<T>::out_size)
@@ -167,7 +167,7 @@ T GRULayer<T>::getBVal(size_t i, size_t k) const noexcept
 }
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
     : outs(outs_internal)
 {
@@ -187,7 +187,7 @@ GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
     reset();
 }
 
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::reset()
 {
     // reset output state
@@ -195,12 +195,12 @@ void GRULayerT<T, in_sizet, out_sizet>::reset()
 }
 
 // kernel weights
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for(size_t i = 0; i < in_size; ++i)
+    for(int i = 0; i < in_size; ++i)
     {
-        for(size_t k = 0; k < out_size; ++k)
+        for(int k = 0; k < out_size; ++k)
         {
             wVec_z(k, i) = wVals[i][k];
             wVec_r(k, i) = wVals[i][k + out_size];
@@ -210,12 +210,12 @@ void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T
 }
 
 // recurrent weights
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
-    for(size_t i = 0; i < out_size; ++i)
+    for(int i = 0; i < out_size; ++i)
     {
-        for(size_t k = 0; k < out_size; ++k)
+        for(int k = 0; k < out_size; ++k)
         {
             uVec_z(k, i) = uVals[i][k];
             uVec_r(k, i) = uVals[i][k + out_size];
@@ -225,10 +225,10 @@ void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T
 }
 
 // biases
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
-    for(size_t k = 0; k < out_size; ++k)
+    for(int k = 0; k < out_size; ++k)
     {
         bVec_z(k) = bVals[0][k] + bVals[1][k];
         bVec_r(k) = bVals[0][k + out_size] + bVals[1][k + out_size];
