@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <string>
 
-#if USE_ACCELERATE
+#if RTNEURAL_USE_ACCELERATE
 // Dummy defines to make this include safe for JUCE and other libraries
 #define Point CarbonDummyPointName
 #define Component CarbonDummyCompName

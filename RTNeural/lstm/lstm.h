@@ -1,13 +1,13 @@
 #ifndef LSTM_H_INCLUDED
 #define LSTM_H_INCLUDED
 
-#if defined(USE_EIGEN)
+#if RTNEURAL_USE_EIGEN
 #include "lstm_eigen.h"
 #include "lstm_eigen.tpp"
-#elif defined(USE_XSIMD)
+#elif RTNEURAL_USE_XSIMD
 #include "lstm_xsimd.h"
 #include "lstm_xsimd.tpp"
-#elif defined(USE_ACCELERATE)
+#elif RTNEURAL_USE_ACCELERATE
 #include "lstm_accelerate.h"
 #include "lstm_accelerate.tpp"
 #else

@@ -12,7 +12,7 @@ constexpr T ceil_div(T num, T den)
 
 } // namespace RTNeural
 
-#if defined(USE_EIGEN)
+#if RTNEURAL_USE_EIGEN
 #include <Eigen/Dense>
 
 namespace RTNeural
@@ -35,7 +35,7 @@ softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 
 } // namespace RTNeural
 
-#elif defined(USE_XSIMD)
+#elif RTNEURAL_USE_XSIMD
 #include <xsimd/xsimd.hpp>
 
 namespace RTNeural
@@ -202,7 +202,7 @@ static inline void tanh(const T* in, T* out, int dim) noexcept
 
 } // namespace RTNeural
 
-#elif defined(USE_ACCELERATE)
+#elif RTNEURAL_USE_ACCELERATE
 #include <Accelerate/Accelerate.h>
 
 namespace RTNeural

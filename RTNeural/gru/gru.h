@@ -3,13 +3,13 @@
 
 #include <algorithm>
 
-#if defined(USE_EIGEN)
+#if RTNEURAL_USE_EIGEN
 #include "gru_eigen.h"
 #include "gru_eigen.tpp"
-#elif defined(USE_XSIMD)
+#elif RTNEURAL_USE_XSIMD
 #include "gru_xsimd.h"
 #include "gru_xsimd.tpp"
-#elif defined(USE_ACCELERATE)
+#elif RTNEURAL_USE_ACCELERATE
 #include "gru_accelerate.h"
 #include "gru_accelerate.tpp"
 #else
@@ -226,6 +226,6 @@ private:
 
 } // namespace RTNeural
 
-#endif // USE_EIGEN
+#endif // RTNEURAL_USE_EIGEN
 
 #endif // GRU_H_INCLUDED
