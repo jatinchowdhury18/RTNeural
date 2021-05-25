@@ -12,8 +12,8 @@ template <typename T>
 class GRULayer : public Layer<T>
 {
 public:
-    GRULayer(size_t in_size, size_t out_size);
-    GRULayer(std::initializer_list<size_t> sizes);
+    GRULayer(int in_size, int out_size);
+    GRULayer(std::initializer_list<int> sizes);
     GRULayer(const GRULayer& other);
     GRULayer& operator=(const GRULayer& other);
     virtual ~GRULayer();
@@ -33,9 +33,9 @@ public:
     void setUVals(const std::vector<std::vector<T>>& uVals);
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
-    T getWVal(size_t i, size_t k) const noexcept;
-    T getUVal(size_t i, size_t k) const noexcept;
-    T getBVal(size_t i, size_t k) const noexcept;
+    T getWVal(int i, int k) const noexcept;
+    T getUVal(int i, int k) const noexcept;
+    T getBVal(int i, int k) const noexcept;
 
 protected:
     template <typename FloatType = T>
@@ -43,7 +43,7 @@ protected:
     forward_internal(const float* input, float* h)
     {
         float dotpr_out;
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             vDSP_dotpr(zWeights.W[i], 1, input, 1, &dotpr_out, Layer<T>::in_size);
             zVec[i] = dotpr_out;
@@ -89,7 +89,7 @@ protected:
     forward_internal(const double* input, double* h)
     {
         double dotpr_out;
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             vDSP_dotprD(zWeights.W[i], 1, input, 1, &dotpr_out, Layer<T>::in_size);
             zVec[i] = dotpr_out;
@@ -134,13 +134,13 @@ protected:
 
     struct WeightSet
     {
-        WeightSet(size_t in_size, size_t out_size);
+        WeightSet(int in_size, int out_size);
         ~WeightSet();
 
         T** W;
         T** U;
         T* b[2];
-        const size_t out_size;
+        const int out_size;
     };
 
     WeightSet zWeights;

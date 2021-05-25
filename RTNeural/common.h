@@ -41,7 +41,7 @@ namespace RTNeural
 {
 
 template <typename T>
-static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, size_t idx, T value)
+static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, int idx, T value)
 {
     union UnionType
     {
@@ -55,7 +55,7 @@ static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, size_t idx, T
 }
 
 template <typename T>
-static inline T get_value(xsimd::simd_type<T> x, size_t idx)
+static inline T get_value(xsimd::simd_type<T> x, int idx)
 {
     union UnionType
     {
@@ -69,7 +69,7 @@ static inline T get_value(xsimd::simd_type<T> x, size_t idx)
 
 template <typename T>
 static inline T vMult(const T* arg1, const T* arg2, T* prod,
-    size_t dim) noexcept
+    int dim) noexcept
 {
     xsimd::transform(arg1, &arg1[dim], arg2, prod,
         [](auto const& a, auto const& b) { return a * b; });
@@ -79,7 +79,7 @@ static inline T vMult(const T* arg1, const T* arg2, T* prod,
 
 template <typename T>
 static inline void vAdd(const T* in1, const T* in2, T* out,
-    size_t dim) noexcept
+    int dim) noexcept
 {
     xsimd::transform(in1, &in1[dim], in2, out,
         [](auto const& a, auto const& b) { return a + b; });
@@ -87,7 +87,7 @@ static inline void vAdd(const T* in1, const T* in2, T* out,
 
 template <typename T>
 static inline void vSub(const T* in1, const T* in2, T* out,
-    size_t dim) noexcept
+    int dim) noexcept
 {
     xsimd::transform(in1, &in1[dim], in2, out,
         [](auto const& a, auto const& b) { return a - b; });
@@ -95,21 +95,21 @@ static inline void vSub(const T* in1, const T* in2, T* out,
 
 template <typename T>
 static inline void vProd(const T* in1, const T* in2, T* out,
-    size_t dim) noexcept
+    int dim) noexcept
 {
     xsimd::transform(in1, &in1[dim], in2, out,
         [](auto const& a, auto const& b) { return a * b; });
 }
 
 template <typename T>
-static inline void vCopy(const T* in, T* out, size_t dim) noexcept
+static inline void vCopy(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    auto inc = b_type::size;
+    constexpr auto inc = (int) b_type::size;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
-    for(size_t i = 0; i < vec_size; i += inc)
+    for(int i = 0; i < vec_size; i += inc)
     {
         b_type vec = xsimd::load_aligned(&in[i]);
         xsimd::store_aligned(&out[i], vec);
@@ -121,14 +121,14 @@ static inline void vCopy(const T* in, T* out, size_t dim) noexcept
 }
 
 template <typename T>
-static inline void sigmoid(const T* in, T* out, size_t dim) noexcept
+static inline void sigmoid(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    auto inc = b_type::size;
+    constexpr auto inc = (int) b_type::size;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
-    for(size_t i = 0; i < vec_size; i += inc)
+    for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
         b_type y_vec = 1.0 / (1.0 + xsimd::exp(-x_vec));
@@ -141,16 +141,16 @@ static inline void sigmoid(const T* in, T* out, size_t dim) noexcept
 }
 
 template <typename T>
-static inline void softmax(const T* in, T* out, size_t dim) noexcept
+static inline void softmax(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    auto inc = b_type::size;
+    constexpr auto inc = (int) b_type::size;
 
     T exp_sum = 0;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
-    for(size_t i = 0; i < vec_size; i += inc)
+    for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
         b_type y_vec = xsimd::exp(x_vec);
@@ -165,7 +165,7 @@ static inline void softmax(const T* in, T* out, size_t dim) noexcept
         exp_sum += out[i];
     }
 
-    for(size_t i = 0; i < vec_size; i += inc)
+    for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&out[i]);
         b_type y_vec = x_vec / exp_sum;
@@ -180,14 +180,14 @@ static inline void softmax(const T* in, T* out, size_t dim) noexcept
 }
 
 template <typename T>
-static inline void tanh(const T* in, T* out, size_t dim) noexcept
+static inline void tanh(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    auto inc = b_type::size;
+    constexpr auto inc = (int) b_type::size;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
-    for(size_t i = 0; i < vec_size; i += inc)
+    for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
         b_type y_vec = xsimd::tanh(x_vec);
@@ -207,7 +207,7 @@ static inline void tanh(const T* in, T* out, size_t dim) noexcept
 namespace RTNeural
 {
 
-static inline void sigmoid(const float* in, float* out, size_t dim) noexcept
+static inline void sigmoid(const float* in, float* out, int dim) noexcept
 {
     constexpr float one = 1.0f;
     constexpr float neg_one = -1.0f;
@@ -219,7 +219,7 @@ static inline void sigmoid(const float* in, float* out, size_t dim) noexcept
     vvrecf(out, out, &dim_int);
 }
 
-static inline void sigmoid(const double* in, double* out, size_t dim) noexcept
+static inline void sigmoid(const double* in, double* out, int dim) noexcept
 {
     constexpr double one = 1.0;
     constexpr double neg_one = -1.0;
@@ -231,7 +231,7 @@ static inline void sigmoid(const double* in, double* out, size_t dim) noexcept
     vvrec(out, out, &dim_int);
 }
 
-static inline void softmax(const float* in, float* out, size_t dim) noexcept
+static inline void softmax(const float* in, float* out, int dim) noexcept
 {
     const auto dim_int = static_cast<int>(dim);
     float exp_sum;
@@ -241,7 +241,7 @@ static inline void softmax(const float* in, float* out, size_t dim) noexcept
     vDSP_vsdiv(out, 1, &exp_sum, out, 1, dim);
 }
 
-static inline void softmax(const double* in, double* out, size_t dim) noexcept
+static inline void softmax(const double* in, double* out, int dim) noexcept
 {
     const auto dim_int = static_cast<int>(dim);
     double exp_sum;
@@ -262,7 +262,7 @@ namespace RTNeural
 {
 
 template <typename T>
-static inline T vMult(const T* arg1, const T* arg2, size_t dim) noexcept
+static inline T vMult(const T* arg1, const T* arg2, int dim) noexcept
 {
     return std::inner_product(arg1, arg1 + dim, arg2, (T)0);
 }
@@ -274,16 +274,16 @@ static inline T sigmoid(T value) noexcept
 }
 
 template <typename T>
-static inline void softmax(const T* input, T* out, size_t size) noexcept
+static inline void softmax(const T* input, T* out, int size) noexcept
 {
     T exp_sum = 0;
-    for(size_t i = 0; i < size; ++i)
+    for(int i = 0; i < size; ++i)
     {
         out[i] = std::exp(input[i]);
         exp_sum += out[i];
     }
 
-    for(size_t i = 0; i < size; ++i)
+    for(int i = 0; i < size; ++i)
     {
         out[i] /= exp_sum;
     }

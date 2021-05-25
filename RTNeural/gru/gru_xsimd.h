@@ -11,8 +11,8 @@ template <typename T>
 class GRULayer : public Layer<T>
 {
 public:
-    GRULayer(size_t in_size, size_t out_size);
-    GRULayer(std::initializer_list<size_t> sizes);
+    GRULayer(int in_size, int out_size);
+    GRULayer(std::initializer_list<int> sizes);
     GRULayer(const GRULayer& other);
     GRULayer& operator=(const GRULayer& other);
     virtual ~GRULayer();
@@ -23,7 +23,7 @@ public:
 
     virtual inline void forward(const T* input, T* h) override
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             zVec[i] = vMult(zWeights.W[i].data(), input, prod_in.data(), Layer<T>::in_size) + vMult(zWeights.U[i].data(), ht1.data(), prod_out.data(), Layer<T>::out_size);
             rVec[i] = vMult(rWeights.W[i].data(), input, prod_in.data(), Layer<T>::in_size) + vMult(rWeights.U[i].data(), ht1.data(), prod_out.data(), Layer<T>::out_size);
@@ -61,9 +61,9 @@ public:
     void setUVals(const std::vector<std::vector<T>>& uVals);
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
-    T getWVal(size_t i, size_t k) const noexcept;
-    T getUVal(size_t i, size_t k) const noexcept;
-    T getBVal(size_t i, size_t k) const noexcept;
+    T getWVal(int i, int k) const noexcept;
+    T getUVal(int i, int k) const noexcept;
+    T getBVal(int i, int k) const noexcept;
 
 protected:
     using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
@@ -73,13 +73,13 @@ protected:
 
     struct WeightSet
     {
-        WeightSet(size_t in_size, size_t out_size);
+        WeightSet(int in_size, int out_size);
         ~WeightSet();
 
         vec2_type W;
         vec2_type U;
         vec_type b[2];
-        const size_t out_size;
+        const int out_size;
     };
 
     WeightSet zWeights;
@@ -97,11 +97,11 @@ protected:
 };
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 class GRULayerT
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_size = (int) v_type::size;
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
     static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
 
@@ -116,54 +116,54 @@ public:
 
     void reset();
 
-    template <size_t N = in_size>
+    template <int N = in_size>
     inline typename std::enable_if<(N > 1), void>::type
     forward(const v_type (&ins)[v_in_size])
     {
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
         kernel_mat_mul(ins, Wz, kernel_outs);
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             zt[i] = sigmoid(zt[i] + bz[i] + kernel_outs[i]);
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         kernel_mat_mul(ins, Wr, kernel_outs);
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             rt[i] = sigmoid(rt[i] + br[i] + kernel_outs[i]);
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
         kernel_mat_mul(ins, Wh, kernel_outs);
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             ht[i] = xsimd::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + kernel_outs[i]);
 
         // compute output
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             outs[i] = (v_type((T)1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
     }
 
-    template <size_t N = in_size>
+    template <int N = in_size>
     inline typename std::enable_if<N == 1, void>::type
     forward(const v_type (&ins)[v_in_size])
     {
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             zt[i] = sigmoid(zt[i] + bz[i] + (Wz_1[i] * ins[0]));
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             rt[i] = sigmoid(rt[i] + br[i] + (Wr_1[i] * ins[0]));
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             ht[i] = xsimd::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + (Wh_1[i] * ins[0]));
 
         // compute output
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             outs[i] = (v_type((T)1.0) - zt[i]) * ht[i] + zt[i] * outs[i];
     }
 
@@ -177,32 +177,32 @@ private:
     static inline void recurrent_mat_mul(const v_type (&vec)[v_out_size], const v_type (&mat)[out_size][v_out_size], v_type (&out)[v_out_size]) noexcept
     {
         T sums alignas(16)[out_size] { (T)0 };
-        for(size_t i = 0; i < v_size; ++i)
+        for(int i = 0; i < v_size; ++i)
         {
-            for(size_t j = 0; j < v_out_size; ++j)
+            for(int j = 0; j < v_out_size; ++j)
             {
-                for(size_t k = 0; k < v_out_size; ++k)
+                for(int k = 0; k < v_out_size; ++k)
                     sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
             }
         }
 
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             out[i] = xsimd::load_aligned(sums + i * v_size);
     }
 
     static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[out_size][v_in_size], v_type (&out)[v_out_size]) noexcept
     {
         T sums alignas(16)[out_size] { (T)0 };
-        for(size_t i = 0; i < v_size; ++i)
+        for(int i = 0; i < v_size; ++i)
         {
-            for(size_t j = 0; j < v_out_size; ++j)
+            for(int j = 0; j < v_out_size; ++j)
             {
-                for(size_t k = 0; k < v_in_size; ++k)
+                for(int k = 0; k < v_in_size; ++k)
                     sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
             }
         }
 
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             out[i] = xsimd::load_aligned(sums + i * v_size);
     }
 

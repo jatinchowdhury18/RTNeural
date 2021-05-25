@@ -22,7 +22,7 @@ template <typename T>
 class Model
 {
 public:
-    Model(size_t in_size)
+    Model(int in_size)
         : in_size(in_size)
     {
     }
@@ -36,7 +36,7 @@ public:
         outs.clear();
     }
 
-    size_t getNextInSize()
+    int getNextInSize()
     {
         if(layers.empty())
             return in_size;
@@ -60,7 +60,7 @@ public:
     {
         layers[0]->forward(input, outs[0].data());
 
-        for(size_t i = 1; i < layers.size(); ++i)
+        for(int i = 1; i < (int) layers.size(); ++i)
         {
             layers[i]->forward(outs[i - 1].data(), outs[i].data());
         }
@@ -84,7 +84,7 @@ private:
     using vec_type = std::vector<T>;
 #endif
 
-    const size_t in_size;
+    const int in_size;
     std::vector<vec_type> outs;
 };
 

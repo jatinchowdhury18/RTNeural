@@ -10,8 +10,8 @@ template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
-    LSTMLayer(size_t in_size, size_t out_size);
-    LSTMLayer(std::initializer_list<size_t> sizes);
+    LSTMLayer(int in_size, int out_size);
+    LSTMLayer(std::initializer_list<int> sizes);
     LSTMLayer(const LSTMLayer& other);
     LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer();
@@ -32,7 +32,7 @@ protected:
     forward_internal(const float* input, float* h)
     {
         float dotpr_out;
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             vDSP_dotpr(fWeights.W[i], 1, input, 1, &dotpr_out, Layer<T>::in_size);
             fVec[i] = dotpr_out;
@@ -84,7 +84,7 @@ protected:
     forward_internal(const double* input, double* h)
     {
         double dotpr_out;
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             vDSP_dotprD(fWeights.W[i], 1, input, 1, &dotpr_out, Layer<T>::in_size);
             fVec[i] = dotpr_out;
@@ -136,13 +136,13 @@ protected:
 
     struct WeightSet
     {
-        WeightSet(size_t in_size, size_t out_size);
+        WeightSet(int in_size, int out_size);
         ~WeightSet();
 
         T** W;
         T** U;
         T* b;
-        const size_t out_size;
+        const int out_size;
     };
 
     WeightSet fWeights;
