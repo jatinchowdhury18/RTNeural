@@ -1,8 +1,8 @@
 # RTNeural
 
-<img src="https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg">
-
-<img src="https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg">
+[![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/tests.yml)
+[![Bench](https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/bench.yml)
+[![License](https://img.shields.io/badge/License-BSD-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 A lightweight neural network inferencing engine written in C++.
 This library was designed with the intention of being used in
