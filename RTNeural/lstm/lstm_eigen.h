@@ -7,19 +7,25 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a LSTM layer. */
 template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
+    /** Constructs a LSTM layer for a given input and output size. */
     LSTMLayer(int in_size, int out_size);
     LSTMLayer(std::initializer_list<int> sizes);
     LSTMLayer(const LSTMLayer& other);
     LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer() { }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "lstm"; }
 
+    /** Resets the state of the LSTM. */
     void reset() override;
+    
+    /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
@@ -42,8 +48,13 @@ public:
         std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(const std::vector<T>& bVals);
 
 private:
@@ -72,6 +83,7 @@ private:
 };
 
 //====================================================
+/** Static implementation of a LSTM layer. */
 template <typename T, int in_sizet, int out_sizet>
 class LSTMLayerT
 {
@@ -88,11 +100,16 @@ public:
 
     LSTMLayerT();
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "lstm"; }
+
+    /** Returns false since LSTM is not an activation. */
     constexpr bool isActivation() const noexcept { return false; }
 
+    /** Resets the state of the LSTM. */
     void reset();
 
+    /** Performs forward propagation for this layer. */
     inline void forward(const in_type& ins)
     {
         fVec = sigmoid(Wf * ins + Uf * outs + bf);
@@ -106,8 +123,13 @@ public:
         outs = oVec.cwiseProduct(outs);
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(const std::vector<T>& bVals);
 
     Eigen::Map<out_type, Eigen::Aligned16> outs;
