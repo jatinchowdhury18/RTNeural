@@ -4,7 +4,7 @@ namespace RTNeural
 {
 
 template <typename T>
-LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
+LSTMLayer<T>::LSTMLayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
     , fWeights(in_size, out_size)
     , iWeights(in_size, out_size)
@@ -22,7 +22,7 @@ LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
 }
 
 template <typename T>
-LSTMLayer<T>::LSTMLayer(std::initializer_list<size_t> sizes)
+LSTMLayer<T>::LSTMLayer(std::initializer_list<int> sizes)
     : LSTMLayer<T>(*sizes.begin(), *(sizes.begin() + 1))
 {
 }
@@ -60,14 +60,14 @@ void LSTMLayer<T>::reset()
 }
 
 template <typename T>
-LSTMLayer<T>::WeightSet::WeightSet(size_t in_size, size_t out_size)
+LSTMLayer<T>::WeightSet::WeightSet(int in_size, int out_size)
     : out_size(out_size)
 {
     W = new T*[out_size];
     U = new T*[out_size];
     b = new T[out_size];
 
-    for(size_t i = 0; i < out_size; ++i)
+    for(int i = 0; i < out_size; ++i)
     {
         W[i] = new T[in_size];
         U[i] = new T[out_size];
@@ -79,7 +79,7 @@ LSTMLayer<T>::WeightSet::~WeightSet()
 {
     delete[] b;
 
-    for(size_t i = 0; i < out_size; ++i)
+    for(int i = 0; i < out_size; ++i)
     {
         delete[] W[i];
         delete[] U[i];
@@ -92,9 +92,9 @@ LSTMLayer<T>::WeightSet::~WeightSet()
 template <typename T>
 void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for(size_t i = 0; i < Layer<T>::in_size; ++i)
+    for(int i = 0; i < Layer<T>::in_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             iWeights.W[k][i] = wVals[i][k];
             fWeights.W[k][i] = wVals[i][k + Layer<T>::out_size];
@@ -107,9 +107,9 @@ void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 template <typename T>
 void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
-    for(size_t i = 0; i < Layer<T>::out_size; ++i)
+    for(int i = 0; i < Layer<T>::out_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             iWeights.U[k][i] = uVals[i][k];
             fWeights.U[k][i] = uVals[i][k + Layer<T>::out_size];
@@ -122,7 +122,7 @@ void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 template <typename T>
 void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 {
-    for(size_t k = 0; k < Layer<T>::out_size; ++k)
+    for(int k = 0; k < Layer<T>::out_size; ++k)
     {
         iWeights.b[k] = bVals[k];
         fWeights.b[k] = bVals[k + Layer<T>::out_size];

@@ -4,7 +4,7 @@ namespace RTNeural
 {
 
 template <typename T>
-LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
+LSTMLayer<T>::LSTMLayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
 {
     Wf = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
@@ -34,7 +34,7 @@ LSTMLayer<T>::LSTMLayer(size_t in_size, size_t out_size)
 }
 
 template <typename T>
-LSTMLayer<T>::LSTMLayer(std::initializer_list<size_t> sizes)
+LSTMLayer<T>::LSTMLayer(std::initializer_list<int> sizes)
     : LSTMLayer<T>(*sizes.begin(), *(sizes.begin() + 1))
 {
 }
@@ -61,9 +61,9 @@ void LSTMLayer<T>::reset()
 template <typename T>
 void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for(size_t i = 0; i < Layer<T>::in_size; ++i)
+    for(int i = 0; i < Layer<T>::in_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             Wi(k, i) = wVals[i][k];
             Wf(k, i) = wVals[i][k + Layer<T>::out_size];
@@ -76,9 +76,9 @@ void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 template <typename T>
 void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
-    for(size_t i = 0; i < Layer<T>::out_size; ++i)
+    for(int i = 0; i < Layer<T>::out_size; ++i)
     {
-        for(size_t k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size; ++k)
         {
             Ui(k, i) = uVals[i][k];
             Uf(k, i) = uVals[i][k + Layer<T>::out_size];
@@ -91,7 +91,7 @@ void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 template <typename T>
 void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 {
-    for(size_t k = 0; k < Layer<T>::out_size; ++k)
+    for(int k = 0; k < Layer<T>::out_size; ++k)
     {
         bi(k) = bVals[k];
         bf(k) = bVals[k + Layer<T>::out_size];
@@ -101,7 +101,7 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 }
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
     : outs(outs_internal)
 {
@@ -123,7 +123,7 @@ LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
     reset();
 }
 
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void LSTMLayerT<T, in_sizet, out_sizet>::reset()
 {
     // reset output state
@@ -132,12 +132,12 @@ void LSTMLayerT<T, in_sizet, out_sizet>::reset()
 }
 
 // kernel weights
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void LSTMLayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for(size_t i = 0; i < in_size; ++i)
+    for(int i = 0; i < in_size; ++i)
     {
-        for(size_t k = 0; k < out_size; ++k)
+        for(int k = 0; k < out_size; ++k)
         {
             Wi(k, i) = wVals[i][k];
             Wf(k, i) = wVals[i][k + out_size];
@@ -148,12 +148,12 @@ void LSTMLayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<
 }
 
 // recurrent weights
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void LSTMLayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
-    for(size_t i = 0; i < out_size; ++i)
+    for(int i = 0; i < out_size; ++i)
     {
-        for(size_t k = 0; k < out_size; ++k)
+        for(int k = 0; k < out_size; ++k)
         {
             Ui(k, i) = uVals[i][k];
             Uf(k, i) = uVals[i][k + out_size];
@@ -164,10 +164,10 @@ void LSTMLayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<
 }
 
 // biases
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 void LSTMLayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<T>& bVals)
 {
-    for(size_t k = 0; k < out_size; ++k)
+    for(int k = 0; k < out_size; ++k)
     {
         bi(k) = bVals[k];
         bf(k) = bVals[k + out_size];

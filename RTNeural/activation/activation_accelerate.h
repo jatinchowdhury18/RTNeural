@@ -10,12 +10,12 @@ template <typename T>
 class TanhActivation : public Activation<T>
 {
 public:
-    TanhActivation(size_t size)
+    TanhActivation(int size)
         : Activation<T>(size, {}, "tanh")
     {
     }
 
-    TanhActivation(std::initializer_list<size_t> sizes)
+    TanhActivation(std::initializer_list<int> sizes)
         : TanhActivation(*sizes.begin())
     {
     }
@@ -47,13 +47,13 @@ template <typename T>
 class ReLuActivation : public Activation<T>
 {
 public:
-    ReLuActivation(size_t size)
+    ReLuActivation(int size)
         : Activation<T>(size, {}, "relu")
     {
         zeros.resize(size, (T)0);
     }
 
-    ReLuActivation(std::initializer_list<size_t> sizes)
+    ReLuActivation(std::initializer_list<int> sizes)
         : ReLuActivation(*sizes.begin())
     {
     }
@@ -85,12 +85,12 @@ template <typename T>
 class SigmoidActivation : public Activation<T>
 {
 public:
-    SigmoidActivation(size_t size)
+    SigmoidActivation(int size)
         : Activation<T>(size, {}, "sigmoid")
     {
     }
 
-    SigmoidActivation(std::initializer_list<size_t> sizes)
+    SigmoidActivation(std::initializer_list<int> sizes)
         : SigmoidActivation(*sizes.begin())
     {
     }
@@ -105,12 +105,12 @@ template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
 public:
-    SoftmaxActivation(size_t size)
+    SoftmaxActivation(int size)
         : Activation<T>(size, {}, "softmax")
     {
     }
 
-    SoftmaxActivation(std::initializer_list<size_t> sizes)
+    SoftmaxActivation(std::initializer_list<int> sizes)
         : SoftmaxActivation(*sizes.begin())
     {
     }

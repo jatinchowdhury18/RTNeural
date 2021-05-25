@@ -10,14 +10,14 @@ template <typename T>
 class TanhActivation : public Activation<T>
 {
 public:
-    TanhActivation(size_t size)
+    TanhActivation(int size)
         : Activation<T>(size, {}, "tanh")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
         outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
     }
 
-    TanhActivation(std::initializer_list<size_t> sizes)
+    TanhActivation(std::initializer_list<int> sizes)
         : TanhActivation(*sizes.begin())
     {
     }
@@ -35,7 +35,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class TanhActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
@@ -65,14 +65,14 @@ template <typename T>
 class ReLuActivation : public Activation<T>
 {
 public:
-    ReLuActivation(size_t size)
+    ReLuActivation(int size)
         : Activation<T>(size, {}, "relu")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
         outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
     }
 
-    ReLuActivation(std::initializer_list<size_t> sizes)
+    ReLuActivation(std::initializer_list<int> sizes)
         : ReLuActivation(*sizes.begin())
     {
     }
@@ -90,7 +90,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class ReLuActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
@@ -120,14 +120,14 @@ template <typename T>
 class SigmoidActivation : public Activation<T>
 {
 public:
-    SigmoidActivation(size_t size)
+    SigmoidActivation(int size)
         : Activation<T>(size, {}, "sigmoid")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
         outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
     }
 
-    SigmoidActivation(std::initializer_list<size_t> sizes)
+    SigmoidActivation(std::initializer_list<int> sizes)
         : SigmoidActivation(*sizes.begin())
     {
     }
@@ -146,7 +146,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class SigmoidActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
@@ -176,14 +176,14 @@ template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
 public:
-    SoftmaxActivation(size_t size)
+    SoftmaxActivation(int size)
         : Activation<T>(size, {}, "softmax")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
         outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
     }
 
-    SoftmaxActivation(std::initializer_list<size_t> sizes)
+    SoftmaxActivation(std::initializer_list<int> sizes)
         : SoftmaxActivation(*sizes.begin())
     {
     }
@@ -202,7 +202,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class SoftmaxActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;

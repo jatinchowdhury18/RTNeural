@@ -5,7 +5,7 @@
 using TestType = double;
 
 template <typename T>
-std::tuple<T> make_layer_tuple(std::initializer_list<size_t> args)
+std::tuple<T> make_layer_tuple(std::initializer_list<int> args)
 {
     return std::make_tuple(T(args));
 }

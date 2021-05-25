@@ -11,7 +11,7 @@ template <typename T>
 class Activation : public Layer<T>
 {
 public:
-    Activation(size_t size, std::function<T(T)> func, std::string name)
+    Activation(int size, std::function<T(T)> func, std::string name)
         : Layer<T>(size, size)
         , name(name)
         , func(func)
@@ -22,7 +22,7 @@ public:
 
     inline void forward(const T* input, T* out) override
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = func(input[i]);
     }
 
@@ -53,25 +53,25 @@ template <typename T>
 class TanhActivation : public Activation<T>
 {
 public:
-    TanhActivation(size_t size)
+    TanhActivation(int size)
         : Activation<T>(
             size, [](T x) { return std::tanh(x); }, "tanh")
     {
     }
 
-    TanhActivation(std::initializer_list<size_t> sizes)
+    TanhActivation(std::initializer_list<int> sizes)
         : TanhActivation(*sizes.begin())
     {
     }
 
     inline void forward(const T* input, T* out) override
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = std::tanh(input[i]);
     }
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class TanhActivationT
 {
 public:
@@ -86,7 +86,7 @@ public:
 
     inline void forward(const T (&ins)[size])
     {
-        for(size_t i = 0; i < size; ++i)
+        for(int i = 0; i < size; ++i)
             outs[i] = std::tanh(ins[i]);
     }
 
@@ -97,19 +97,19 @@ template <typename T>
 class ReLuActivation : public Activation<T>
 {
 public:
-    ReLuActivation(size_t size)
+    ReLuActivation(int size)
         : Activation<T>(
             size, [](T x) { return std::max((T)0, x); }, "relu")
     {
     }
 
-    ReLuActivation(std::initializer_list<size_t> sizes)
+    ReLuActivation(std::initializer_list<int> sizes)
         : ReLuActivation(*sizes.begin())
     {
     }
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class ReLuActivationT
 {
 public:
@@ -124,7 +124,7 @@ public:
 
     inline void forward(const T (&ins)[size])
     {
-        for(size_t i = 0; i < size; ++i)
+        for(int i = 0; i < size; ++i)
             outs[i] = std::max((T)0, ins[i]);
     }
 
@@ -135,19 +135,19 @@ template <typename T>
 class SigmoidActivation : public Activation<T>
 {
 public:
-    SigmoidActivation(size_t size)
+    SigmoidActivation(int size)
         : Activation<T>(
             size, [](T x) { return sigmoid(x); }, "sigmoid")
     {
     }
 
-    SigmoidActivation(std::initializer_list<size_t> sizes)
+    SigmoidActivation(std::initializer_list<int> sizes)
         : SigmoidActivation(*sizes.begin())
     {
     }
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class SigmoidActivationT
 {
 public:
@@ -162,7 +162,7 @@ public:
 
     inline void forward(const T (&ins)[size])
     {
-        for(size_t i = 0; i < size; ++i)
+        for(int i = 0; i < size; ++i)
             outs[i] = sigmoid(ins[i]);
     }
 
@@ -173,13 +173,13 @@ template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
 public:
-    SoftmaxActivation(size_t size)
+    SoftmaxActivation(int size)
         : Activation<T>(
             size, [](T x) { return (T)0; }, "softmax")
     {
     }
 
-    SoftmaxActivation(std::initializer_list<size_t> sizes)
+    SoftmaxActivation(std::initializer_list<int> sizes)
         : SoftmaxActivation(*sizes.begin())
     {
     }
@@ -190,7 +190,7 @@ public:
     }
 };
 
-template <typename T, size_t size>
+template <typename T, int size>
 class SoftmaxActivationT
 {
 public:
@@ -206,13 +206,13 @@ public:
     inline void forward(const T (&ins)[size])
     {
         T exp_sum = 0;
-        for(size_t i = 0; i < size; ++i)
+        for(int i = 0; i < size; ++i)
         {
             outs[i] = std::exp(ins[i]);
             exp_sum += outs[i];
         }
 
-        for(size_t i = 0; i < size; ++i)
+        for(int i = 0; i < size; ++i)
         {
             outs[i] /= exp_sum;
         }
