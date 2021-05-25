@@ -279,7 +279,7 @@ public:
 
         int json_stream_idx = 0;
         modelt_detail::forEachInTuple([&](auto& layer, size_t) {
-            if(json_stream_idx >= (int) json_layers.size())
+            if(json_stream_idx >= (int)json_layers.size())
             {
                 debug_print("Too many layers!", debug);
                 return;
@@ -325,7 +325,7 @@ public:
 private:
 #if USE_XSIMD
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int) v_type::size;
+    static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_in_size = ceil_div(in_size, v_size);
     static constexpr auto v_out_size = ceil_div(out_size, v_size);
     v_type v_ins[v_in_size];

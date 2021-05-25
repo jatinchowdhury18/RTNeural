@@ -60,7 +60,7 @@ public:
     {
         layers[0]->forward(input, outs[0].data());
 
-        for(int i = 1; i < (int) layers.size(); ++i)
+        for(int i = 1; i < (int)layers.size(); ++i)
         {
             layers[i]->forward(outs[i - 1].data(), outs[i].data());
         }

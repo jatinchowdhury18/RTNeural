@@ -30,7 +30,7 @@ template <typename T, int size>
 class TanhActivationT
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int) v_type::size;
+    static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
 
 public:
@@ -85,7 +85,7 @@ template <typename T, int size>
 class ReLuActivationT
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int) v_type::size;
+    static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
 
 public:
@@ -135,7 +135,7 @@ template <typename T, int size>
 class SigmoidActivationT
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int) v_type::size;
+    static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
 
 public:
@@ -185,7 +185,7 @@ template <typename T, int size>
 class SoftmaxActivationT
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int) v_type::size;
+    static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_io_size = ceil_div(size, v_size);
 
 public:

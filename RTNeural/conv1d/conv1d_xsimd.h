@@ -69,7 +69,7 @@ template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation
 class Conv1DT
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int) v_type::size;
+    static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
     static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
     static constexpr auto state_size = kernel_size * dilation_rate;

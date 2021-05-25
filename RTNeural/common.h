@@ -105,7 +105,7 @@ template <typename T>
 static inline void vCopy(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    constexpr auto inc = (int) b_type::size;
+    constexpr auto inc = (int)b_type::size;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
@@ -124,7 +124,7 @@ template <typename T>
 static inline void sigmoid(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    constexpr auto inc = (int) b_type::size;
+    constexpr auto inc = (int)b_type::size;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
@@ -144,7 +144,7 @@ template <typename T>
 static inline void softmax(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    constexpr auto inc = (int) b_type::size;
+    constexpr auto inc = (int)b_type::size;
 
     T exp_sum = 0;
 
@@ -183,7 +183,7 @@ template <typename T>
 static inline void tanh(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
-    constexpr auto inc = (int) b_type::size;
+    constexpr auto inc = (int)b_type::size;
 
     // size for which the vectorization is possible
     auto vec_size = dim - dim % inc;
