@@ -3,7 +3,7 @@
 namespace RTNeural
 {
 
-#if !defined(USE_EIGEN) && !defined(USE_XSIMD) && !defined(USE_ACCELERATE)
+#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
 
 template <typename T>
 LSTMLayer<T>::LSTMLayer(int in_size, int out_size)
@@ -243,6 +243,6 @@ void LSTMLayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<T>& bVals)
     }
 }
 
-#endif // !defined(USE_EIGEN) && !defined(USE_XSIMD)
+#endif // !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 
 } // namespace RTNeural

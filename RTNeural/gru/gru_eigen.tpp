@@ -1,4 +1,4 @@
-#ifdef USE_EIGEN
+#if RTNEURAL_USE_EIGEN
 
 #include "gru_eigen.h"
 
@@ -239,4 +239,4 @@ void GRULayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<std::vector<T
 
 } // namespace RTNeural
 
-#endif // USE_EIGEN
+#endif // RTNEURAL_USE_EIGEN

@@ -3,7 +3,7 @@
 namespace RTNeural
 {
 
-#if !defined(USE_EIGEN) && !defined(USE_XSIMD) && !defined(USE_ACCELERATE)
+#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
 
 template <typename T>
 Conv1D<T>::Conv1D(int in_size, int out_size, int kernel_size, int dilation)

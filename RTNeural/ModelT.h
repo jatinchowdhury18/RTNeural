@@ -2,7 +2,7 @@
 
 #include "model_loader.h"
 
-#define MODELT_AVAILABLE (!USE_ACCELERATE)
+#define MODELT_AVAILABLE (!RTNEURAL_USE_ACCELERATE)
 
 #if MODELT_AVAILABLE
 
@@ -186,10 +186,10 @@ class ModelT
 public:
     ModelT()
     {
-#if USE_XSIMD
+#if RTNEURAL_USE_XSIMD
         for(int i = 0; i < v_in_size; ++i)
             v_ins[i] = v_type((T)0);
-#elif USE_EIGEN
+#elif RTNEURAL_USE_EIGEN
         auto& layer_outs = get<n_layers - 1>().outs;
         new(&layer_outs) Eigen::Map<Eigen::Matrix<T, out_size, 1>, Eigen::Aligned16>(outs);
 #endif
@@ -220,22 +220,22 @@ public:
     inline typename std::enable_if<(N > 1), T>::type
     forward(const T* input)
     {
-#if USE_XSIMD
+#if RTNEURAL_USE_XSIMD
         for(int i = 0; i < v_in_size; ++i)
             v_ins[i] = xsimd::load_aligned(input + i * v_size);
-#elif USE_EIGEN
+#elif RTNEURAL_USE_EIGEN
         auto v_ins = Eigen::Map<const vec_type, Eigen::Aligned16>(input);
-#else // USE_STL
+#else // RTNEURAL_USE_STL
         std::copy(input, input + in_size, v_ins);
 #endif
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
-#if USE_XSIMD
+#if RTNEURAL_USE_XSIMD
         for(int i = 0; i < v_out_size; ++i)
             xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
-#elif USE_EIGEN
-#else // USE_STL
+#elif RTNEURAL_USE_EIGEN
+#else // RTNEURAL_USE_STL
         auto& layer_outs = get<n_layers - 1>().outs;
         std::copy(layer_outs, layer_outs + out_size, outs);
 #endif
@@ -247,22 +247,22 @@ public:
     inline typename std::enable_if<N == 1, T>::type
     forward(const T* input)
     {
-#if USE_XSIMD
+#if RTNEURAL_USE_XSIMD
         v_ins[0] = (v_type)input[0];
-#elif USE_EIGEN
+#elif RTNEURAL_USE_EIGEN
         const auto v_ins = vec_type::Constant(input[0]);
-#else // USE_STL
+#else // RTNEURAL_USE_STL
         v_ins[0] = input[0];
 #endif
 
         std::get<0>(layers).forward(v_ins);
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
-#if USE_XSIMD
+#if RTNEURAL_USE_XSIMD
         for(int i = 0; i < v_out_size; ++i)
             xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
-#elif USE_EIGEN
-#else // USE_STL
+#elif RTNEURAL_USE_EIGEN
+#else // RTNEURAL_USE_STL
         auto& layer_outs = get<n_layers - 1>().outs;
         std::copy(layer_outs, layer_outs + out_size, outs);
 #endif
@@ -341,15 +341,15 @@ public:
     }
 
 private:
-#if USE_XSIMD
+#if RTNEURAL_USE_XSIMD
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_in_size = ceil_div(in_size, v_size);
     static constexpr auto v_out_size = ceil_div(out_size, v_size);
     v_type v_ins[v_in_size];
-#elif USE_EIGEN
+#elif RTNEURAL_USE_EIGEN
     using vec_type = Eigen::Matrix<T, in_size, 1>;
-#else // USE_STL
+#else // RTNEURAL_USE_STL
     T v_ins alignas(16)[in_size];
 #endif
 

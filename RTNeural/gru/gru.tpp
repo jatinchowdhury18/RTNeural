@@ -3,7 +3,7 @@
 namespace RTNeural
 {
 
-#if !defined(USE_EIGEN) && !defined(USE_XSIMD) && !defined(USE_ACCELERATE)
+#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
 template <typename T>
 GRULayer<T>::GRULayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
@@ -318,6 +318,6 @@ void GRULayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<std::vector<T
     }
 }
 
-#endif // !defined(USE_EIGEN) && !defined(USE_XSIMD)
+#endif // !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 
 } // namespace RTNeural

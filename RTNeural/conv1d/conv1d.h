@@ -1,13 +1,13 @@
 #ifndef CONV1D_H_INCLUDED
 #define CONV1D_H_INCLUDED
 
-#if defined(USE_EIGEN)
+#if RTNEURAL_USE_EIGEN
 #include "conv1d_eigen.h"
 #include "conv1d_eigen.tpp"
-#elif defined(USE_XSIMD)
+#elif RTNEURAL_USE_XSIMD
 #include "conv1d_xsimd.h"
 #include "conv1d_xsimd.tpp"
-#elif defined(USE_ACCELERATE)
+#elif RTNEURAL_USE_ACCELERATE
 #include "conv1d_accelerate.h"
 #include "conv1d_accelerate.tpp"
 #else
