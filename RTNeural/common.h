@@ -3,6 +3,7 @@
 namespace RTNeural
 {
 
+/** Divides two numbers and rounds up if there is a remainder. */
 template <typename T>
 constexpr T ceil_div(T num, T den)
 {

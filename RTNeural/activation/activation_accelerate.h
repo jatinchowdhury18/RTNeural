@@ -6,10 +6,12 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a tanh activation layer. */
 template <typename T>
 class TanhActivation : public Activation<T>
 {
 public:
+    /** Constructs a tanh activation layer for a given size. */
     TanhActivation(int size)
         : Activation<T>(size, {}, "tanh")
     {
@@ -20,6 +22,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for tanh activation. */
     inline void forward(const T* input, T* out) override
     {
         forward_internal(input, out);
@@ -43,10 +46,12 @@ private:
     }
 };
 
+/** Dynamic implementation of a ReLU activation layer. */
 template <typename T>
 class ReLuActivation : public Activation<T>
 {
 public:
+    /** Constructs a ReLU activation layer for a given size. */
     ReLuActivation(int size)
         : Activation<T>(size, {}, "relu")
     {
@@ -58,6 +63,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for ReLU activation. */
     inline void forward(const T* input, T* out) override
     {
         forward_internal(input, out);
@@ -81,10 +87,12 @@ private:
     std::vector<T> zeros;
 };
 
+/** Dynamic implementation of a sigmoid activation layer. */
 template <typename T>
 class SigmoidActivation : public Activation<T>
 {
 public:
+    /** Constructs a sigmoid activation layer for a given size. */
     SigmoidActivation(int size)
         : Activation<T>(size, {}, "sigmoid")
     {
@@ -95,16 +103,19 @@ public:
     {
     }
 
+    /** Performs forward propagation for sigmoid activation. */
     inline void forward(const T* input, T* out) override
     {
         sigmoid(input, out, Layer<T>::in_size);
     }
 };
 
+/** Dynamic implementation of a softmax activation layer. */
 template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
 public:
+    /** Constructs a softmax activation layer for a given size. */
     SoftmaxActivation(int size)
         : Activation<T>(size, {}, "softmax")
     {
@@ -115,6 +126,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for softmax activation. */
     inline void forward(const T* input, T* out) override
     {
         softmax(input, out, Layer<T>::in_size);

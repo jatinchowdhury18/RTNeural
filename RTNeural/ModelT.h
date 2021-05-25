@@ -9,6 +9,7 @@
 namespace RTNeural
 {
 
+#ifndef DOXYGEN
 /**
  * Some utilities for constructing and working
  * with variadic templates of layers.
@@ -165,7 +166,20 @@ namespace modelt_detail
     }
 
 } // namespace modelt_detail
+#endif // DOXYGEN
 
+/**
+ *  A static sequential neural network model.
+ *  
+ *  To use this class, you must define the layers at compile-time:
+ *  ```
+ *  ModelT<double, 1, 1,
+ *      DenseT<double, 1, 8>,
+ *      TanhActivationT<double, 8>,
+ *      DenseT<double, 8, 1>
+ *  > model;
+ *  ```
+ */
 template <typename T, int in_size, int out_size, typename... Layers>
 class ModelT
 {
@@ -195,11 +209,13 @@ public:
         return std::get<Index>(layers);
     }
 
+    /** Resets the state of the network layers. */
     void reset()
     {
         modelt_detail::forEachInTuple([&](auto& layer, size_t) { layer.reset(); }, layers);
     }
 
+    /** Performs forward propagation for this model. */
     template <int N = in_size>
     inline typename std::enable_if<(N > 1), T>::type
     forward(const T* input)
@@ -226,6 +242,7 @@ public:
         return outs[0];
     }
 
+    /** Performs forward propagation for this model. */
     template <int N = in_size>
     inline typename std::enable_if<N == 1, T>::type
     forward(const T* input)
@@ -252,12 +269,13 @@ public:
         return outs[0];
     }
 
+    /** Returns a pointer to the output of the final layer in the network. */
     inline const T* getOutputs() const noexcept
     {
         return outs.back().data();
     }
 
-    /** Creates a neural network model from a json stream */
+    /** Loads neural network model weights from a json stream. */
     void parseJson(const nlohmann::json& parent, const bool debug = false)
     {
         using namespace json_parser;
@@ -314,7 +332,7 @@ public:
             layers);
     }
 
-    /** Creates a neural network model from a json stream */
+    /** Loads neural network model weights from a json stream. */
     void parseJson(std::ifstream& jsonStream, const bool debug = false)
     {
         nlohmann::json parent;

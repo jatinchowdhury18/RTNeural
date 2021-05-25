@@ -20,20 +20,25 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a gated recurrent unit (GRU) layer. */
 template <typename T>
 class GRULayer : public Layer<T>
 {
 public:
+    /** Constructs a GRU layer for a given input and output size. */
     GRULayer(int in_size, int out_size);
     GRULayer(std::initializer_list<int> sizes);
     GRULayer(const GRULayer& other);
     GRULayer& operator=(const GRULayer& other);
     virtual ~GRULayer();
 
+    /** Resets the state of the GRU. */
     void reset() override { std::fill(ht1, ht1 + Layer<T>::out_size, (T)0); }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "gru"; }
 
+    /** Performs forward propagation for this layer. */
     virtual inline void forward(const T* input, T* h) override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -47,12 +52,22 @@ public:
         std::copy(h, h + Layer<T>::out_size, ht1);
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(T** wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(T** uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(T** bVals);
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
     T getWVal(int i, int k) const noexcept;
@@ -62,6 +77,7 @@ public:
 protected:
     T* ht1;
 
+    /** Struct to hold layer weights (used internally) */
     struct WeightSet
     {
         WeightSet(int in_size, int out_size);
@@ -83,6 +99,7 @@ protected:
 };
 
 //====================================================
+/** Static implementation of a gated recurrent unit (GRU) layer. */
 template <typename T, int in_sizet, int out_sizet>
 class GRULayerT
 {
@@ -92,11 +109,16 @@ public:
 
     GRULayerT();
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "gru"; }
+
+    /** Returns false since GRU is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
+    /** Resets the state of the GRU. */
     void reset();
 
+    /** Performs forward propagation for this layer. */
     template <int N = in_size>
     inline typename std::enable_if<(N > 1), void>::type
     forward(const T (&ins)[in_size])
@@ -124,6 +146,7 @@ public:
             outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
     }
 
+    /** Performs forward propagation for this layer. */
     template <int N = in_size>
     inline typename std::enable_if<N == 1, void>::type
     forward(const T (&ins)[in_size])
@@ -148,8 +171,13 @@ public:
             outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
     T outs alignas(16)[out_size];

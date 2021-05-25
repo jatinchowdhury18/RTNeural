@@ -8,29 +8,46 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a gated recurrent unit (GRU) layer. */
 template <typename T>
 class GRULayer : public Layer<T>
 {
 public:
+    /** Constructs a GRU layer for a given input and output size. */
     GRULayer(int in_size, int out_size);
     GRULayer(std::initializer_list<int> sizes);
     GRULayer(const GRULayer& other);
     GRULayer& operator=(const GRULayer& other);
     virtual ~GRULayer();
 
+    /** Resets the state of the GRU. */
     void reset() override { std::fill(ht1, ht1 + Layer<T>::out_size, (T)0); }
 
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept override { return "gru"; }
+
+    /** Performs forward propagation for this layer. */
     virtual inline void forward(const T* input, T* h) override
     {
         forward_internal(input, h);
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(T** wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(T** uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(T** bVals);
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
     T getWVal(int i, int k) const noexcept;
