@@ -18,20 +18,25 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a LSTM layer. */
 template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
+    /** Constructs a LSTM layer for a given input and output size. */
     LSTMLayer(int in_size, int out_size);
     LSTMLayer(std::initializer_list<int> sizes);
     LSTMLayer(const LSTMLayer& other);
     LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer();
 
+    /** Resets the state of the LSTM. */
     void reset() override;
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "lstm"; }
 
+    /** Performs forward propagation for this layer. */
     virtual inline void forward(const T* input, T* h) override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -48,8 +53,13 @@ public:
         std::copy(h, h + Layer<T>::out_size, ht1);
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+    
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+    
+    /** Sets the layer biases. */
     void setBVals(const std::vector<T>& bVals);
 
 protected:
