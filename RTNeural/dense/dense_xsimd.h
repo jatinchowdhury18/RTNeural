@@ -93,7 +93,7 @@ template <typename T, int in_sizet, int out_sizet>
 class DenseT
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int) v_type::size;
+    static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
     static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
     static constexpr auto weights_size = v_in_size * out_sizet;
