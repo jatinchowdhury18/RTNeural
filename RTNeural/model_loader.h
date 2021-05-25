@@ -9,6 +9,7 @@
 
 namespace RTNeural
 {
+/** Utility functions for loading model weights from their json representation. */
 namespace json_parser
 {
 
