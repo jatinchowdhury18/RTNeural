@@ -11,7 +11,7 @@ template <typename T>
 class Dense : public Layer<T>
 {
 public:
-    Dense(size_t in_size, size_t out_size)
+    Dense(int in_size, int out_size)
         : Layer<T>(in_size, out_size)
     {
         prod.resize(in_size, (T)0);
@@ -21,7 +21,7 @@ public:
         sums.resize(out_size, (T)0);
     }
 
-    Dense(std::initializer_list<size_t> sizes)
+    Dense(std::initializer_list<int> sizes)
         : Dense(*sizes.begin(), *(sizes.begin() + 1))
     {
     }
@@ -44,7 +44,7 @@ public:
 
     inline void forward(const T* input, T* out) override
     {
-        for(size_t l = 0; l < Layer<T>::out_size; ++l)
+        for(int l = 0; l < Layer<T>::out_size; ++l)
         {
             xsimd::transform(input, &input[Layer<T>::in_size], weights[l].data(), prod.data(),
                 [](auto const& a, auto const& b) { return a * b; });
@@ -56,27 +56,27 @@ public:
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
-            for(size_t k = 0; k < Layer<T>::in_size; ++k)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            for(int k = 0; k < Layer<T>::in_size; ++k)
                 weights[i][k] = newWeights[i][k];
     }
 
     void setWeights(T** newWeights)
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
-            for(size_t k = 0; k < Layer<T>::in_size; ++k)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            for(int k = 0; k < Layer<T>::in_size; ++k)
                 weights[i][k] = newWeights[i][k];
     }
 
     void setBias(T* b)
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
             bias[i] = b[i];
     }
 
-    T getWeight(size_t i, size_t k) const noexcept { return weights[i][k]; }
+    T getWeight(int i, int k) const noexcept { return weights[i][k]; }
 
-    T getBias(size_t i) const noexcept { return bias[i]; }
+    T getBias(int i) const noexcept { return bias[i]; }
 
 private:
     using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
@@ -89,7 +89,7 @@ private:
 };
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 class DenseT
 {
     using v_type = xsimd::simd_type<T>;
@@ -104,13 +104,13 @@ public:
 
     DenseT()
     {
-        for(size_t i = 0; i < weights_size; ++i)
+        for(int i = 0; i < weights_size; ++i)
             weights[i] = v_type((T)0.0);
 
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             bias[i] = v_type((T)0.0);
 
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             outs[i] = v_type((T)0.0);
     }
 
@@ -121,12 +121,12 @@ public:
 
     inline void forward(const v_type (&ins)[v_in_size])
     {
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
         {
             T out_sum alignas(16)[v_size] { (T)0 };
-            for(size_t k = 0; k < v_in_size; ++k)
+            for(int k = 0; k < v_in_size; ++k)
             {
-                for(size_t j = 0; j < v_size; ++j)
+                for(int j = 0; j < v_size; ++j)
                     out_sum[j] += xsimd::hadd(ins[k] * weights[(i * v_size + j) * v_in_size + k]);
             }
 
@@ -136,9 +136,9 @@ public:
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
         {
-            for(size_t k = 0; k < in_size; ++k)
+            for(int k = 0; k < in_size; ++k)
             {
                 auto idx = i * v_in_size + k / v_size;
                 weights[idx] = set_value(weights[idx], k % v_size, newWeights[i][k]);
@@ -148,9 +148,9 @@ public:
 
     void setWeights(T** newWeights)
     {
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
         {
-            for(size_t k = 0; k < in_size; ++k)
+            for(int k = 0; k < in_size; ++k)
             {
                 auto idx = i * v_in_size + k / v_size;
                 weights[idx] = set_value(weights[idx], k % v_size, newWeights[i][k]);
@@ -160,7 +160,7 @@ public:
 
     void setBias(T* b)
     {
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             bias[i / v_size] = set_value(bias[i / v_size], i % v_size, b[i]);
     }
 
@@ -171,11 +171,11 @@ private:
     v_type weights[weights_size];
 };
 
-template <typename T, size_t in_sizet>
+template <typename T, int in_sizet>
 class DenseT<T, in_sizet, 1>
 {
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_size = (int) v_type::size;
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
 
 public:
@@ -184,7 +184,7 @@ public:
 
     DenseT()
     {
-        for(size_t i = 0; i < v_in_size; ++i)
+        for(int i = 0; i < v_in_size; ++i)
             weights[i] = v_type((T)0.0);
 
         outs[0] = v_type((T)0.0);
@@ -198,7 +198,7 @@ public:
     inline void forward(const v_type (&ins)[v_in_size])
     {
         T y = (T)0;
-        for(size_t k = 0; k < v_in_size; ++k)
+        for(int k = 0; k < v_in_size; ++k)
         {
             y += xsimd::hadd(ins[k] * weights[k]);
         }
@@ -208,9 +208,9 @@ public:
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
         {
-            for(size_t k = 0; k < in_size; ++k)
+            for(int k = 0; k < in_size; ++k)
             {
                 auto idx = k / v_size;
                 weights[idx] = set_value(weights[idx], k % v_size, newWeights[i][k]);
@@ -220,9 +220,9 @@ public:
 
     void setWeights(T** newWeights)
     {
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
         {
-            for(size_t k = 0; k < in_size; ++k)
+            for(int k = 0; k < in_size; ++k)
             {
                 auto idx = k / v_size;
                 weights[idx] = set_value(weights[idx], k % v_size, newWeights[i][k]);

@@ -75,14 +75,14 @@ namespace modelt_detail
     };
 
     template <typename T, typename LayerType>
-    void loadLayer(LayerType&, size_t&, const nlohmann::json&, const std::string&, size_t, bool debug)
+    void loadLayer(LayerType&, int&, const nlohmann::json&, const std::string&, int, bool debug)
     {
         json_parser::debug_print("Loading a no-op layer!", debug);
     }
 
-    template <typename T, size_t in_size, size_t out_size>
-    void loadLayer(DenseT<T, in_size, out_size>& dense, size_t& json_stream_idx, const nlohmann::json& l,
-        const std::string& type, size_t layerDims, bool debug)
+    template <typename T, int in_size, int out_size>
+    void loadLayer(DenseT<T, in_size, out_size>& dense, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
 
@@ -105,17 +105,17 @@ namespace modelt_detail
         }
     }
 
-    template <typename T, size_t in_size, size_t out_size, size_t kernel_size, size_t dilation_rate>
-    void loadLayer(Conv1DT<T, in_size, out_size, kernel_size, dilation_rate>& conv, size_t& json_stream_idx, const nlohmann::json& l,
-        const std::string& type, size_t layerDims, bool debug)
+    template <typename T, int in_size, int out_size, int kernel_size, int dilation_rate>
+    void loadLayer(Conv1DT<T, in_size, out_size, kernel_size, dilation_rate>& conv, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
 
         debug_print("Layer: " + type, debug);
         debug_print("  Dims: " + std::to_string(layerDims), debug);
         const auto weights = l["weights"];
-        const auto kernel = l["kernel_size"].back().get<size_t>();
-        const auto dilation = l["dilation"].back().get<size_t>();
+        const auto kernel = l["kernel_size"].back().get<int>();
+        const auto dilation = l["dilation"].back().get<int>();
 
         if(checkConv1D<T>(conv, type, layerDims, kernel, dilation, debug))
             loadConv1D<T>(conv, kernel, dilation, weights);
@@ -132,9 +132,9 @@ namespace modelt_detail
         }
     }
 
-    template <typename T, size_t in_size, size_t out_size>
-    void loadLayer(GRULayerT<T, in_size, out_size>& gru, size_t& json_stream_idx, const nlohmann::json& l,
-        const std::string& type, size_t layerDims, bool debug)
+    template <typename T, int in_size, int out_size>
+    void loadLayer(GRULayerT<T, in_size, out_size>& gru, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
 
@@ -148,9 +148,9 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
-    template <typename T, size_t in_size, size_t out_size>
-    void loadLayer(LSTMLayerT<T, in_size, out_size>& lstm, size_t& json_stream_idx, const nlohmann::json& l,
-        const std::string& type, size_t layerDims, bool debug)
+    template <typename T, int in_size, int out_size>
+    void loadLayer(LSTMLayerT<T, in_size, out_size>& lstm, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
 
@@ -166,14 +166,14 @@ namespace modelt_detail
 
 } // namespace modelt_detail
 
-template <typename T, size_t in_size, size_t out_size, typename... Layers>
+template <typename T, int in_size, int out_size, typename... Layers>
 class ModelT
 {
 public:
     ModelT()
     {
 #if USE_XSIMD
-        for(size_t i = 0; i < v_in_size; ++i)
+        for(int i = 0; i < v_in_size; ++i)
             v_ins[i] = v_type((T)0);
 #elif USE_EIGEN
         auto& layer_outs = get<n_layers - 1>().outs;
@@ -200,12 +200,12 @@ public:
         modelt_detail::forEachInTuple([&](auto& layer, size_t) { layer.reset(); }, layers);
     }
 
-    template <size_t N = in_size>
+    template <int N = in_size>
     inline typename std::enable_if<(N > 1), T>::type
     forward(const T* input)
     {
 #if USE_XSIMD
-        for(size_t i = 0; i < v_in_size; ++i)
+        for(int i = 0; i < v_in_size; ++i)
             v_ins[i] = xsimd::load_aligned(input + i * v_size);
 #elif USE_EIGEN
         auto v_ins = Eigen::Map<const vec_type, Eigen::Aligned16>(input);
@@ -216,7 +216,7 @@ public:
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
 #if USE_XSIMD
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
 #elif USE_EIGEN
 #else // USE_STL
@@ -226,7 +226,7 @@ public:
         return outs[0];
     }
 
-    template <size_t N = in_size>
+    template <int N = in_size>
     inline typename std::enable_if<N == 1, T>::type
     forward(const T* input)
     {
@@ -242,7 +242,7 @@ public:
         modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
 
 #if USE_XSIMD
-        for(size_t i = 0; i < v_out_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
             xsimd::store_aligned(outs + i * v_size, get<n_layers - 1>().outs[i]);
 #elif USE_EIGEN
 #else // USE_STL
@@ -268,7 +268,7 @@ public:
         if(!shape.is_array() || !json_layers.is_array())
             return;
 
-        const auto nDims = shape.back().get<size_t>();
+        const auto nDims = shape.back().get<int>();
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         if(nDims != in_size)
@@ -277,9 +277,9 @@ public:
             return;
         }
 
-        size_t json_stream_idx = 0;
+        int json_stream_idx = 0;
         modelt_detail::forEachInTuple([&](auto& layer, size_t) {
-            if(json_stream_idx >= json_layers.size())
+            if(json_stream_idx >= (int) json_layers.size())
             {
                 debug_print("Too many layers!", debug);
                 return;
@@ -288,7 +288,7 @@ public:
             const auto l = json_layers.at(json_stream_idx);
             const auto type = l["type"].get<std::string>();
             const auto layerShape = l["shape"];
-            const auto layerDims = layerShape.back().get<size_t>();
+            const auto layerDims = layerShape.back().get<int>();
 
             if(layer.isActivation()) // activation layers don't need initialisation
             {
@@ -325,7 +325,7 @@ public:
 private:
 #if USE_XSIMD
     using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = v_type::size;
+    static constexpr auto v_size = (int) v_type::size;
     static constexpr auto v_in_size = ceil_div(in_size, v_size);
     static constexpr auto v_out_size = ceil_div(out_size, v_size);
     v_type v_ins[v_in_size];

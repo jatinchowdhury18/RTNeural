@@ -11,8 +11,8 @@ template <typename T>
 class GRULayer : public Layer<T>
 {
 public:
-    GRULayer(size_t in_size, size_t out_size);
-    GRULayer(std::initializer_list<size_t> sizes);
+    GRULayer(int in_size, int out_size);
+    GRULayer(std::initializer_list<int> sizes);
     GRULayer(const GRULayer& other);
     GRULayer& operator=(const GRULayer& other);
     virtual ~GRULayer() { }
@@ -49,9 +49,9 @@ public:
     void setUVals(const std::vector<std::vector<T>>& uVals);
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
-    T getWVal(size_t i, size_t k) const noexcept;
-    T getUVal(size_t i, size_t k) const noexcept;
-    T getBVal(size_t i, size_t k) const noexcept;
+    T getWVal(int i, int k) const noexcept;
+    T getUVal(int i, int k) const noexcept;
+    T getBVal(int i, int k) const noexcept;
 
 private:
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wVec_z;
@@ -74,7 +74,7 @@ private:
 };
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 class GRULayerT
 {
     using b_type = Eigen::Matrix<T, out_sizet, 1>;

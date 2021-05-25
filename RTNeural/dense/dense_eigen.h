@@ -11,7 +11,7 @@ template <typename T>
 class Dense : public Layer<T>
 {
 public:
-    Dense(size_t in_size, size_t out_size)
+    Dense(int in_size, int out_size)
         : Layer<T>(in_size, out_size)
     {
         weights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
@@ -21,7 +21,7 @@ public:
         outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
     }
 
-    Dense(std::initializer_list<size_t> sizes)
+    Dense(std::initializer_list<int> sizes)
         : Dense(*sizes.begin(), *(sizes.begin() + 1))
     {
     }
@@ -49,27 +49,27 @@ public:
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
-            for(size_t k = 0; k < Layer<T>::in_size; ++k)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            for(int k = 0; k < Layer<T>::in_size; ++k)
                 weights(i, k) = newWeights[i][k];
     }
 
     void setWeights(T** newWeights)
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
-            for(size_t k = 0; k < Layer<T>::in_size; ++k)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            for(int k = 0; k < Layer<T>::in_size; ++k)
                 weights(i, k) = newWeights[i][k];
     }
 
     void setBias(T* b)
     {
-        for(size_t i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
             bias(i, 0) = b[i];
     }
 
-    T getWeight(size_t i, size_t k) const noexcept { return weights(i, k); }
+    T getWeight(int i, int k) const noexcept { return weights(i, k); }
 
-    T getBias(size_t i) const noexcept { return bias(i, 0); }
+    T getBias(int i) const noexcept { return bias(i, 0); }
 
 private:
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> weights;
@@ -80,7 +80,7 @@ private:
 };
 
 //====================================================
-template <typename T, size_t in_sizet, size_t out_sizet>
+template <typename T, int in_sizet, int out_sizet>
 class DenseT
 {
     using vec_type = Eigen::Matrix<T, out_sizet, 1>;
@@ -110,21 +110,21 @@ public:
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
-        for(size_t i = 0; i < out_size; ++i)
-            for(size_t k = 0; k < in_size; ++k)
+        for(int i = 0; i < out_size; ++i)
+            for(int k = 0; k < in_size; ++k)
                 weights(i, k) = newWeights[i][k];
     }
 
     void setWeights(T** newWeights)
     {
-        for(size_t i = 0; i < out_size; ++i)
-            for(size_t k = 0; k < in_size; ++k)
+        for(int i = 0; i < out_size; ++i)
+            for(int k = 0; k < in_size; ++k)
                 weights(i, k) = newWeights[i][k];
     }
 
     void setBias(T* b)
     {
-        for(size_t i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             bias(i, 0) = b[i];
     }
 
