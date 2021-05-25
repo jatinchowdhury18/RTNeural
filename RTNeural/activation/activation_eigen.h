@@ -6,10 +6,12 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a tanh activation layer. */
 template <typename T>
 class TanhActivation : public Activation<T>
 {
 public:
+    /** Constructs a tanh activation layer for a given size. */
     TanhActivation(int size)
         : Activation<T>(size, {}, "tanh")
     {
@@ -22,6 +24,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for tanh activation. */
     inline void forward(const T* input, T* out) override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
@@ -35,6 +38,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
+/** Static implementation of a tanh activation layer. */
 template <typename T, int size>
 class TanhActivationT
 {
@@ -49,10 +53,15 @@ public:
         outs = v_type::Zero();
     }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "tanh"; }
+
+    /** Returns true if this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for tanh activation. */
     inline void forward(const v_type& ins)
     {
         outs = ins.array().tanh();
@@ -61,10 +70,12 @@ public:
     v_type outs;
 };
 
+/** Dynamic implementation of a ReLU activation layer. */
 template <typename T>
 class ReLuActivation : public Activation<T>
 {
 public:
+    /** Constructs a ReLU activation layer for a given size. */
     ReLuActivation(int size)
         : Activation<T>(size, {}, "relu")
     {
@@ -77,6 +88,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for ReLU activation. */
     inline void forward(const T* input, T* out) override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
@@ -90,6 +102,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
+/** Static implementation of a ReLU activation layer. */
 template <typename T, int size>
 class ReLuActivationT
 {
@@ -104,10 +117,15 @@ public:
         outs = v_type::Zero();
     }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "relu"; }
+
+    /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for ReLU activation. */
     inline void forward(const v_type& ins)
     {
         outs = ins.array().max((T)0);
@@ -116,10 +134,13 @@ public:
     v_type outs;
 };
 
+/** Dynamic implementation of a sigmoid activation layer. */
+
 template <typename T>
 class SigmoidActivation : public Activation<T>
 {
 public:
+    /** Constructs a sigmoid activation layer for a given size. */
     SigmoidActivation(int size)
         : Activation<T>(size, {}, "sigmoid")
     {
@@ -132,6 +153,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for sigmoid activation. */
     inline void forward(const T* input, T* out) override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
@@ -146,6 +168,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
+/** Static implementation of a sigmoid activation layer. */
 template <typename T, int size>
 class SigmoidActivationT
 {
@@ -160,10 +183,15 @@ public:
         outs = v_type::Zero();
     }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "sigmoid"; }
+
+    /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for sigmoid activation. */
     inline void forward(const v_type& ins)
     {
         outs = (T)1 / (((T)-1 * ins.array()).array().exp() + (T)1);
@@ -172,10 +200,13 @@ public:
     v_type outs;
 };
 
+/** Dynamic implementation of a softmax activation layer. */
+
 template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
 public:
+    /** Constructs a softmax activation layer for a given size. */
     SoftmaxActivation(int size)
         : Activation<T>(size, {}, "softmax")
     {
@@ -188,6 +219,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for softmax activation. */
     inline void forward(const T* input, T* out) override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
@@ -202,6 +234,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 };
 
+/** Static implementation of a softmax activation layer. */
 template <typename T, int size>
 class SoftmaxActivationT
 {
@@ -216,10 +249,15 @@ public:
         outs = v_type::Zero();
     }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "softmax"; }
+
+    /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for softmax activation. */
     inline void forward(const v_type& ins)
     {
         outs = ins.array().exp();

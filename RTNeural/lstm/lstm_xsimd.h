@@ -8,20 +8,25 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a LSTM layer. */
 template <typename T>
 class LSTMLayer : public Layer<T>
 {
 public:
+    /** Constructs a LSTM layer for a given input and output size. */
     LSTMLayer(int in_size, int out_size);
     LSTMLayer(std::initializer_list<int> sizes);
     LSTMLayer(const LSTMLayer& other);
     LSTMLayer& operator=(const LSTMLayer& other);
     virtual ~LSTMLayer();
 
+    /** Resets the state of the LSTM. */
     void reset() override;
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "lstm"; }
 
+    /** Performs forward propagation for this layer. */
     virtual inline void forward(const T* input, T* h) override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -55,8 +60,13 @@ public:
         vCopy(h, ht1.data(), Layer<T>::out_size);
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+
+    /** Sets the layer biases. */
     void setBVals(const std::vector<T>& bVals);
 
 protected:
@@ -93,6 +103,7 @@ protected:
 };
 
 //====================================================
+/** Static implementation of a LSTM layer. */
 template <typename T, int in_sizet, int out_sizet>
 class LSTMLayerT
 {
@@ -107,11 +118,16 @@ public:
 
     LSTMLayerT();
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "lstm"; }
+
+    /** Returns false since LSTM is not an activation. */
     constexpr bool isActivation() const noexcept { return false; }
 
+    /** Resets the state of the LSTM. */
     void reset();
 
+    /** Performs forward propagation for this layer. */
     template <int N = in_size>
     inline typename std::enable_if<(N > 1), void>::type
     forward(const v_type (&ins)[v_in_size])
@@ -145,6 +161,7 @@ public:
             outs[i] = ot[i] * xsimd::tanh(ct[i]);
     }
 
+    /** Performs forward propagation for this layer. */
     template <int N = in_size>
     inline typename std::enable_if<N == 1, void>::type
     forward(const v_type (&ins)[v_in_size])
@@ -174,8 +191,13 @@ public:
             outs[i] = ot[i] * xsimd::tanh(ct[i]);
     }
 
+    /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
+
+    /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
+
+    /** Sets the layer biases. */
     void setBVals(const std::vector<T>& bVals);
 
     v_type outs[v_out_size];

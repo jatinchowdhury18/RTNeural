@@ -8,18 +8,25 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a 1-dimensional convolution layer. */
 template <typename T>
 class Conv1D : public Layer<T>
 {
 public:
+    /** Constructs a convolution layer for the given dimensions. */
     Conv1D(int in_size, int out_size, int kernel_size, int dilation);
     Conv1D(std::initializer_list<int> sizes);
     Conv1D(const Conv1D& other);
     Conv1D& operator=(const Conv1D& other);
     virtual ~Conv1D();
 
+    /** Resets the layer state. */
     void reset() override;
 
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept override { return "conv1d"; }
+
+    /** Performs forward propagation for this layer. */
     virtual inline void forward(const T* input, T* h) override
     {
         // @TODO: vectorize this!
@@ -41,10 +48,16 @@ public:
         state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
     }
 
+    /** Sets the layer weights. */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+
+    /** Sets the layer biases. */
     void setBias(const std::vector<T>& biasVals);
 
+    /** Returns the size of the convolution kernel. */
     int getKernelSize() const noexcept { return kernel_size; }
+
+    /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
 private:
@@ -65,6 +78,7 @@ private:
 };
 
 //====================================================
+/** Static implementation of a 1-dimensional convolution layer. */
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
 class Conv1DT
 {
@@ -81,11 +95,16 @@ public:
 
     Conv1DT();
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "conv1d"; }
+
+    /** Returns false since convolution is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
+    /** Resets the layer state. */
     void reset();
 
+    /** Performs forward propagation for this layer. */
     inline void forward(const v_type (&ins)[v_in_size])
     {
         for(int k = 0; k < v_in_size; ++k)
@@ -112,11 +131,17 @@ public:
         state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
     }
 
+    /** Sets the layer weights. */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+
+    /** Sets the layer biases. */
     void setBias(const std::vector<T>& biasVals);
 
-    constexpr int getKernelSize() const { return kernel_size; }
-    constexpr int getDilationRate() const { return dilation_rate; }
+    /** Returns the size of the convolution kernel. */
+    int getKernelSize() const noexcept { return kernel_size; }
+
+    /** Returns the convolution dilation rate. */
+    int getDilationRate() const noexcept { return dilation_rate; }
 
     v_type outs[v_out_size];
 

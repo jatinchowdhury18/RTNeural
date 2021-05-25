@@ -1,0 +1,39 @@
+name: Docs
+
+on:
+  push:
+    branches:
+    - main
+    - docs
+
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    if: contains(toJson(github.event.commits), '***NO_CI***') == false && contains(toJson(github.event.commits), '[ci skip]') == false && contains(toJson(github.event.commits), '[skip ci]') == false
+    name: Make and deploy docs
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Install Linux Deps
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt install doxygen graphviz
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Make Docs
+      working-directory: ${{github.workspace}}/doxygen
+      run: make
+
+    - name: Deploy docs
+      if: ${{ github.event_name != 'pull_request' }}
+      uses: garygrossgarten/github-action-scp@release
+      with:
+        local: ${{github.workspace}}/docs
+        remote: Library/Web/chowdsp/RTNeural
+        host: ccrma-gate.stanford.edu
+        username: jatin
+        password: ${{ secrets.CCRMA_PASS }}

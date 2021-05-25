@@ -9,6 +9,7 @@
 
 namespace RTNeural
 {
+/** Utility functions for loading model weights from their json representation. */
 namespace json_parser
 {
 
@@ -18,7 +19,7 @@ namespace json_parser
             std::cout << str << std::endl;
     }
 
-    /** Loads weights for a Dense layer from a json representation of the layer weights */
+    /** Loads weights for a Dense (or DenseT) layer from a json representation of the layer weights. */
     template <typename T, typename DenseType>
     void loadDense(DenseType& dense, const nlohmann::json& weights)
     {
@@ -42,7 +43,7 @@ namespace json_parser
         dense.setBias(denseBias.data());
     }
 
-    /** Creates a dense layer from a json representation of the layer weights */
+    /** Creates a Dense layer from a json representation of the layer weights. */
     template <typename T>
     std::unique_ptr<Dense<T>> createDense(int in_size, int out_size, const nlohmann::json& weights)
     {
@@ -51,7 +52,7 @@ namespace json_parser
         return std::move(dense);
     }
 
-    /** Checks that a dense layer has the correct dimensions */
+    /** Checks that a Dense (or DenseT) layer has the given dimensions. */
     template <typename T, typename DenseType>
     bool checkDense(const DenseType& dense, const std::string& type, int layerDims, const bool debug)
     {
@@ -70,7 +71,7 @@ namespace json_parser
         return true;
     }
 
-    /** Loads weights for a Conv1D layer from a json representation of the layer weights */
+    /** Loads weights for a Conv1D (or Conv1DT) layer from a json representation of the layer weights. */
     template <typename T, typename Conv1DType>
     void loadConv1D(Conv1DType& conv, int kernel_size, int /*dilation*/, const nlohmann::json& weights)
     {
@@ -103,7 +104,7 @@ namespace json_parser
         conv.setBias(convBias);
     }
 
-    /** Creates a Conv1D layer from a json representation of the layer weights */
+    /** Creates a Conv1D layer from a json representation of the layer weights. */
     template <typename T>
     std::unique_ptr<Conv1D<T>> createConv1D(int in_size, int out_size,
         int kernel_size, int dilation, const nlohmann::json& weights)
@@ -113,7 +114,7 @@ namespace json_parser
         return std::move(conv);
     }
 
-    /** Checks that a Conv1D layer has the correct dimensions */
+    /** Checks that a Conv1D (or Conv1DT) layer has the given dimensions. */
     template <typename T, typename Conv1DType>
     bool checkConv1D(const Conv1DType& conv, const std::string& type, int layerDims,
         int kernel_size, int dilation_rate, const bool debug)
@@ -145,7 +146,7 @@ namespace json_parser
         return true;
     }
 
-    /** Loads weights for a GRU layer from a json representation of the layer weights */
+    /** Loads weights for a GRULayer (or GRULayerT) from a json representation of the layer weights. */
     template <typename T, typename GRUType>
     void loadGRU(GRUType& gru, const nlohmann::json& weights)
     {
@@ -195,7 +196,7 @@ namespace json_parser
         gru.setBVals(gruBias);
     }
 
-    /** Creates a GRU layer from a json representation of the layer weights */
+    /** Creates a GRULayer from a json representation of the layer weights. */
     template <typename T>
     std::unique_ptr<GRULayer<T>> createGRU(int in_size, int out_size, const nlohmann::json& weights)
     {
@@ -204,7 +205,7 @@ namespace json_parser
         return std::move(gru);
     }
 
-    /** Checks that a GRU layer has the correct dimensions */
+    /** Checks that a GRULayer (or GRULayerT) has the given dimensions. */
     template <typename T, typename GRUType>
     bool checkGRU(const GRUType& gru, const std::string& type, int layerDims, const bool debug)
     {
@@ -223,7 +224,7 @@ namespace json_parser
         return true;
     }
 
-    /** Loads weights for a LSTM layer from a json representation of the layer weights */
+    /** Loads weights for a LSTMLayer (or LSTMLayerT) from a json representation of the layer weights. */
     template <typename T, typename LSTMType>
     void loadLSTM(LSTMType& lstm, const nlohmann::json& weights)
     {
@@ -262,7 +263,7 @@ namespace json_parser
         lstm.setBVals(lstmBias);
     }
 
-    /** Creates a LSTM layer from a json representation of the layer weights */
+    /** Creates a LSTMLayer from a json representation of the layer weights. */
     template <typename T>
     std::unique_ptr<LSTMLayer<T>> createLSTM(int in_size, int out_size, const nlohmann::json& weights)
     {
@@ -271,7 +272,7 @@ namespace json_parser
         return std::move(lstm);
     }
 
-    /** Checks that a LSTM layer has the correct dimensions */
+    /** Checks that a LSTMLayer (or LSTMLayerT) has the given dimensions. */
     template <typename T, typename LSTMType>
     bool checkLSTM(const LSTMType& lstm, const std::string& type, int layerDims, const bool debug)
     {
@@ -290,7 +291,7 @@ namespace json_parser
         return true;
     }
 
-    /** Creates an activation layer of a given type */
+    /** Creates an activation layer of a given type. */
     template <typename T>
     std::unique_ptr<Activation<T>>
     createActivation(const std::string& activationType, int dims)
@@ -310,7 +311,7 @@ namespace json_parser
         return {};
     }
 
-    /** Checks that an Activation layer has the correct dimensions */
+    /** Checks that an Activation layer has the given dimensions */
     template <typename LayerType>
     bool checkActivation(const LayerType& actLayer, const std::string& activationType, int dims, const bool debug)
     {
@@ -329,7 +330,7 @@ namespace json_parser
         return true;
     }
 
-    /** Creates a neural network model from a json stream */
+    /** Creates a neural network model from a json stream. */
     template <typename T>
     std::unique_ptr<Model<T>> parseJson(const nlohmann::json& parent, const bool debug = false)
     {
@@ -398,7 +399,7 @@ namespace json_parser
         return std::move(model);
     }
 
-    /** Creates a neural network model from a json stream */
+    /** Creates a neural network model from a json stream. */
     template <typename T>
     std::unique_ptr<Model<T>> parseJson(std::ifstream& jsonStream, const bool debug = false)
     {

@@ -17,16 +17,23 @@
 namespace RTNeural
 {
 
-/** Neural network model */
+/** 
+ *  A dynamic sequential neural network model.
+ *  
+ *  Instances of this class should typically be created
+ *  `json_parser::parseJson`.
+ */
 template <typename T>
 class Model
 {
 public:
+    /** Constructs a sequential model for a given input size. */
     Model(int in_size)
         : in_size(in_size)
     {
     }
 
+    /** Destructor. */
     ~Model()
     {
         for(auto l : layers)
@@ -36,7 +43,8 @@ public:
         outs.clear();
     }
 
-    int getNextInSize()
+    /** Returns the required input size for the next layer being added to the network. */
+    int getNextInSize() const
     {
         if(layers.empty())
             return in_size;
@@ -44,18 +52,21 @@ public:
         return layers.back()->out_size;
     }
 
+    /** Adds a new layer to the sequential model. */
     void addLayer(Layer<T>* layer)
     {
         layers.push_back(layer);
         outs.push_back(vec_type(layer->out_size, (T)0));
     }
 
+    /** Resets the state of the network layers. */
     void reset()
     {
         for(auto* l : layers)
             l->reset();
     }
 
+    /** Performs forward propagation for this model. */
     inline T forward(const T* input)
     {
         layers[0]->forward(input, outs[0].data());
@@ -68,11 +79,13 @@ public:
         return outs.back()[0];
     }
 
+    /** Returns a pointer to the output of the final layer in the network. */
     inline const T* getOutputs() const noexcept
     {
         return outs.back().data();
     }
 
+    /** A vector storing the network layers in sequential order. */
     std::vector<Layer<T>*> layers;
 
 private:

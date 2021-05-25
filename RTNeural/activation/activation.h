@@ -7,10 +7,12 @@
 namespace RTNeural
 {
 
+/** Base class for activation layers. */
 template <typename T>
 class Activation : public Layer<T>
 {
 public:
+    /** Constructs an activation layers for a given size and function. */
     Activation(int size, std::function<T(T)> func, std::string name)
         : Layer<T>(size, size)
         , name(name)
@@ -18,8 +20,10 @@ public:
     {
     }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept override { return name; }
 
+    /** Implements the forward propagation step for this layer. */
     inline void forward(const T* input, T* out) override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -49,10 +53,12 @@ private:
 namespace RTNeural
 {
 
+/** Dynamic implementation of a tanh activation layer. */
 template <typename T>
 class TanhActivation : public Activation<T>
 {
 public:
+    /** Constructs a tanh activation layer for a given size. */
     TanhActivation(int size)
         : Activation<T>(
             size, [](T x) { return std::tanh(x); }, "tanh")
@@ -64,6 +70,7 @@ public:
     {
     }
 
+    /** Performs forward propagation for tanh activation. */
     inline void forward(const T* input, T* out) override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -71,6 +78,7 @@ public:
     }
 };
 
+/** Static implementation of a tanh activation layer. */
 template <typename T, int size>
 class TanhActivationT
 {
@@ -80,10 +88,15 @@ public:
 
     TanhActivationT() = default;
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "tanh"; }
+
+    /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for tanh activation. */
     inline void forward(const T (&ins)[size])
     {
         for(int i = 0; i < size; ++i)
@@ -93,10 +106,12 @@ public:
     T outs alignas(16)[size];
 };
 
+/** Dynamic implementation of a ReLU activation layer. */
 template <typename T>
 class ReLuActivation : public Activation<T>
 {
 public:
+    /** Constructs a ReLU activation layer for a given size. */
     ReLuActivation(int size)
         : Activation<T>(
             size, [](T x) { return std::max((T)0, x); }, "relu")
@@ -109,6 +124,7 @@ public:
     }
 };
 
+/** Static implementation of a ReLU activation layer. */
 template <typename T, int size>
 class ReLuActivationT
 {
@@ -118,10 +134,15 @@ public:
 
     ReLuActivationT() = default;
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "relu"; }
+
+    /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for ReLU activation. */
     inline void forward(const T (&ins)[size])
     {
         for(int i = 0; i < size; ++i)
@@ -131,10 +152,12 @@ public:
     T outs alignas(16)[size];
 };
 
+/** Dynamic implementation of a sigmoid activation layer. */
 template <typename T>
 class SigmoidActivation : public Activation<T>
 {
 public:
+    /** Constructs a sigmoid activation layer for a given size. */
     SigmoidActivation(int size)
         : Activation<T>(
             size, [](T x) { return sigmoid(x); }, "sigmoid")
@@ -147,6 +170,7 @@ public:
     }
 };
 
+/** Static implementation of a sigmoid activation layer. */
 template <typename T, int size>
 class SigmoidActivationT
 {
@@ -156,10 +180,15 @@ public:
 
     SigmoidActivationT() = default;
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "sigmoid"; }
+
+    /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for sigmoid activation. */
     inline void forward(const T (&ins)[size])
     {
         for(int i = 0; i < size; ++i)
@@ -169,10 +198,12 @@ public:
     T outs alignas(16)[size];
 };
 
+/** Dynamic implementation of a softmax activation layer. */
 template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
 public:
+    /** Constructs a softmax activation layer for a given size. */
     SoftmaxActivation(int size)
         : Activation<T>(
             size, [](T x) { return (T)0; }, "softmax")
@@ -184,12 +215,14 @@ public:
     {
     }
 
+    /** Performs forward propagation for softmax activation. */
     inline void forward(const T* input, T* out) override
     {
         softmax(input, out, Layer<T>::out_size);
     }
 };
 
+/** Static implementation of a softmax activation layer. */
 template <typename T, int size>
 class SoftmaxActivationT
 {
@@ -199,10 +232,15 @@ public:
 
     SoftmaxActivationT() = default;
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "softmax"; }
+
+    /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
+
     void reset() { }
 
+    /** Performs forward propagation for softmax activation. */
     inline void forward(const T (&ins)[size])
     {
         T exp_sum = 0;

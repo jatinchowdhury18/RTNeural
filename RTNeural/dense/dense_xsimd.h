@@ -7,10 +7,12 @@
 namespace RTNeural
 {
 
+/** Dynamic implementation of a fully-connected (dense) layer. */
 template <typename T>
 class Dense : public Layer<T>
 {
 public:
+    /** Constructs a dense layer for a given input and output size. */
     Dense(int in_size, int out_size)
         : Layer<T>(in_size, out_size)
     {
@@ -40,8 +42,10 @@ public:
     {
     }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "dense"; }
 
+    /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* out) override
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)
@@ -54,6 +58,7 @@ public:
         }
     }
 
+    /** Sets the layer weights from a given vector. */
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -61,6 +66,7 @@ public:
                 weights[i][k] = newWeights[i][k];
     }
 
+    /** Sets the layer weights from a given array. */
     void setWeights(T** newWeights)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -68,14 +74,17 @@ public:
                 weights[i][k] = newWeights[i][k];
     }
 
+    /** Sets the layer bias from a given array. */
     void setBias(T* b)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             bias[i] = b[i];
     }
 
+    /** Returns the weights value at the given indices. */
     T getWeight(int i, int k) const noexcept { return weights[i][k]; }
 
+    /** Returns the bias value at the given index. */
     T getBias(int i) const noexcept { return bias[i]; }
 
 private:
@@ -89,6 +98,7 @@ private:
 };
 
 //====================================================
+/** Static implementation of a fully-connected (dense) layer. */
 template <typename T, int in_sizet, int out_sizet>
 class DenseT
 {
@@ -114,11 +124,15 @@ public:
             outs[i] = v_type((T)0.0);
     }
 
+    /** Returns the name of this layer. */
     std::string getName() const noexcept { return "dense"; }
+
+    /** Returns false since dense is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
     void reset() { }
 
+    /** Performs forward propagation for this layer. */
     inline void forward(const v_type (&ins)[v_in_size])
     {
         for(int i = 0; i < v_out_size; ++i)
@@ -134,6 +148,7 @@ public:
         }
     }
 
+    /** Sets the layer weights from a given vector. */
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < out_size; ++i)
@@ -146,6 +161,7 @@ public:
         }
     }
 
+    /** Sets the layer weights from a given array. */
     void setWeights(T** newWeights)
     {
         for(int i = 0; i < out_size; ++i)
@@ -158,6 +174,7 @@ public:
         }
     }
 
+    /** Sets the layer bias from a given array. */
     void setBias(T* b)
     {
         for(int i = 0; i < out_size; ++i)
