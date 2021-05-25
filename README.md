@@ -1,7 +1,8 @@
 # RTNeural
 
-![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)
-![Bench](https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg)
+<img src="https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg">
+
+<img src="https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg">
 
 A lightweight neural network inferencing engine written in C++.
 This library was designed with the intention of being used in
@@ -22,6 +23,9 @@ Currently supported activations:
   - [x] ReLU
   - [x] Sigmoid
   - [x] SoftMax
+
+For a complete reference of the available functionality,
+see the [API docs](https://ccrma.stanford.edu/~jatin/chowdsp/RTNeural).
 
 ## How To Use
 
