@@ -112,7 +112,7 @@ public:
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "dense"; }
-    
+
     /** Returns false since dense is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 

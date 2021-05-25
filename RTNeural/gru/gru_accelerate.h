@@ -34,19 +34,19 @@ public:
 
     /** Sets the layer kernel weights. */
     void setWVals(T** wVals);
-    
+
     /** Sets the layer recurrent weights. */
     void setUVals(T** uVals);
-    
+
     /** Sets the layer biases. */
     void setBVals(T** bVals);
 
     /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
-    
+
     /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
-    
+
     /** Sets the layer biases. */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 

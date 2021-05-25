@@ -50,13 +50,13 @@ public:
 
     /** Sets the layer weights. */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
-    
+
     /** Sets the layer biases. */
     void setBias(const std::vector<T>& biasVals);
 
     /** Returns the size of the convolution kernel. */
     int getKernelSize() const noexcept { return kernel_size; }
-    
+
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
@@ -97,7 +97,7 @@ public:
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "conv1d"; }
-    
+
     /** Returns false since convolution is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
@@ -133,13 +133,13 @@ public:
 
     /** Sets the layer weights. */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
-    
+
     /** Sets the layer biases. */
     void setBias(const std::vector<T>& biasVals);
 
     /** Returns the size of the convolution kernel. */
     int getKernelSize() const noexcept { return kernel_size; }
-    
+
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 

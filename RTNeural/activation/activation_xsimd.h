@@ -49,10 +49,10 @@ public:
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "tanh"; }
-    
+
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
-    
+
     void reset() { }
 
     /** Performs forward propagation for tanh activation. */
@@ -113,7 +113,7 @@ public:
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "relu"; }
-    
+
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
@@ -172,10 +172,10 @@ public:
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "sigmoid"; }
-    
+
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
-    
+
     void reset() { }
 
     /** Performs forward propagation for sigmoid activation. */
@@ -205,7 +205,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    
+
     inline void forward(const T* input, T* out) override
     {
         softmax(input, out, Layer<T>::in_size);
@@ -232,10 +232,10 @@ public:
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "softmax"; }
-    
+
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
-    
+
     void reset() { }
 
     /** Performs forward propagation for softmax activation. */

@@ -24,7 +24,7 @@ public:
 
     /** Resets the state of the LSTM. */
     void reset() override;
-    
+
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) override
     {
@@ -50,10 +50,10 @@ public:
 
     /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
-    
+
     /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
-    
+
     /** Sets the layer biases. */
     void setBVals(const std::vector<T>& bVals);
 
@@ -125,10 +125,10 @@ public:
 
     /** Sets the layer kernel weights. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
-    
+
     /** Sets the layer recurrent weights. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
-    
+
     /** Sets the layer biases. */
     void setBVals(const std::vector<T>& bVals);
 
