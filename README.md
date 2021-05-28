@@ -88,6 +88,32 @@ double input[] = { 1.0, 0.5, -0.1 }; // set up input vector
 double output = model->forward(input); // compute output
 ```
 
+### Compile-Time API
+
+The code shown above will create the inferencing engine
+dynamically at run-time. If the model architecture is
+fixed at compile-time, it may be preferable to use RTNeural's
+API for defining an inferencing engine type at compile-time,
+which can significantly improve performance.
+```cpp
+// define model type
+RTNeural::ModelT<double, 8, 1
+    RTNeural::DenseT<double, 8, 8>,
+    RTNeural::TanhActivationT<double, 8>,
+    RTNeural::DenseT<double, 8, 1>
+> modelT;
+
+// load model weights from json
+std::ifstream jsonStream("model_weights.json", std::ifstream::binary);
+auto model = RTNeural::json_parser::parseJson<double>(jsonStream);
+modelT.parseJson(jsonStream);
+
+modelT.reset(); // reset state
+
+double input[] = { 1.0, 0.5, -0.1 }; // set up input vector
+double output = modelT.forward(input); // compute output
+```
+
 ## Building with CMake
 
 `RTNeural` is built with CMake, and the easiest way to link
@@ -105,29 +131,35 @@ target_link_libraries(MyCMakeProject LINK_PUBLIC RTNeural)
 `RTNeural` supports three backends,
 [`Eigen`](http://eigen.tuxfamily.org/),
 [`xsimd`](https://github.com/xtensor-stack/xsimd),
-[`Accelerate`](https://developer.apple.com/documentation/accelerate),
 or the C++ STL. You can choose your backend by passing
-either `-DRTNEURAL_EIGEN=ON`, `-DRTNEURAL_XSIMD=ON`, 
-`-DRTNEURAL_ACCELERATE=ON`, or `-DRTNEURAL_STL=ON`
-to your CMake configuration. By default, the `Eigen`
-backend will be used. Please note that the `Accelerate`
-backend can only be used when compiling for Apple devices.
-Alternatively, you may select your choice of backends in
-your CMake configuration as follows:
+either `-DRTNEURAL_EIGEN=ON`, `-DRTNEURAL_XSIMD=ON`,
+or `-DRTNEURAL_STL=ON` to your CMake configuration. By
+default, the `Eigen` backend will be used. Alternatively,
+you may select your choice of backends in your CMake 
+configuration as follows:
 ```cmake
 set(RTNEURAL_XSIMD ON CACHE BOOL "Use RTNeural with this backend" FORCE)
 add_subdirectory(modules/RTNeural)
 ```
 
-While the `Eigen` backend typically has the best performance,
-it is recommended to measure the performance of your network
-with all the backends that available on your target platform
+In general, the `Eigen` backend typically has the best 
+performance for larger networks, while smaller networks
+may perform better with XSIMD. However, it is recommended
+to measure the performance of your network with all the 
+backends that available on your target platform
 to ensure optimal performance. For more information see the
 [benchmark results](https://github.com/jatinchowdhury18/RTNeural/actions?query=workflow%3ABench).
 
-### Building the Accuracy Tests
+RTNeural also has experimental support for Apple's
+[`Accelerate`](https://developer.apple.com/documentation/accelerate) framework (`-DRTNEURAL_ACCELERATE=ON`).
+Please note that the `Accelerate` backend can only be
+used when compiling for Apple devices, and does not
+currently support defining [compile-time inferencing
+engines](#compile-time-api).
 
-To build the accuracy tests, run
+### Building the Unit Tests
+
+To build the RTNeural's unit tests, run
 `cmake -Bbuild -DBUILD_TESTS=ON`, followed by
 `cmake --build build`. To run the full testing suite,
 run `./build/rtneural_tests all`. For more information,
@@ -146,19 +178,18 @@ Contributions to this project are most welcome!
 Currently, there is considerable need for the
 following improvements:
 - Better implementation of convolutional layers:
-  - Faster implementations for Eigen and XSimd
   - Implement more options (grouping, stride, etc...)
-  - Implement COnv2D
+  - Implement Conv2D
 - Support for exporting/loading PyTorch models
 - More robust support for exporting/loading Tensorflow models
 - Support for more activation layers
-- Better testing
-- Better performance measurements
+- Better test coverage
+- Any changes that improve overall performance
 
 General code maintenance and documentation is always
 appreciated as well! Note that if you are implementing
 a new layer type, it is not required to provide support
-for all three backends, though it is recommended to at
+for all the backends, though it is recommended to at
 least provide a "fallback" implementation using the STL
 backend.
 
