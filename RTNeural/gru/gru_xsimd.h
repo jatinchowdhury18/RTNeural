@@ -157,11 +157,11 @@ public:
         recurrent_mat_mul(outs, Uh, ct);
         kernel_mat_mul(ins, Wh, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ht[i] = xsimd::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], +bh0[i] + kernel_outs[i]));
+            ht[i] = xsimd::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], bh0[i] + kernel_outs[i]));
 
         // compute output
         for(int i = 0; i < v_out_size; ++i)
-            outs[i] = xsimd::fma((v_type((T)1.0) - zt[i]), ht[i], +zt[i] * outs[i]);
+            outs[i] = xsimd::fma((v_type((T)1.0) - zt[i]), ht[i], zt[i] * outs[i]);
     }
 
     /** Performs forward propagation for this layer. */
@@ -186,7 +186,7 @@ public:
 
         // compute output
         for(int i = 0; i < v_out_size; ++i)
-            outs[i] = xsimd::fma((v_type((T)1.0) - zt[i]), ht[i], +zt[i] * outs[i]);
+            outs[i] = xsimd::fma((v_type((T)1.0) - zt[i]), ht[i], zt[i] * outs[i]);
     }
 
     /** Sets the layer kernel weights. */
