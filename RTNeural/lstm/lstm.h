@@ -20,7 +20,7 @@ namespace RTNeural
 
 /** Dynamic implementation of a LSTM layer. */
 template <typename T>
-class LSTMLayer : public Layer<T>
+class LSTMLayer final : public Layer<T>
 {
 public:
     /** Constructs a LSTM layer for a given input and output size. */

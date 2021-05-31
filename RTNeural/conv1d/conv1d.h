@@ -20,7 +20,7 @@ namespace RTNeural
 
 /** Dynamic implementation of a 1-dimensional convolution layer. */
 template <typename T>
-class Conv1D : public Layer<T>
+class Conv1D final : public Layer<T>
 {
 public:
     /** Constructs a convolution layer for the given dimensions. */
