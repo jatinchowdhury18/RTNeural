@@ -58,7 +58,7 @@ private:
 
 /** Dynamic implementation of a fully-connected (dense) layer. */
 template <typename T>
-class Dense : public Layer<T>
+class Dense final : public Layer<T>
 {
 public:
     /** Constructs a dense layer for a given input and output size. */

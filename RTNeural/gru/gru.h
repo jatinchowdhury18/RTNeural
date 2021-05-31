@@ -22,7 +22,7 @@ namespace RTNeural
 
 /** Dynamic implementation of a gated recurrent unit (GRU) layer. */
 template <typename T>
-class GRULayer : public Layer<T>
+class GRULayer final : public Layer<T>
 {
 public:
     /** Constructs a GRU layer for a given input and output size. */

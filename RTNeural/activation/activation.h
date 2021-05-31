@@ -55,7 +55,7 @@ namespace RTNeural
 
 /** Dynamic implementation of a tanh activation layer. */
 template <typename T>
-class TanhActivation : public Activation<T>
+class TanhActivation final : public Activation<T>
 {
 public:
     /** Constructs a tanh activation layer for a given size. */
@@ -108,7 +108,7 @@ public:
 
 /** Dynamic implementation of a ReLU activation layer. */
 template <typename T>
-class ReLuActivation : public Activation<T>
+class ReLuActivation final : public Activation<T>
 {
 public:
     /** Constructs a ReLU activation layer for a given size. */
@@ -154,7 +154,7 @@ public:
 
 /** Dynamic implementation of a sigmoid activation layer. */
 template <typename T>
-class SigmoidActivation : public Activation<T>
+class SigmoidActivation final : public Activation<T>
 {
 public:
     /** Constructs a sigmoid activation layer for a given size. */
@@ -200,7 +200,7 @@ public:
 
 /** Dynamic implementation of a softmax activation layer. */
 template <typename T>
-class SoftmaxActivation : public Activation<T>
+class SoftmaxActivation final : public Activation<T>
 {
 public:
     /** Constructs a softmax activation layer for a given size. */
