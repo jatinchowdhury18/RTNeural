@@ -6,8 +6,7 @@
 
 A lightweight neural network inferencing engine written in C++.
 This library was designed with the intention of being used in
-real-time audio processing, but may be useful for other tasks
-as well.
+real-time systems, specifically real-time audio processing.
 
 Currently supported layers:
   
@@ -163,14 +162,15 @@ To build the RTNeural's unit tests, run
 `cmake -Bbuild -DBUILD_TESTS=ON`, followed by
 `cmake --build build`. To run the full testing suite,
 run `./build/rtneural_tests all`. For more information,
-run `./buildrtneural_tests --help`.
+run `./build/rtneural_tests --help`.
 
 ### Building the Performance Benchmarks
 
 To build the performance benchmarks, run
 `cmake -Bbuild -DBUILD_BENCH=ON`, followed by
-`cmake --build build`. To run the layer benchmarks, run
-`./build/rtneural_layer_bench <layer> <length> <in_size> <out_size>`.
+`cmake --build build --config Release`. To run the layer benchmarks, run
+`./build/rtneural_layer_bench <layer> <length> <in_size> <out_size>`. To
+run the model benchmark, run `./build/rtneural_model_bench`.
 
 ## Contributing
 
