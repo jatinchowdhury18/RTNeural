@@ -2,6 +2,7 @@
 
 [![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/tests.yml)
 [![Bench](https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/bench.yml)
+[![arXiv](https://img.shields.io/badge/arXiv-2106.03037-b31b1b.svg)](https://arxiv.org/abs/2106.03037)
 [![License](https://img.shields.io/badge/License-BSD-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 A lightweight neural network inferencing engine written in C++.
@@ -197,6 +198,18 @@ backend.
 
 - [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
 - [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
+
+## Citation
+
+If you are using RTNeural as part of an academic work, please cite the library as follows:
+```
+@article{chowdhury2021rtneural,
+        title={RTNeural: Fast Neural Inferencing for Real-Time Systems}, 
+        author={Jatin Chowdhury},
+        year={2021},
+        journal={arXiv preprint arXiv:2106.03037}
+}
+```
 
 ## License
 
