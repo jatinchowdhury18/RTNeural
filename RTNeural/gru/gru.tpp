@@ -3,6 +3,8 @@
 namespace RTNeural
 {
 
+constexpr int kNumBiasLayers = 2;
+
 #if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
 template <typename T>
 GRULayer<T>::GRULayer(int in_size, int out_size)
@@ -50,6 +52,7 @@ GRULayer<T>::WeightSet::WeightSet(int in_size, int out_size)
 {
     W = new T*[out_size];
     U = new T*[out_size];
+    b = new T*[kNumBiasLayers];
     b[0] = new T[out_size];
     b[1] = new T[out_size];
 
@@ -72,6 +75,7 @@ GRULayer<T>::WeightSet::~WeightSet()
         delete[] U[i];
     }
 
+    delete[] b;
     delete[] W;
     delete[] U;
 }

@@ -85,8 +85,8 @@ protected:
 
         T** W;
         T** U;
-        T* b[2];
-        const int out_size;
+        T** b;
+        const size_t out_size;
     };
 
     WeightSet zWeights;
