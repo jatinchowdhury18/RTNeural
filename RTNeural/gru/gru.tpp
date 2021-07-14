@@ -53,8 +53,11 @@ GRULayer<T>::WeightSet::WeightSet(int in_size, int out_size)
     W = new T*[out_size];
     U = new T*[out_size];
     b = new T*[kNumBiasLayers];
-    b[0] = new T[out_size];
-    b[1] = new T[out_size];
+
+    for(int i = 0; i < kNumBiasLayers; ++i)
+    {
+        b[i] = new T[out_size];
+    }
 
     for(int i = 0; i < out_size; ++i)
     {
