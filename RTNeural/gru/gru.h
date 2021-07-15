@@ -97,7 +97,7 @@ protected:
     T* rVec;
     T* cVec;
 
-    static const int kNumBiasLayers { 2 };
+    static constexpr int kNumBiasLayers { 2 };
 };
 
 //====================================================
