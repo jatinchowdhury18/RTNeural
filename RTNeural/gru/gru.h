@@ -96,6 +96,8 @@ protected:
     T* zVec;
     T* rVec;
     T* cVec;
+
+    static const int kNumBiasLayers { 2 };
 };
 
 //====================================================

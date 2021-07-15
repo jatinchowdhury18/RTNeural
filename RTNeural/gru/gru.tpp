@@ -3,8 +3,6 @@
 namespace RTNeural
 {
 
-constexpr int kNumBiasLayers = 2;
-
 #if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
 template <typename T>
 GRULayer<T>::GRULayer(int in_size, int out_size)
