@@ -50,8 +50,12 @@ GRULayer<T>::WeightSet::WeightSet(int in_size, int out_size)
 {
     W = new T*[out_size];
     U = new T*[out_size];
-    b[0] = new T[out_size];
-    b[1] = new T[out_size];
+    b = new T*[kNumBiasLayers];
+
+    for(int i = 0; i < kNumBiasLayers; ++i)
+    {
+        b[i] = new T[out_size];
+    }
 
     for(int i = 0; i < out_size; ++i)
     {
@@ -63,8 +67,10 @@ GRULayer<T>::WeightSet::WeightSet(int in_size, int out_size)
 template <typename T>
 GRULayer<T>::WeightSet::~WeightSet()
 {
-    delete[] b[0];
-    delete[] b[1];
+    for(int i = 0; i < kNumBiasLayers; ++i)
+    {
+        delete[] b[i];
+    }
 
     for(int i = 0; i < out_size; ++i)
     {
@@ -72,6 +78,7 @@ GRULayer<T>::WeightSet::~WeightSet()
         delete[] U[i];
     }
 
+    delete[] b;
     delete[] W;
     delete[] U;
 }

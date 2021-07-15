@@ -85,7 +85,7 @@ protected:
 
         T** W;
         T** U;
-        T* b[2];
+        T** b;
         const int out_size;
     };
 
@@ -96,6 +96,8 @@ protected:
     T* zVec;
     T* rVec;
     T* cVec;
+
+    static constexpr int kNumBiasLayers { 2 };
 };
 
 //====================================================
