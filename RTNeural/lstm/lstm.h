@@ -93,7 +93,7 @@ protected:
 
         T** W; // kernel weights
         T** U; // recurrent weights
-        T* b;  // bias
+        T* b; // bias
         const int out_size;
     };
 

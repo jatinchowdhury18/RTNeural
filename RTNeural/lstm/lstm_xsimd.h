@@ -102,7 +102,7 @@ protected:
 
         vec2_type W; // kernel weights
         vec2_type U; // recurrent weights
-        vec_type b;  // bias
+        vec_type b; // bias
         const int out_size;
     };
 

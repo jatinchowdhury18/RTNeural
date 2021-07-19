@@ -109,10 +109,10 @@ public:
 
     /** Returns the kernel weight for the given indices. */
     T getWVal(int i, int k) const noexcept;
-    
+
     /** Returns the recurrent weight for the given indices. */
     T getUVal(int i, int k) const noexcept;
-    
+
     /** Returns the bias value for the given indices. */
     T getBVal(int i, int k) const noexcept;
 
@@ -127,8 +127,8 @@ protected:
         WeightSet(int in_size, int out_size);
         ~WeightSet();
 
-        vec2_type W;   // kernel weights
-        vec2_type U;   // recurrent weights
+        vec2_type W; // kernel weights
+        vec2_type U; // recurrent weights
         vec_type b[2]; // bias
         const int out_size;
     };
