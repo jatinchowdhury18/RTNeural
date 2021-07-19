@@ -7,7 +7,14 @@
 namespace RTNeural
 {
 
-/** Dynamic implementation of a LSTM layer. */
+/**
+ * Dynamic implementation of a LSTM layer with tanh
+ * activation and sigmoid recurrent activation.
+ * 
+ * To ensure that the recurrent state is initialized to zero,
+ * please make sure to call `reset()` before your first call to
+ * the `forward()` method.
+ */
 template <typename T>
 class LSTMLayer : public Layer<T>
 {
@@ -48,13 +55,25 @@ public:
         std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
     }
 
-    /** Sets the layer kernel weights. */
+    /**
+     * Sets the layer kernel weights.
+     * 
+     * The weights vector must have size weights[in_size][4 * out_size]
+     */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
-    /** Sets the layer recurrent weights. */
+    /**
+     * Sets the layer recurrent weights.
+     * 
+     * The weights vector must have size weights[out_size][4 * out_size]
+     */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
-    /** Sets the layer biases. */
+    /**
+     * Sets the layer bias.
+     * 
+     * The bias vector must have size weights[4 * out_size]
+     */
     void setBVals(const std::vector<T>& bVals);
 
 private:
@@ -83,7 +102,14 @@ private:
 };
 
 //====================================================
-/** Static implementation of a LSTM layer. */
+/**
+ * Static implementation of a LSTM layer with tanh
+ * activation and sigmoid recurrent activation.
+ * 
+ * To ensure that the recurrent state is initialized to zero,
+ * please make sure to call `reset()` before your first call to
+ * the `forward()` method.
+ */
 template <typename T, int in_sizet, int out_sizet>
 class LSTMLayerT
 {
@@ -123,13 +149,25 @@ public:
         outs = oVec.cwiseProduct(outs);
     }
 
-    /** Sets the layer kernel weights. */
+    /**
+     * Sets the layer kernel weights.
+     * 
+     * The weights vector must have size weights[in_size][4 * out_size]
+     */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
-    /** Sets the layer recurrent weights. */
+    /**
+     * Sets the layer recurrent weights.
+     * 
+     * The weights vector must have size weights[out_size][4 * out_size]
+     */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
-    /** Sets the layer biases. */
+    /**
+     * Sets the layer bias.
+     * 
+     * The bias vector must have size weights[4 * out_size]
+     */
     void setBVals(const std::vector<T>& bVals);
 
     Eigen::Map<out_type, Eigen::Aligned16> outs;

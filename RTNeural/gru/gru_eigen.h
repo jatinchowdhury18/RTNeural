@@ -7,7 +7,14 @@
 namespace RTNeural
 {
 
-/** Dynamic implementation of a gated recurrent unit (GRU) layer. */
+/**
+ * Dynamic implementation of a gated recurrent unit (GRU) layer
+ * with tanh activation and sigmoid recurrent activation.
+ * 
+ * To ensure that the recurrent state is initialized to zero,
+ * please make sure to call `reset()` before your first call to
+ * the `forward()` method.
+ */
 template <typename T>
 class GRULayer : public Layer<T>
 {
@@ -46,22 +53,34 @@ public:
         std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
     }
 
-    /** Sets the layer kernel weights. */
+    /**
+     * Sets the layer kernel weights.
+     * 
+     * The weights vector must have size weights[in_size][3 * out_size]
+     */
     void setWVals(T** wVals);
 
-    /** Sets the layer recurrent weights. */
+    /**
+     * Sets the layer recurrent weights.
+     * 
+     * The weights vector must have size weights[out_size][3 * out_size]
+     */
     void setUVals(T** uVals);
 
-    /** Sets the layer biases. */
+    /**
+     * Sets the layer bias.
+     * 
+     * The bias vector must have size weights[2][3 * out_size]
+     */
     void setBVals(T** bVals);
 
-    /** Sets the layer kernel weights. */
+    /** Returns the kernel weight for the given indices. */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
-    /** Sets the layer recurrent weights. */
+    /** Returns the recurrent weight for the given indices. */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
-    /** Sets the layer biases. */
+    /** Returns the bias value for the given indices. */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
     T getWVal(int i, int k) const noexcept;
@@ -89,7 +108,14 @@ private:
 };
 
 //====================================================
-/** Static implementation of a gated recurrent unit (GRU) layer. */
+/**
+ * Static implementation of a gated recurrent unit (GRU) layer
+ * with tanh activation and sigmoid recurrent activation.
+ * 
+ * To ensure that the recurrent state is initialized to zero,
+ * please make sure to call `reset()` before your first call to
+ * the `forward()` method.
+ */
 template <typename T, int in_sizet, int out_sizet>
 class GRULayerT
 {
@@ -125,13 +151,25 @@ public:
         outs = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
     }
 
-    /** Sets the layer kernel weights. */
+    /**
+     * Sets the layer kernel weights.
+     * 
+     * The weights vector must have size weights[in_size][3 * out_size]
+     */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
-    /** Sets the layer recurrent weights. */
+    /**
+     * Sets the layer recurrent weights.
+     * 
+     * The weights vector must have size weights[out_size][3 * out_size]
+     */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
-    /** Sets the layer biases. */
+    /**
+     * Sets the layer bias.
+     * 
+     * The bias vector must have size weights[2][3 * out_size]
+     */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
     Eigen::Map<out_type, Eigen::Aligned16> outs;
@@ -144,14 +182,17 @@ private:
         return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
     }
 
+    // kernel weights
     k_type wVec_z;
     k_type wVec_r;
     k_type wVec_c;
 
+    // recurrent weights
     r_type uVec_z;
     r_type uVec_r;
     r_type uVec_c;
 
+    // biases
     b_type bVec_z;
     b_type bVec_r;
     b_type bVec_c0;
