@@ -7,7 +7,14 @@
 namespace RTNeural
 {
 
-/** Dynamic implementation of a gated recurrent unit (GRU) layer. */
+/**
+ * Dynamic implementation of a gated recurrent unit (GRU) layer
+ * with tanh activation and sigmoid recurrent activation.
+ * 
+ * To ensure that the recurrent state is initialized to zero,
+ * please make sure to call `reset()` before your first call to
+ * the `forward()` method.
+ */
 template <typename T>
 class GRULayer : public Layer<T>
 {
@@ -58,26 +65,55 @@ public:
         vCopy(h, ht1.data(), Layer<T>::out_size);
     }
 
-    /** Sets the layer kernel weights. */
+    /**
+     * Sets the layer kernel weights.
+     * 
+     * The weights vector must have size weights[in_size][3 * out_size]
+     */
     void setWVals(T** wVals);
 
-    /** Sets the layer recurrent weights. */
+    /**
+     * Sets the layer recurrent weights.
+     * 
+     * The weights vector must have size weights[out_size][3 * out_size]
+     */
     void setUVals(T** uVals);
 
-    /** Sets the layer biases. */
+    /**
+     * Sets the layer bias.
+     * 
+     * The bias vector must have size weights[2][3 * out_size]
+     */
     void setBVals(T** bVals);
 
-    /** Sets the layer kernel weights. */
+    /**
+     * Sets the layer kernel weights.
+     * 
+     * The weights vector must have size weights[in_size][3 * out_size]
+     */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
-    /** Sets the layer recurrent weights. */
+    /**
+     * Sets the layer recurrent weights.
+     * 
+     * The weights vector must have size weights[out_size][3 * out_size]
+     */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
-    /** Sets the layer biases. */
+    /**
+     * Sets the layer bias.
+     * 
+     * The bias vector must have size weights[2][3 * out_size]
+     */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
+    /** Returns the kernel weight for the given indices. */
     T getWVal(int i, int k) const noexcept;
+
+    /** Returns the recurrent weight for the given indices. */
     T getUVal(int i, int k) const noexcept;
+
+    /** Returns the bias value for the given indices. */
     T getBVal(int i, int k) const noexcept;
 
 protected:
@@ -91,9 +127,9 @@ protected:
         WeightSet(int in_size, int out_size);
         ~WeightSet();
 
-        vec2_type W;
-        vec2_type U;
-        vec_type b[2];
+        vec2_type W; // kernel weights
+        vec2_type U; // recurrent weights
+        vec_type b[2]; // bias
         const int out_size;
     };
 
@@ -112,7 +148,14 @@ protected:
 };
 
 //====================================================
-/** Static implementation of a gated recurrent unit (GRU) layer. */
+/**
+ * Static implementation of a gated recurrent unit (GRU) layer
+ * with tanh activation and sigmoid recurrent activation.
+ * 
+ * To ensure that the recurrent state is initialized to zero,
+ * please make sure to call `reset()` before your first call to
+ * the `forward()` method.
+ */
 template <typename T, int in_sizet, int out_sizet>
 class GRULayerT
 {
@@ -189,13 +232,25 @@ public:
             outs[i] = xsimd::fma((v_type((T)1.0) - zt[i]), ht[i], zt[i] * outs[i]);
     }
 
-    /** Sets the layer kernel weights. */
+    /**
+     * Sets the layer kernel weights.
+     * 
+     * The weights vector must have size weights[in_size][3 * out_size]
+     */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
-    /** Sets the layer recurrent weights. */
+    /**
+     * Sets the layer recurrent weights.
+     * 
+     * The weights vector must have size weights[out_size][3 * out_size]
+     */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
-    /** Sets the layer biases. */
+    /**
+     * Sets the layer bias.
+     * 
+     * The bias vector must have size weights[2][3 * out_size]
+     */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
     v_type outs[v_out_size];

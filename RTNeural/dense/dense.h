@@ -56,7 +56,10 @@ private:
 };
 #endif // DOXYGEN
 
-/** Dynamic implementation of a fully-connected (dense) layer. */
+/**
+ * Dynamic implementation of a fully-connected (dense) layer,
+ * with no activation.
+ */
 template <typename T>
 class Dense final : public Layer<T>
 {
@@ -103,21 +106,34 @@ public:
             out[i] = subLayers[i]->forward(input);
     }
 
-    /** Sets the layer weights from a given vector. */
+    /**
+     * Sets the layer weights from a given vector.
+     * 
+     * The dimension of the weights vector must be
+     * weights[out_size][in_size]
+     */
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             subLayers[i]->setWeights(newWeights[i].data());
     }
 
-    /** Sets the layer weights from a given array. */
+    /**
+     * Sets the layer weights from a given array.
+     * 
+     * The dimension of the weights array must be
+     * weights[out_size][in_size]
+     */
     void setWeights(T** newWeights)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             subLayers[i]->setWeights(newWeights[i]);
     }
 
-    /** Sets the layer bias from a given array. */
+    /**
+     * Sets the layer bias from a given array of size
+     * bias[out_size]
+     */
     void setBias(T* b)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -138,7 +154,10 @@ private:
 };
 
 //====================================================
-/** Static implementation of a fully-connected (dense) layer. */
+/**
+ * Static implementation of a fully-connected (dense) layer,
+ * with no activation.
+ */
 template <typename T, int in_sizet, int out_sizet>
 class DenseT
 {
@@ -166,6 +185,7 @@ public:
     /** Returns false since dense is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
+    /** Reset is a no-op, since Dense does not have state. */
     void reset() { }
 
     /** Performs forward propagation for this layer. */
@@ -175,7 +195,12 @@ public:
             outs[i] = std::inner_product(ins, ins + in_size, &weights[i * in_size], (T)0) + bias[i];
     }
 
-    /** Sets the layer weights from a given vector. */
+    /**
+     * Sets the layer weights from a given vector.
+     * 
+     * The dimension of the weights vector must be
+     * weights[out_size][in_size]
+     */
     void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < out_size; ++i)
@@ -188,7 +213,12 @@ public:
         }
     }
 
-    /** Sets the layer weights from a given array. */
+    /**
+     * Sets the layer weights from a given vector.
+     * 
+     * The dimension of the weights array must be
+     * weights[out_size][in_size]
+     */
     void setWeights(T** newWeights)
     {
         for(int i = 0; i < out_size; ++i)
@@ -201,7 +231,10 @@ public:
         }
     }
 
-    /** Sets the layer bias from a given array. */
+    /**
+     * Sets the layer bias from a given array of size
+     * bias[out_size]
+     */
     void setBias(T* b)
     {
         for(int i = 0; i < out_size; ++i)
