@@ -194,10 +194,13 @@ for all the backends, though it is recommended to at
 least provide a "fallback" implementation using the STL
 backend.
 
-## Related Projects
+## Powered by RTNeural
+
+RTNeural is currently being used by several audio plugins:
 
 - [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
 - [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
+- [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
 
 ## Citation
 
