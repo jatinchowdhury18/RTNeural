@@ -290,6 +290,19 @@ static inline void softmax(const T* input, T* out, int size) noexcept
     }
 }
 
+/** Pade approximation of std::tanh() */
+template <typename T>
+static inline T tanh_approx(T x) noexcept
+{
+    constexpr auto clamp = (T) 4.785;
+    x = x > clamp ? clamp : (x < -clamp ? -clamp : x); // clamp to range [-clamp, clamp]
+    
+    auto x2 = x * x;
+    auto numerator = x * ((T) 135135 + x2 * ((T) 17325 + x2 * ((T) 378 + x2)));
+    auto denominator = (T) 135135 + x2 * ((T) 62370 + x2 * ((T) 3150 + (T) 28 * x2));
+    return numerator / denominator;
+}
+
 } // namespace RTNeural
 
 #endif
