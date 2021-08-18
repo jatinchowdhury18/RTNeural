@@ -73,6 +73,7 @@ int fastTanhTest(T limit)
 #if RTNEURAL_USE_XSIMD
         result |= testTanh([&fastTanhT, &test_outs] (const T (&test_ins)[layerSize])
         {
+            constexpr int layerSize = 8; // MSVC can't capture this in the lambda
             using b_type = xsimd::simd_type<T>;
             constexpr auto b_size = (int)b_type::size;
             constexpr auto v_size = layerSize / b_size;
@@ -89,6 +90,7 @@ int fastTanhTest(T limit)
 #elif RTNEURAL_USE_EIGEN
         result |= testTanh([&fastTanhT, &test_outs] (const T (&test_ins)[layerSize])
         {
+            constexpr int layerSize = 8; // MSVC can't capture this in the lambda
             using MatType = Eigen::Matrix<T, layerSize, 1>;
             Eigen::Map<const MatType> test_ins_v (test_ins);
 
