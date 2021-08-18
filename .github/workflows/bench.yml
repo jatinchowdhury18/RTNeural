@@ -73,6 +73,11 @@ jobs:
         ./build/rtneural_layer_bench tanh 5 4 4
         ./build/rtneural_layer_bench tanh 5 16 16
 
+    - name: Benchmark FastTanh
+      run: |
+        ./build/rtneural_layer_bench fast_tanh 5 4 4
+        ./build/rtneural_layer_bench fast_tanh 5 16 16
+
     - name: Benchmark ReLu
       run: |
         ./build/rtneural_layer_bench relu 5 4 4
