@@ -106,7 +106,7 @@ public:
     T outs alignas(16)[size];
 };
 
-/** Dynamic implementation of a tanh activation layer. */
+/** Dynamic implementation of an approximate tanh activation layer. */
 template <typename T>
 class FastTanh final : public Activation<T>
 {
@@ -131,7 +131,7 @@ public:
     }
 };
 
-/** Static implementation of a tanh activation layer. */
+/** Static implementation of an approximate tanh activation layer. */
 template <typename T, int size>
 class FastTanhT
 {

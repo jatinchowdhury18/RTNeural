@@ -16,7 +16,7 @@ int fastTanhTest(T limit)
         std::default_random_engine generator;
         std::uniform_real_distribution<T> distribution(-range, range);
 
-        T test_ins[layerSize];
+        T test_ins alignas(16) [layerSize];
         T actual_outs[layerSize];
 
         auto maxError = (T) 0;
@@ -49,7 +49,7 @@ int fastTanhTest(T limit)
         std::cout << "    Maximum error: " << maxError << ", at input value: " << maxErrorInput << std::endl;
         if(maxError > limit)
         {
-            std::cout << "FAIL: Error is too high!" << std::endl;
+            std::cout << "    FAIL: Error is too high!" << std::endl;
             return 1;
         }
 
@@ -59,7 +59,7 @@ int fastTanhTest(T limit)
     int result = 0;
     auto dtype = std::is_same<T, float>::value ? "float" : "double";
 
-    T test_outs[layerSize];
+    T test_outs alignas(16) [layerSize];
     FastTanh<T> fastTanh { layerSize };
     std::cout << "Testing FastTanh for data type " << dtype << std::endl;
     result |= testTanh([&fastTanh, &test_outs] (const T (&test_ins)[layerSize])
@@ -69,10 +69,28 @@ int fastTanhTest(T limit)
 
     FastTanhT<T, layerSize> fastTanhT;
     std::cout << "Testing FastTanhT for data type " << dtype << std::endl;
+#if RTNEURAL_USE_XSIMD
+        result |= testTanh([&fastTanhT, &test_outs] (const T (&test_ins)[layerSize])
+        {
+            using b_type = xsimd::simd_type<T>;
+            constexpr auto b_size = (int)b_type::size;
+            constexpr auto v_size = layerSize / b_size;
+
+            b_type test_ins_v[v_size];
+            for(int i = 0; i < v_size; ++i)
+                test_ins_v[i] = xsimd::load_aligned(test_ins + i * b_size);
+
+            fastTanhT.forward(test_ins_v);
+
+            for(int i = 0; i < v_size; ++i)
+                xsimd::store_aligned(test_outs + i * b_size, fastTanhT.outs[i]);
+        }, test_outs);
+#else
     result |= testTanh([&fastTanhT] (const T (&test_ins)[layerSize])
         {
             fastTanhT.forward(test_ins);
         }, fastTanhT.outs);
+#endif
 
     return result;
 }
@@ -80,8 +98,8 @@ int fastTanhTest(T limit)
 int approximationTests()
 {
     int result = 0;
-    result |= fastTanhTest<float>(7.0e-5f);
-    result |= fastTanhTest<double>(7.0e-5);
+    result |= fastTanhTest<float>(5.1e-5f);
+    result |= fastTanhTest<double>(5.1e-5);
 
     return result;
 }
