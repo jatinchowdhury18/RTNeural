@@ -148,6 +148,28 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
         }
     }
+    else if(layer_type == "fast_tanh")
+    {
+        if(in_size == 4 && out_size == 4)
+        {
+            ModelT<double, 4, 4, FastTanhT<double, 4>> model;
+            duration = run_layer(model);
+        }
+        else if(in_size == 8 && out_size == 8)
+        {
+            ModelT<double, 8, 8, FastTanhT<double, 8>> model;
+            duration = run_layer(model);
+        }
+        else if(in_size == 16 && out_size == 16)
+        {
+            ModelT<double, 16, 16, FastTanhT<double, 16>> model;
+            duration = run_layer(model);
+        }
+        else
+        {
+            std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
+        }
+    }
     else if(layer_type == "relu")
     {
         if(in_size == 4 && out_size == 4)
