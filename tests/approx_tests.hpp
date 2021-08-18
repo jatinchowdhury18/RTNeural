@@ -16,6 +16,7 @@ int fastTanhTest(T limit)
         std::default_random_engine generator;
         std::uniform_real_distribution<T> distribution(-range, range);
 
+        constexpr int layerSize = 8; // MSVC can't capture this in the lambda
         T test_ins alignas(16) [layerSize];
         T actual_outs[layerSize];
 
