@@ -46,6 +46,18 @@ softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
     vector = vector / vector.sum();
 }
 
+template <typename T, typename MatType>
+static inline auto fast_tanh(const MatType& in)
+{
+    constexpr auto clamp = (T) 5.7;
+    auto xc = in.cwiseMin(clamp).cwiseMax(-clamp); // clamp to range [-clamp, clamp]
+
+    auto x2 = xc.array().square();
+    auto numerator = xc.array().cwiseProduct(((T) 2027025 + x2.cwiseProduct((T) 270270 + x2.cwiseProduct((T) 6930 + (T) 36 * x2.array()).array()).array()));
+    auto denominator = (T) 2027025 + x2.cwiseProduct((T) 945945 + x2.cwiseProduct((T) 51975 + x2.cwiseProduct((T) 630 + x2.array()).array()).array()).array();
+    return numerator.cwiseProduct(denominator.inverse());
+}
+
 } // namespace RTNeural
 
 #elif RTNEURAL_USE_XSIMD

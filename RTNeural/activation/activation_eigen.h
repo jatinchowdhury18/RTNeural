@@ -69,6 +69,69 @@ public:
 
     v_type outs;
 };
+/** Dynamic implementation of an approximate tanh activation layer. */
+template <typename T>
+class FastTanh : public Activation<T>
+{
+public:
+    /** Constructs a tanh activation layer for a given size. */
+    FastTanh(int size)
+        : Activation<T>(size, {}, "tanh")
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    FastTanh(std::initializer_list<int> sizes)
+        : FastTanh(*sizes.begin())
+    {
+    }
+
+    /** Performs forward propagation for tanh activation. */
+    inline void forward(const T* input, T* out) override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+            input, Layer<T>::in_size, 1);
+        outVec = fast_tanh<T>(inVec);
+
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+};
+
+/** Static implementation of an approximate tanh activation layer. */
+template <typename T, int size>
+class FastTanhT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    FastTanhT()
+    {
+        outs = v_type::Zero();
+    }
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "tanh"; }
+
+    /** Returns true if this layer is an activation layer. */
+    constexpr bool isActivation() const noexcept { return true; }
+
+    void reset() { }
+
+    /** Performs forward propagation for tanh activation. */
+    inline void forward(const v_type& ins)
+    {
+        outs = fast_tanh<T>(ins);
+    }
+
+    v_type outs;
+};
 
 /** Dynamic implementation of a ReLU activation layer. */
 template <typename T>

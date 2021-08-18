@@ -85,6 +85,17 @@ int fastTanhTest(T limit)
             for(int i = 0; i < v_size; ++i)
                 xsimd::store_aligned(test_outs + i * b_size, fastTanhT.outs[i]);
         }, test_outs);
+#elif RTNEURAL_USE_EIGEN
+        result |= testTanh([&fastTanhT, &test_outs] (const T (&test_ins)[layerSize])
+        {
+            using MatType = Eigen::Matrix<T, layerSize, 1>;
+            Eigen::Map<const MatType> test_ins_v (test_ins);
+
+            fastTanhT.forward(test_ins_v);
+
+            for(int i = 0; i < layerSize; ++i)
+                test_outs[i] = fastTanhT.outs(i);
+        }, test_outs);
 #else
     result |= testTanh([&fastTanhT] (const T (&test_ins)[layerSize])
         {
