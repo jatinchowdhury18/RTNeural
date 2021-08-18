@@ -14,12 +14,12 @@ constexpr T ceil_div(T num, T den)
 template <typename T>
 static inline T tanh_approx(T x) noexcept
 {
-    constexpr auto clamp = (T) 5.7;
+    constexpr auto clamp = (T)5.7;
     x = x > clamp ? clamp : (x < -clamp ? -clamp : x); // clamp to range [-clamp, clamp]
 
     auto x2 = x * x;
-    auto numerator = x * ((T) 2027025 + x2 * ((T) 270270 + x2 * ((T) 6930 + (T) 36 * x2)));
-    auto denominator = (T) 2027025 + x2 * ((T) 945945 + x2 * ((T) 51975 + x2 * ((T) 630 + x2)));
+    auto numerator = x * ((T)2027025 + x2 * ((T)270270 + x2 * ((T)6930 + (T)36 * x2)));
+    auto denominator = (T)2027025 + x2 * ((T)945945 + x2 * ((T)51975 + x2 * ((T)630 + x2)));
     return numerator / denominator;
 }
 
@@ -49,12 +49,12 @@ softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 template <typename T, typename MatType>
 static inline auto fast_tanh(const MatType& in)
 {
-    constexpr auto clamp = (T) 5.7;
+    constexpr auto clamp = (T)5.7;
     auto xc = in.cwiseMin(clamp).cwiseMax(-clamp); // clamp to range [-clamp, clamp]
 
     auto x2 = xc.array().square();
-    auto numerator = xc.array().cwiseProduct(((T) 2027025 + x2.cwiseProduct((T) 270270 + x2.cwiseProduct((T) 6930 + (T) 36 * x2.array()).array()).array()));
-    auto denominator = (T) 2027025 + x2.cwiseProduct((T) 945945 + x2.cwiseProduct((T) 51975 + x2.cwiseProduct((T) 630 + x2.array()).array()).array()).array();
+    auto numerator = xc.array().cwiseProduct(((T)2027025 + x2.cwiseProduct((T)270270 + x2.cwiseProduct((T)6930 + (T)36 * x2.array()).array()).array()));
+    auto denominator = (T)2027025 + x2.cwiseProduct((T)945945 + x2.cwiseProduct((T)51975 + x2.cwiseProduct((T)630 + x2.array()).array()).array()).array();
     return numerator.cwiseProduct(denominator.inverse());
 }
 
@@ -230,17 +230,17 @@ static inline xsimd::simd_type<T> fast_tanh(const xsimd::simd_type<T>& x) noexce
 {
     using b_type = xsimd::simd_type<T>;
 
-    static const b_type clamp_hi ((T) 5.7);
-    static const b_type clamp_lo ((T) -5.7);
+    static const b_type clamp_hi((T)5.7);
+    static const b_type clamp_lo((T)-5.7);
     auto xc = xsimd::clip(x, clamp_lo, clamp_hi); // clamp to range [-clamp, clamp]
 
-    static const b_type v2027025 ((T) 2027025);
-    static const b_type v270270 ((T) 270270);
-    static const b_type v6930 ((T) 6930);
-    static const b_type v36 ((T) 36);
-    static const b_type v945945 ((T) 945945);
-    static const b_type v51975 ((T) 51975);
-    static const b_type v630 ((T) 630);
+    static const b_type v2027025((T)2027025);
+    static const b_type v270270((T)270270);
+    static const b_type v6930((T)6930);
+    static const b_type v36((T)36);
+    static const b_type v945945((T)945945);
+    static const b_type v51975((T)51975);
+    static const b_type v630((T)630);
 
     auto x2 = xc * xc;
     auto numerator = xc * (v2027025 + x2 * (v270270 + x2 * (v6930 + v36 * x2)));

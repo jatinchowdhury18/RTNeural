@@ -1,9 +1,9 @@
+#include "approx_tests.hpp"
 #include "load_csv.hpp"
 #include "model_test.hpp"
 #include "templated_tests.hpp"
 #include "test_configs.hpp"
 #include "util_tests.hpp"
-#include "approx_tests.hpp"
 
 // @TODO: make tests for both float and double precision
 void help()
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
         return model_test::model_test();
     }
 
-    if (arg == "approx")
+    if(arg == "approx")
     {
         return approximationTests();
     }
