@@ -26,6 +26,8 @@ Currently supported activations:
 
 For a complete reference of the available functionality,
 see the [API docs](https://ccrma.stanford.edu/~jatin/chowdsp/RTNeural).
+For more information on the design and purpose of the library,
+see the [reference paper](https://arxiv.org/abs/2106.03037).
 
 ## How To Use
 
