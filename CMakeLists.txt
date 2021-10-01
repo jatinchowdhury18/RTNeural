@@ -47,7 +47,7 @@ if(BUILD_BENCH)
 endif()
 
 option(BUILD_EXAMPLES "Build RTNeural examples" OFF)
-if(BUILD_BENCH)
+if(BUILD_EXAMPLES)
     message(STATUS "RTNeural -- Configuring examples...")
     add_subdirectory(examples)
 endif()
