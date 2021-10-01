@@ -2,6 +2,7 @@
 
 [![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/tests.yml)
 [![Bench](https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/bench.yml)
+[![Examples](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/examples.yml/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/examples.yml)
 [![arXiv](https://img.shields.io/badge/arXiv-2106.03037-b31b1b.svg)](https://arxiv.org/abs/2106.03037)
 [![License](https://img.shields.io/badge/License-BSD-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
@@ -33,9 +34,8 @@ see the [reference paper](https://arxiv.org/abs/2106.03037).
 
 `RTNeural` is capable of taking a neural network that
 has already been trained, loading the weights from that
-network, and running inference. An example of using
-RTNeural within an audio plugin can be found on GitHub
-[here](https://github.com/jatinchowdhury18/RTNeural-example).
+network, and running inference. Some simple examples
+are available in the [`examples/`](./examples) directory.
 
 ### Exporting weights from a trained network
 
@@ -174,6 +174,20 @@ To build the performance benchmarks, run
 `cmake --build build --config Release`. To run the layer benchmarks, run
 `./build/rtneural_layer_bench <layer> <length> <in_size> <out_size>`. To
 run the model benchmark, run `./build/rtneural_model_bench`.
+
+### Building the Examples
+
+To build the RTNeural examples run:
+```bash
+cmake -Bbuild -DBUILD_EXAMPLES=ON
+cmake --build build --config Release
+```
+The example programs will then be located in
+`build/examples_out/`, and may be run from there.
+
+An example of using RTNeural within a real-time
+audio plugin can be found on GitHub
+[here](https://github.com/jatinchowdhury18/RTNeural-example).
 
 ## Contributing
 
