@@ -2,6 +2,7 @@
 
 [![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/tests.yml)
 [![Bench](https://github.com/jatinchowdhury18/RTNeural/workflows/Bench/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/bench.yml)
+[![Examples](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/examples.yml/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/examples.yml)
 [![arXiv](https://img.shields.io/badge/arXiv-2106.03037-b31b1b.svg)](https://arxiv.org/abs/2106.03037)
 [![License](https://img.shields.io/badge/License-BSD-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
