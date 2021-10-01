@@ -7,13 +7,13 @@ namespace fs = std::filesystem;
 std::string getModelFile (fs::path path)
 {
     // get path of RTNeural root directory
-    while((--path.end())->c_str() != std::string("RTNeural"))
+    while((--path.end())->string() != "RTNeural")
         path = path.parent_path();
 
     // get path of model file
     path.append("examples/hello_rtneural/test_net.json");
     
-    return path.c_str();
+    return path.string();
 }
 
 int main(int argc, char* argv[])
