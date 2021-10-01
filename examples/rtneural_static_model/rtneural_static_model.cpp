@@ -11,14 +11,14 @@ std::string getModelFile (fs::path path)
         path = path.parent_path();
 
     // get path of model file
-    path.append("examples/hello_rtneural/test_net.json");
+    path.append("examples/rtneural_static_model/test_net.json");
     
     return path.string();
 }
 
 int main(int argc, char* argv[])
 {
-    std::cout << "Running \"hello rtneural\" example..." << std::endl;
+    std::cout << "Running \"rtneural static model\" example..." << std::endl;
 
     // get path of executable
     auto executablePath = fs::weakly_canonical(fs::path(argv[0]));

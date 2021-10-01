@@ -52,3 +52,7 @@ jobs:
     - name: RTNeural Static Model
       shell: bash
       run: ./build/examples_out/rtneural_static_model
+
+    - name: RTNeural Dynamic Model
+      shell: bash
+      run: ./build/examples_out/rtneural_dynamic_model models/dense.json

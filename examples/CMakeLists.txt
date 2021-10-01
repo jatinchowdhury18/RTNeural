@@ -14,3 +14,4 @@ endfunction()
 
 add_subdirectory(hello_rtneural)
 add_subdirectory(rtneural_static_model)
+add_subdirectory(rtneural_dynamic_model)

@@ -26,10 +26,10 @@ int main(int argc, char* argv[])
 
     std::cout << "Loading model from path: " << modelFilePath << std::endl;
     std::ifstream jsonStream(modelFilePath, std::ifstream::binary);
-    auto modelRef = RTNeural::json_parser::parseJson<float>(jsonStream, true);
+    auto model = RTNeural::json_parser::parseJson<float>(jsonStream, true);
 
     float testInput[1] = { 5.0f };
-    float testOutput = modelRef->forward (testInput);
+    float testOutput = model->forward (testInput);
     std::cout << "Test output: " << testOutput << std::endl;
 
     return 0;
