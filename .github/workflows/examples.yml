@@ -1,0 +1,54 @@
+name: Examples
+
+on:
+  push:
+    branches:
+    - main
+    - develop
+  pull_request:
+    branches:
+    - main
+    - develop
+
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    if: contains(toJson(github.event.commits), '***NO_CI***') == false && contains(toJson(github.event.commits), '[ci skip]') == false && contains(toJson(github.event.commits), '[skip ci]') == false
+    name: Testing library examples, running on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # show all errors for each platform (vs. cancel jobs on error)
+      matrix:
+        include:
+        - os: ubuntu-latest
+          name: "STL"
+          backend: "-DRTNEURAL_STL=ON"
+        - os: windows-latest
+          name: "STL"
+          backend: "-DRTNEURAL_STL=ON"
+        - os: macos-latest
+          name: "STL"
+          backend: "-DRTNEURAL_STL=ON"
+
+    
+    steps:
+    - name: Get latest CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure
+      env:
+        BACKEND_ARG: ${{ matrix.backend }}
+      shell: bash
+      run: cmake -Bbuild -DBUILD_EXAMPLES=ON $BACKEND_ARG
+
+    - name: Build
+      shell: bash
+      run: cmake --build build --config Release --parallel
+
+    - name: Hello RTNeural
+      shell: bash
+      run: ./build/examples/hello_rtneural/hello_rtneural
