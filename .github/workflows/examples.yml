@@ -22,16 +22,12 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          name: "STL"
           backend: "-DRTNEURAL_STL=ON"
         - os: windows-latest
-          name: "STL"
           backend: "-DRTNEURAL_STL=ON"
         - os: macos-latest
-          name: "STL"
           backend: "-DRTNEURAL_STL=ON"
 
-    
     steps:
     - name: Get latest CMake
       uses: lukka/get-cmake@latest
@@ -51,4 +47,4 @@ jobs:
 
     - name: Hello RTNeural
       shell: bash
-      run: ./build/examples/hello_rtneural/hello_rtneural
+      run: ./build/examples_out/hello_rtneural
