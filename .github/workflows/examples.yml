@@ -48,3 +48,7 @@ jobs:
     - name: Hello RTNeural
       shell: bash
       run: ./build/examples_out/hello_rtneural
+
+    - name: RTNeural Static Model
+      shell: bash
+      run: ./build/examples_out/rtneural_static_model
