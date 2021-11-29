@@ -5,6 +5,7 @@ function(create_example example_name)
     message(STATUS "RTNeural -- Configuring example: ${example_name}")
     add_executable(${example_name} ${example_name}.cpp)
     target_include_directories(${example_name} PUBLIC ${CMAKE_SOURCE_DIR})
+    target_link_libraries(${example_name} PUBLIC RTNeural)
 
     add_custom_command(TARGET ${example_name}
                        POST_BUILD
