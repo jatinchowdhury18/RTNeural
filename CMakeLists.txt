@@ -10,12 +10,7 @@ endif()
 
 add_subdirectory(RTNeural)
 
-option(RTNEURAL_USE_AVX2 "Enables AVX2 SIMD Support" OFF)
-if(RTNEURAL_USE_AVX2)
-    include(cmake/EnableAVX2.cmake)
-endif()
-
-# select library backend
+include(cmake/SIMDExtensions.cmake)
 include(cmake/ChooseBackend.cmake)
 
 option(BUILD_TESTS "Build RTNeural accuracy tests" OFF)
