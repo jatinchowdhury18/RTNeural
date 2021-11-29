@@ -187,14 +187,14 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
-    T outs alignas(16)[out_size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
-    T state alignas(16)[in_size][state_size * 2];
+    T state alignas(RTNEURAL_DEFAULT_ALIGNMENT)[in_size][state_size * 2];
     int state_ptr = 0;
 
-    T weights alignas(16)[out_size][in_size][state_size];
-    T bias alignas(16)[out_size];
+    T weights alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][in_size][state_size];
+    T bias alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 
 } // namespace RTNeural

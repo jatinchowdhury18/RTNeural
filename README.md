@@ -159,6 +159,13 @@ used when compiling for Apple devices, and does not
 currently support defining [compile-time inferencing
 engines](#compile-time-api).
 
+### Other configuration flags
+
+If you would like to build RTNeural with the AVX2 SIMD extensions,
+you may run CMake with the `-DRTNEURAL_USE_AVX2=ON`. Note that
+this flag will have no effect when compiling for platforms that
+do not support AVX2 instructions.
+
 ### Building the Unit Tests
 
 To build the RTNeural's unit tests, run

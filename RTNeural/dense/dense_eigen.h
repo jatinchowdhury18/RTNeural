@@ -183,7 +183,7 @@ public:
     Eigen::Map<vec_type, Eigen::Aligned16> outs;
 
 private:
-    T outs_internal alignas(16)[out_size];
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     mat_type weights;
     vec_type bias;

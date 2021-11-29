@@ -221,7 +221,7 @@ public:
      */
     void setBVals(const std::vector<T>& bVals);
 
-    T outs alignas(16)[out_size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
     static inline void recurrent_mat_mul(const T (&vec)[out_size], const T (&mat)[out_size][out_size], T (&out)[out_size]) noexcept
@@ -237,36 +237,36 @@ private:
     }
 
     // kernel weights
-    T Wf alignas(16)[out_size][in_size];
-    T Wi alignas(16)[out_size][in_size];
-    T Wo alignas(16)[out_size][in_size];
-    T Wc alignas(16)[out_size][in_size];
-    T kernel_outs alignas(16)[out_size];
+    T Wf alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][in_size];
+    T Wi alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][in_size];
+    T Wo alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][in_size];
+    T Wc alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][in_size];
+    T kernel_outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     // single-input kernel weights
-    T Wf_1 alignas(16)[out_size];
-    T Wi_1 alignas(16)[out_size];
-    T Wo_1 alignas(16)[out_size];
-    T Wc_1 alignas(16)[out_size];
+    T Wf_1 alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T Wi_1 alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T Wo_1 alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T Wc_1 alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     // recurrent weights
-    T Uf alignas(16)[out_size][out_size];
-    T Ui alignas(16)[out_size][out_size];
-    T Uo alignas(16)[out_size][out_size];
-    T Uc alignas(16)[out_size][out_size];
+    T Uf alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][out_size];
+    T Ui alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][out_size];
+    T Uo alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][out_size];
+    T Uc alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][out_size];
 
     // biases
-    T bf alignas(16)[out_size];
-    T bi alignas(16)[out_size];
-    T bo alignas(16)[out_size];
-    T bc alignas(16)[out_size];
+    T bf alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T bi alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T bo alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T bc alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     // intermediate vars
-    T ft alignas(16)[out_size];
-    T it alignas(16)[out_size];
-    T ot alignas(16)[out_size];
-    T ht alignas(16)[out_size];
-    T ct alignas(16)[out_size];
+    T ft alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T it alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T ot alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T ht alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T ct alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 
 } // namespace RTNeural

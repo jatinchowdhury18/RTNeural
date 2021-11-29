@@ -103,7 +103,7 @@ public:
             outs[i] = std::tanh(ins[i]);
     }
 
-    T outs alignas(16)[size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
 /** Dynamic implementation of an approximate tanh activation layer. */
@@ -156,7 +156,7 @@ public:
             outs[i] = tanh_approx(ins[i]);
     }
 
-    T outs alignas(16)[size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
 /** Dynamic implementation of a ReLU activation layer. */
@@ -202,7 +202,7 @@ public:
             outs[i] = std::max((T)0, ins[i]);
     }
 
-    T outs alignas(16)[size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
 /** Dynamic implementation of a sigmoid activation layer. */
@@ -248,7 +248,7 @@ public:
             outs[i] = sigmoid(ins[i]);
     }
 
-    T outs alignas(16)[size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
 /** Dynamic implementation of a softmax activation layer. */
@@ -309,7 +309,7 @@ public:
         }
     }
 
-    T outs alignas(16)[size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
 } // namespace RTNeural

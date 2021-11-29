@@ -30,15 +30,6 @@ add_library(RTNeural STATIC
     RTNeural.cpp
 )
 
-# -fpic
 set_property(TARGET RTNeural PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(RTNeural PROPERTIES LINKER_LANGUAGE CXX)
-
-# external libraries
-target_include_directories(RTNeural PUBLIC ../modules/Eigen)
-target_include_directories(RTNeural PUBLIC ../modules/xsimd/include)
 target_include_directories(RTNeural PUBLIC ../modules/json)
-
-if(RTNEURAL_ACCELERATE)
-    target_link_libraries(RTNeural PUBLIC "-framework Accelerate")
-endif()

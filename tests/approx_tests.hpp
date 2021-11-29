@@ -17,7 +17,7 @@ int fastTanhTest(T limit)
         std::uniform_real_distribution<T> distribution(-range, range);
 
         constexpr int layerSize = 8; // MSVC can't capture this in the lambda
-        T test_ins alignas(16) [layerSize];
+        T test_ins alignas(RTNEURAL_DEFAULT_ALIGNMENT) [layerSize];
         T actual_outs[layerSize];
 
         auto maxError = (T) 0;
@@ -60,7 +60,7 @@ int fastTanhTest(T limit)
     int result = 0;
     auto dtype = std::is_same<T, float>::value ? "float" : "double";
 
-    T test_outs alignas(16) [layerSize];
+    T test_outs alignas(RTNEURAL_DEFAULT_ALIGNMENT) [layerSize];
     FastTanh<T> fastTanh { layerSize };
     std::cout << "Testing FastTanh for data type " << dtype << std::endl;
     result |= testTanh([&fastTanh, &test_outs] (const T (&test_ins)[layerSize])
@@ -71,7 +71,7 @@ int fastTanhTest(T limit)
     FastTanhT<T, layerSize> fastTanhT;
     std::cout << "Testing FastTanhT for data type " << dtype << std::endl;
 #if RTNEURAL_USE_XSIMD
-        result |= testTanh([&fastTanhT, &test_outs] (const T (&test_ins)[layerSize])
+    result |= testTanh([&fastTanhT, &test_outs] (const T (&test_ins)[layerSize])
         {
             constexpr int layerSize = 8; // MSVC can't capture this in the lambda
             using b_type = xsimd::simd_type<T>;

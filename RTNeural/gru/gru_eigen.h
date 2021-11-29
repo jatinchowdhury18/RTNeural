@@ -175,7 +175,7 @@ public:
     Eigen::Map<out_type, Eigen::Aligned16> outs;
 
 private:
-    T outs_internal alignas(16)[out_size];
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     static inline out_type sigmoid(const out_type& x) noexcept
     {

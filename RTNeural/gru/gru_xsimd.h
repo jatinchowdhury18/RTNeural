@@ -258,7 +258,7 @@ public:
 private:
     static inline void recurrent_mat_mul(const v_type (&vec)[v_out_size], const v_type (&mat)[out_size][v_out_size], v_type (&out)[v_out_size]) noexcept
     {
-        T sums alignas(16)[out_size] { (T)0 };
+        T sums alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size] { (T)0 };
         for(int i = 0; i < v_size; ++i)
         {
             for(int j = 0; j < v_out_size; ++j)
@@ -274,7 +274,7 @@ private:
 
     static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[out_size][v_in_size], v_type (&out)[v_out_size]) noexcept
     {
-        T sums alignas(16)[out_size] { (T)0 };
+        T sums alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size] { (T)0 };
         for(int i = 0; i < v_size; ++i)
         {
             for(int j = 0; j < v_out_size; ++j)
