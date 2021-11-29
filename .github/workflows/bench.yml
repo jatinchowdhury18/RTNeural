@@ -25,8 +25,6 @@ jobs:
           backend: "-DRTNEURAL_EIGEN=ON"
         - name: "xsimd"
           backend: "-DRTNEURAL_XSIMD=ON"
-        - name: "xsimd - AVX2"
-          backend: "-DRTNEURAL_XSIMD=ON -DRTNEURAL_USE_AVX2=ON"
         - name: "STL"
           backend: "-DRTNEURAL_STL=ON"
 
