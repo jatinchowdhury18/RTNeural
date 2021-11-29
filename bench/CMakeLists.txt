@@ -1,5 +1,4 @@
 include_directories(../RTNeural)
-include_directories(../modules/Eigen)
 
 add_executable(rtneural_layer_bench layer_bench.cpp)
 target_link_libraries(rtneural_layer_bench LINK_PUBLIC RTNeural)
