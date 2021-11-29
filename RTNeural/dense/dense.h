@@ -241,7 +241,7 @@ public:
             bias[i] = b[i];
     }
 
-    T outs alignas(16)[out_size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
     T bias[out_size];

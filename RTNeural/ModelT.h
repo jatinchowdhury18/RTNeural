@@ -350,10 +350,10 @@ private:
 #elif RTNEURAL_USE_EIGEN
     using vec_type = Eigen::Matrix<T, in_size, 1>;
 #else // RTNEURAL_USE_STL
-    T v_ins alignas(16)[in_size];
+    T v_ins alignas(RTNEURAL_DEFAULT_ALIGNMENT)[in_size];
 #endif
 
-    T outs alignas(16)[out_size];
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     std::tuple<Layers...> layers;
     static constexpr size_t n_layers = sizeof...(Layers);

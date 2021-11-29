@@ -14,7 +14,7 @@ void processModel(ModelType& model, const std::vector<TestType>& xData, std::vec
     model.reset();
     for(size_t n = 0; n < xData.size(); ++n)
     {
-        TestType input alignas(16)[] = { xData[n] };
+        TestType input alignas(RTNEURAL_DEFAULT_ALIGNMENT)[] = { xData[n] };
         yData[n] = model.forward(input);
     }
 }

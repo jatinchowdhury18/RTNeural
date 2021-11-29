@@ -157,7 +157,7 @@ public:
     {
         for(int i = 0; i < v_out_size; ++i)
         {
-            T out_sum alignas(16)[v_size] { (T)0 };
+            T out_sum alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
             for(int k = 0; k < v_in_size; ++k)
             {
                 for(int j = 0; j < v_size; ++j)
