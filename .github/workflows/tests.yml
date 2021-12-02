@@ -80,7 +80,7 @@ jobs:
       env:
         BACKEND_ARG: ${{ matrix.backend }}
       shell: bash
-      run: cmake -Bbuild -DBUILD_TESTS=ON $BACKEND_ARG
+      run: cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON $BACKEND_ARG
 
     - name: Build
       shell: bash

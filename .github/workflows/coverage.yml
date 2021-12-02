@@ -1,0 +1,74 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    if: contains(toJson(github.event.commits), '***NO_CI***') == false && contains(toJson(github.event.commits), '[ci skip]') == false && contains(toJson(github.event.commits), '[skip ci]') == false
+    name: Analyze test coverage with backend ${{ matrix.name }}, running on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # show all errors for each platform (vs. cancel jobs on error)
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: "Eigen"
+            backend: "-DRTNEURAL_EIGEN=ON"
+          - os: ubuntu-latest
+            name: "xsimd"
+            backend: "-DRTNEURAL_XSIMD=ON"
+          - os: ubuntu-latest
+            name: "STL"
+            backend: "-DRTNEURAL_STL=ON"
+
+    steps:
+      - name: Install Linux Deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt install lcov
+
+      - name: Get latest CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Configure
+        env:
+          BACKEND_ARG: ${{ matrix.backend }}
+        shell: bash
+        run: cmake -Bbuild -DBUILD_TESTS=ON -DRTNEURAL_CODE_COVERAGE=ON $BACKEND_ARG
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel
+
+      - name: Test
+        shell: bash
+        run: ./build/rtneural_tests all
+
+      - name: Collect Coverage Data
+        shell: bash
+        run: |
+          lcov --directory . --capture --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '/Applications/Xcode.app/*' "${HOME}"'/.cache/*' '*modules*' '*tests*' --output-file coverage.info
+
+      - name: Report Coverage Data
+        shell: bash
+        run: lcov --list coverage.info
+
+      - name: Upload Coverage Data
+        shell: bash
+        run: bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
