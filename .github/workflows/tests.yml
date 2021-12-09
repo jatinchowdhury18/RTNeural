@@ -30,9 +30,9 @@ jobs:
         - os: ubuntu-latest
           name: "xsimd"
           backend: "-DRTNEURAL_XSIMD=ON"
-        - os: ubuntu-latest
-          name: "xsimd - AVX2"
-          backend: "-DRTNEURAL_XSIMD=ON -DRTNEURAL_USE_AVX2=ON"
+#        - os: ubuntu-latest
+#          name: "xsimd - AVX2"
+#          backend: "-DRTNEURAL_XSIMD=ON -DRTNEURAL_USE_AVX2=ON"
         - os: ubuntu-latest
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
