@@ -272,7 +272,7 @@ public:
     /** Returns a pointer to the output of the final layer in the network. */
     inline const T* getOutputs() const noexcept
     {
-        return outs.back().data();
+        return outs;
     }
 
     /** Loads neural network model weights from a json stream. */
