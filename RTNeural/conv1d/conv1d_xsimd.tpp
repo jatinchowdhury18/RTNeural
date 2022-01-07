@@ -35,9 +35,7 @@ Conv1D<T>& Conv1D<T>::operator=(const Conv1D<T>& other)
 }
 
 template <typename T>
-Conv1D<T>::~Conv1D()
-{
-}
+Conv1D<T>::~Conv1D() = default;
 
 template <typename T>
 void Conv1D<T>::reset()

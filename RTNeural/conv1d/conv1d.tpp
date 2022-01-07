@@ -45,7 +45,10 @@ Conv1D<T>::Conv1D(const Conv1D<T>& other)
 template <typename T>
 Conv1D<T>& Conv1D<T>::operator=(const Conv1D<T>& other)
 {
-    return *this = Conv1D<T>(other);
+    if(&other != this)
+        *this = Conv1D<T>(other);
+
+    return *this;
 }
 
 template <typename T>

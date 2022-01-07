@@ -42,7 +42,7 @@ public:
     std::string getName() const noexcept override { return "conv1d"; }
 
     /** Performs forward propagation for this layer. */
-    virtual inline void forward(const T* input, T* h) override
+    inline void forward(const T* input, T* h) override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
             input, Layer<T>::in_size, 1);

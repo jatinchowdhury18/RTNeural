@@ -41,9 +41,7 @@ GRULayer<T>& GRULayer<T>::operator=(const GRULayer<T>& other)
 }
 
 template <typename T>
-GRULayer<T>::~GRULayer()
-{
-}
+GRULayer<T>::~GRULayer() = default;
 
 template <typename T>
 GRULayer<T>::WeightSet::WeightSet(int in_size, int out_size)
@@ -57,9 +55,7 @@ GRULayer<T>::WeightSet::WeightSet(int in_size, int out_size)
 }
 
 template <typename T>
-GRULayer<T>::WeightSet::~WeightSet()
-{
-}
+GRULayer<T>::WeightSet::~WeightSet() = default;
 
 template <typename T>
 void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)

@@ -46,7 +46,7 @@ public:
     std::string getName() const noexcept override { return "gru"; }
 
     /** Performs forward propagation for this layer. */
-    virtual inline void forward(const T* input, T* h) override
+    inline void forward(const T* input, T* h) override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {

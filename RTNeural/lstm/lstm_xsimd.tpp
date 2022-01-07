@@ -43,9 +43,7 @@ LSTMLayer<T>& LSTMLayer<T>::operator=(const LSTMLayer<T>& other)
 }
 
 template <typename T>
-LSTMLayer<T>::~LSTMLayer()
-{
-}
+LSTMLayer<T>::~LSTMLayer() = default;
 
 template <typename T>
 void LSTMLayer<T>::reset()
@@ -64,9 +62,7 @@ LSTMLayer<T>::WeightSet::WeightSet(int in_size, int out_size)
 }
 
 template <typename T>
-LSTMLayer<T>::WeightSet::~WeightSet()
-{
-}
+LSTMLayer<T>::WeightSet::~WeightSet() = default;
 
 template <typename T>
 void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)

@@ -23,7 +23,7 @@ template <typename T>
 class Dense1
 {
 public:
-    Dense1(int in_size)
+    explicit Dense1(int in_size)
         : in_size(in_size)
     {
         weights = new T[in_size];

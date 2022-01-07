@@ -28,7 +28,7 @@ class Model
 {
 public:
     /** Constructs a sequential model for a given input size. */
-    Model(int in_size)
+    explicit Model(int in_size)
         : in_size(in_size)
     {
     }
