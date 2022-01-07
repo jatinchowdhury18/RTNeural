@@ -12,7 +12,7 @@ class TanhActivation : public Activation<T>
 {
 public:
     /** Constructs a tanh activation layer for a given size. */
-    TanhActivation(int size)
+    explicit TanhActivation(int size)
         : Activation<T>(size, {}, "tanh")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
@@ -75,7 +75,7 @@ class FastTanh : public Activation<T>
 {
 public:
     /** Constructs a tanh activation layer for a given size. */
-    FastTanh(int size)
+    explicit FastTanh(int size)
         : Activation<T>(size, {}, "tanh")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
@@ -139,7 +139,7 @@ class ReLuActivation : public Activation<T>
 {
 public:
     /** Constructs a ReLU activation layer for a given size. */
-    ReLuActivation(int size)
+    explicit ReLuActivation(int size)
         : Activation<T>(size, {}, "relu")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
@@ -204,7 +204,7 @@ class SigmoidActivation : public Activation<T>
 {
 public:
     /** Constructs a sigmoid activation layer for a given size. */
-    SigmoidActivation(int size)
+    explicit SigmoidActivation(int size)
         : Activation<T>(size, {}, "sigmoid")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
@@ -270,7 +270,7 @@ class SoftmaxActivation : public Activation<T>
 {
 public:
     /** Constructs a softmax activation layer for a given size. */
-    SoftmaxActivation(int size)
+    explicit SoftmaxActivation(int size)
         : Activation<T>(size, {}, "softmax")
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);

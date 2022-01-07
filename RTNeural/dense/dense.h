@@ -23,7 +23,7 @@ template <typename T>
 class Dense1
 {
 public:
-    Dense1(int in_size)
+    explicit Dense1(int in_size)
         : in_size(in_size)
     {
         weights = new T[in_size];
@@ -141,13 +141,13 @@ public:
     }
 
     /** Returns the weights value at the given indices. */
-    T getWeight(int i, int k) const noexcept
+    [[maybe_unused]] T getWeight(int i, int k) const noexcept
     {
         return subLayers[i]->getWeight(k);
     }
 
     /** Returns the bias value at the given index. */
-    T getBias(int i) const noexcept { return subLayers[i]->getBias(); }
+    [[maybe_unused]] T getBias(int i) const noexcept { return subLayers[i]->getBias(); }
 
 private:
     Dense1<T>** subLayers;

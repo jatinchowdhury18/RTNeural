@@ -13,7 +13,7 @@ class Activation : public Layer<T>
 {
 public:
     /** Constructs an activation layers for a given size and function. */
-    Activation(int size, std::function<T(T)> func, std::string name)
+    Activation(int size, std::function<T(T)> func, const std::string& name)
         : Layer<T>(size, size)
         , name(name)
         , func(func)
@@ -59,7 +59,7 @@ class TanhActivation final : public Activation<T>
 {
 public:
     /** Constructs a tanh activation layer for a given size. */
-    TanhActivation(int size)
+    explicit TanhActivation(int size)
         : Activation<T>(
             size, [](T x) { return std::tanh(x); }, "tanh")
     {
@@ -112,7 +112,7 @@ class FastTanh final : public Activation<T>
 {
 public:
     /** Constructs a tanh activation layer for a given size. */
-    FastTanh(int size)
+    explicit FastTanh(int size)
         : Activation<T>(
             size, [](T x) { return tanh_approx(x); }, "tanh")
     {
@@ -165,7 +165,7 @@ class ReLuActivation final : public Activation<T>
 {
 public:
     /** Constructs a ReLU activation layer for a given size. */
-    ReLuActivation(int size)
+    explicit ReLuActivation(int size)
         : Activation<T>(
             size, [](T x) { return std::max((T)0, x); }, "relu")
     {
@@ -211,7 +211,7 @@ class SigmoidActivation final : public Activation<T>
 {
 public:
     /** Constructs a sigmoid activation layer for a given size. */
-    SigmoidActivation(int size)
+    explicit SigmoidActivation(int size)
         : Activation<T>(
             size, [](T x) { return sigmoid(x); }, "sigmoid")
     {
@@ -257,7 +257,7 @@ class SoftmaxActivation final : public Activation<T>
 {
 public:
     /** Constructs a softmax activation layer for a given size. */
-    SoftmaxActivation(int size)
+    explicit SoftmaxActivation(int size)
         : Activation<T>(
             size, [](T x) { return (T)0; }, "softmax")
     {

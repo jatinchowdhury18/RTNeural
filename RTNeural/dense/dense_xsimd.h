@@ -41,9 +41,7 @@ public:
         return *this = Dense(other);
     }
 
-    virtual ~Dense()
-    {
-    }
+    virtual ~Dense() = default;
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "dense"; }

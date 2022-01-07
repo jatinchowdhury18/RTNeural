@@ -1,7 +1,7 @@
 #ifndef LAYER_H_INCLUDED
 #define LAYER_H_INCLUDED
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 
 #if RTNEURAL_USE_ACCELERATE
@@ -28,7 +28,7 @@ public:
     {
     }
 
-    virtual ~Layer() { }
+    virtual ~Layer() = default;
 
     /** Returns the name of this layer. */
     virtual std::string getName() const noexcept { return ""; }

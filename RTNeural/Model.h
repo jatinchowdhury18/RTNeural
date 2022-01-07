@@ -28,7 +28,7 @@ class Model
 {
 public:
     /** Constructs a sequential model for a given input size. */
-    Model(int in_size)
+    explicit Model(int in_size)
         : in_size(in_size)
     {
     }
@@ -80,7 +80,7 @@ public:
     }
 
     /** Returns a pointer to the output of the final layer in the network. */
-    inline const T* getOutputs() const noexcept
+    [[maybe_unused]] inline const T* getOutputs() const noexcept
     {
         return outs.back().data();
     }
