@@ -6,6 +6,7 @@ function(create_example example_name)
     add_executable(${example_name} ${example_name}.cpp)
     target_include_directories(${example_name} PUBLIC ${CMAKE_SOURCE_DIR})
     target_link_libraries(${example_name} PUBLIC RTNeural)
+    target_compile_features(${example_name} PRIVATE cxx_std_17)
 
     add_custom_command(TARGET ${example_name}
                        POST_BUILD
