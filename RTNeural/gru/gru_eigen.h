@@ -24,7 +24,7 @@ public:
     GRULayer(std::initializer_list<int> sizes);
     GRULayer(const GRULayer& other);
     GRULayer& operator=(const GRULayer& other);
-    virtual ~GRULayer() { }
+    virtual ~GRULayer() = default;
 
     /** Resets the state of the GRU. */
     void reset() override

@@ -51,7 +51,7 @@ namespace modelt_detail
     using TupleIndexSequenceRange = offset_sequence_t<start, std::make_index_sequence<num>>;
 
     template <size_t start, size_t num, typename Fn, typename Tuple>
-    constexpr void forEachInTupleRange(Fn&& fn, Tuple&& tuple) noexcept(noexcept(forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {})))
+    [[maybe_unused]] constexpr void forEachInTupleRange(Fn&& fn, Tuple&& tuple) noexcept(noexcept(forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {})))
     {
         forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {});
     }

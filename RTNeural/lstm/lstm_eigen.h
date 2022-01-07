@@ -24,7 +24,7 @@ public:
     LSTMLayer(std::initializer_list<int> sizes);
     LSTMLayer(const LSTMLayer& other);
     LSTMLayer& operator=(const LSTMLayer& other);
-    virtual ~LSTMLayer() { }
+    virtual ~LSTMLayer() = default;
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "lstm"; }
