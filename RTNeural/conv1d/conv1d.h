@@ -89,7 +89,7 @@ public:
     void setBias(const std::vector<T>& biasVals);
 
     /** Returns the weights value for the given indices. */
-    [[maybe_unused]] T getWeight(int outIndex, int inIndex, int kernelIndex) const noexcept
+    T getWeight(int outIndex, int inIndex, int kernelIndex) const noexcept
     {
         return kernelWeights[outIndex][inIndex][kernelIndex];
     }

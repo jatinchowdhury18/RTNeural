@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <RTNeural/RTNeural.h>
 
-namespace fs = std::filesystem;
+namespace fs = std::__fs::filesystem;
 
 std::string getModelFile (fs::path path)
 {

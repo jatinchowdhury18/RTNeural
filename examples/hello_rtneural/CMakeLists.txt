@@ -1,2 +1,1 @@
 create_example(hello_rtneural)
-target_compile_features(hello_rtneural PRIVATE cxx_std_17)

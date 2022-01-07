@@ -126,7 +126,7 @@ class Conv1DT
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
     static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
     static constexpr auto state_size = kernel_size * dilation_rate;
-    [[maybe_unused]] static constexpr auto v_state_size = ceil_div(state_size, v_size);
+    static constexpr auto v_state_size = ceil_div(state_size, v_size);
 
 public:
     static constexpr auto in_size = in_sizet;

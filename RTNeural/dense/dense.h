@@ -141,13 +141,13 @@ public:
     }
 
     /** Returns the weights value at the given indices. */
-    [[maybe_unused]] T getWeight(int i, int k) const noexcept
+    T getWeight(int i, int k) const noexcept
     {
         return subLayers[i]->getWeight(k);
     }
 
     /** Returns the bias value at the given index. */
-    [[maybe_unused]] T getBias(int i) const noexcept { return subLayers[i]->getBias(); }
+    T getBias(int i) const noexcept { return subLayers[i]->getBias(); }
 
 private:
     Dense1<T>** subLayers;

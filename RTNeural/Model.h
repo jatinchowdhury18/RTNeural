@@ -80,7 +80,7 @@ public:
     }
 
     /** Returns a pointer to the output of the final layer in the network. */
-    [[maybe_unused]] inline const T* getOutputs() const noexcept
+    inline const T* getOutputs() const noexcept
     {
         return outs.back().data();
     }
