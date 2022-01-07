@@ -82,7 +82,7 @@ namespace modelt_detail
     }
 
     template <typename T, int in_size, int out_size>
-    void loadLayer(DenseT<T, in_size, out_size>& dense, int& json_stream_idx, const nlohmann::json& l,
+    [[maybe_unused]] void loadLayer(DenseT<T, in_size, out_size>& dense, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
@@ -107,7 +107,7 @@ namespace modelt_detail
     }
 
     template <typename T, int in_size, int out_size, int kernel_size, int dilation_rate>
-    void loadLayer(Conv1DT<T, in_size, out_size, kernel_size, dilation_rate>& conv, int& json_stream_idx, const nlohmann::json& l,
+    [[maybe_unused]] void loadLayer(Conv1DT<T, in_size, out_size, kernel_size, dilation_rate>& conv, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
@@ -134,7 +134,7 @@ namespace modelt_detail
     }
 
     template <typename T, int in_size, int out_size>
-    void loadLayer(GRULayerT<T, in_size, out_size>& gru, int& json_stream_idx, const nlohmann::json& l,
+    [[maybe_unused]] void loadLayer(GRULayerT<T, in_size, out_size>& gru, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
@@ -150,7 +150,7 @@ namespace modelt_detail
     }
 
     template <typename T, int in_size, int out_size>
-    void loadLayer(LSTMLayerT<T, in_size, out_size>& lstm, int& json_stream_idx, const nlohmann::json& l,
+    [[maybe_unused]] void loadLayer(LSTMLayerT<T, in_size, out_size>& lstm, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
@@ -270,7 +270,7 @@ public:
     }
 
     /** Returns a pointer to the output of the final layer in the network. */
-    inline const T* getOutputs() const noexcept
+    [[maybe_unused]] inline const T* getOutputs() const noexcept
     {
         return outs;
     }

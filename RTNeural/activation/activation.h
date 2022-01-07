@@ -13,7 +13,7 @@ class Activation : public Layer<T>
 {
 public:
     /** Constructs an activation layers for a given size and function. */
-    Activation(int size, std::function<T(T)> func, std::string name)
+    Activation(int size, std::function<T(T)> func, const std::string& name)
         : Layer<T>(size, size)
         , name(name)
         , func(func)
