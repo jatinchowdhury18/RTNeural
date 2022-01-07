@@ -343,7 +343,7 @@ namespace json_parser
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         std::unique_ptr<Model<T>> model;
-        model.reset (new Model<T> (nDims)); // std::make_unique<Model<T>>(nDims);
+        model.reset(new Model<T>(nDims)); // std::make_unique<Model<T>>(nDims);
 
         for(const auto& l : layers)
         {

@@ -32,7 +32,7 @@ GRULayer<T>::GRULayer(const GRULayer<T>& other)
 template <typename T>
 GRULayer<T>& GRULayer<T>::operator=(const GRULayer<T>& other)
 {
-    if (&other != this)
+    if(&other != this)
         *this = GRULayer<T>(other);
     return *this;
 }

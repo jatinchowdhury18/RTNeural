@@ -38,7 +38,7 @@ LSTMLayer<T>::LSTMLayer(const LSTMLayer& other)
 template <typename T>
 LSTMLayer<T>& LSTMLayer<T>::operator=(const LSTMLayer<T>& other)
 {
-    if (&other != this)
+    if(&other != this)
         *this = LSTMLayer<T>(other);
     return *this;
 }
