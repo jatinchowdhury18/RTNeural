@@ -10,6 +10,8 @@
 #ifndef EIGEN_PARALLELIZER_H
 #define EIGEN_PARALLELIZER_H
 
+#include "../InternalHeaderCheck.h"
+
 namespace Eigen {
 
 namespace internal {
@@ -17,7 +19,8 @@ namespace internal {
 /** \internal */
 inline void manage_multi_threading(Action action, int* v)
 {
-  static EIGEN_UNUSED int m_maxThreads = -1;
+  static int m_maxThreads = -1;
+  EIGEN_UNUSED_VARIABLE(m_maxThreads)
 
   if(action==SetAction)
   {
@@ -73,10 +76,14 @@ namespace internal {
 
 template<typename Index> struct GemmParallelInfo
 {
-  GemmParallelInfo() : sync(-1), users(0), lhs_start(0), lhs_length(0) {}
 
-  Index volatile sync;
-  int volatile users;
+#ifdef EIGEN_HAS_OPENMP
+  GemmParallelInfo() : sync(-1), users(0), lhs_start(0), lhs_length(0) {}
+  std::atomic<Index> sync;
+  std::atomic<int> users;
+#else
+  GemmParallelInfo() : lhs_start(0), lhs_length(0) {}
+#endif
 
   Index lhs_start;
   Index lhs_length;
@@ -87,11 +94,14 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, Index depth, 
 {
   // TODO when EIGEN_USE_BLAS is defined,
   // we should still enable OMP for other scalar types
-#if !(defined (EIGEN_HAS_OPENMP)) || defined (EIGEN_USE_BLAS)
+  // Without C++11, we have to disable GEMM's parallelization on
+  // non x86 architectures because there volatile is not enough for our purpose.
+  // See bug 1572.
+#if (! defined(EIGEN_HAS_OPENMP)) || defined(EIGEN_USE_BLAS)
   // FIXME the transpose variable is only needed to properly split
   // the matrix product when multithreading is enabled. This is a temporary
   // fix to support row-major destination matrices. This whole
-  // parallelizer mechanism has to be redisigned anyway.
+  // parallelizer mechanism has to be redesigned anyway.
   EIGEN_UNUSED_VARIABLE(depth);
   EIGEN_UNUSED_VARIABLE(transpose);
   func(0,rows, 0,cols);
@@ -112,12 +122,12 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, Index depth, 
   double work = static_cast<double>(rows) * static_cast<double>(cols) *
       static_cast<double>(depth);
   double kMinTaskSize = 50000;  // FIXME improve this heuristic.
-  pb_max_threads = std::max<Index>(1, std::min<Index>(pb_max_threads, work / kMinTaskSize));
+  pb_max_threads = std::max<Index>(1, std::min<Index>(pb_max_threads, static_cast<Index>( work / kMinTaskSize ) ));
 
   // compute the number of threads we are going to use
   Index threads = std::min<Index>(nbThreads(), pb_max_threads);
 
-  // if multi-threading is explicitely disabled, not useful, or if we already are in a parallel session,
+  // if multi-threading is explicitly disabled, not useful, or if we already are in a parallel session,
   // then abort multi-threading
   // FIXME omp_get_num_threads()>1 only works for openmp, what if the user does not use openmp?
   if((!Condition) || (threads==1) || (omp_get_num_threads()>1))

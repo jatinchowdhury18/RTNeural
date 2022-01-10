@@ -160,6 +160,8 @@ used when compiling for Apple devices, and does not
 currently support defining [compile-time inferencing
 engines](#compile-time-api).
 
+Note that you must abide by the licensing rules of whichever backend library you choose.
+
 ### Other configuration flags
 
 If you would like to build RTNeural with the AVX2 SIMD extensions,
