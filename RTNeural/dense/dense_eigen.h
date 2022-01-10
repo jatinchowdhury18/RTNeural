@@ -51,7 +51,7 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
             input, Layer<T>::in_size, 1);
-        outVec = weights * inVec + bias;
+        outVec.noalias() = weights * inVec + bias;
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::out_size, out);
     }
@@ -141,7 +141,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const Eigen::Matrix<T, in_size, 1>& ins)
     {
-        outs = weights * ins + bias;
+        outs.noalias() = weights * ins + bias;
     }
 
     /**

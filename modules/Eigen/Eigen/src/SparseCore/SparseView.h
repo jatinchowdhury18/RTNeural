@@ -11,6 +11,8 @@
 #ifndef EIGEN_SPARSEVIEW_H
 #define EIGEN_SPARSEVIEW_H
 
+#include "./InternalHeaderCheck.h"
+
 namespace Eigen { 
 
 namespace internal {
@@ -90,6 +92,7 @@ struct unary_evaluator<SparseView<ArgType>, IteratorBased>
     
     class InnerIterator : public EvalIterator
     {
+      protected:
         typedef typename XprType::Scalar Scalar;
       public:
 

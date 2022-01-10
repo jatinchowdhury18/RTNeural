@@ -12,6 +12,8 @@
 #ifndef EIGEN_CWISE_TERNARY_OP_H
 #define EIGEN_CWISE_TERNARY_OP_H
 
+#include "./InternalHeaderCheck.h"
+
 namespace Eigen {
 
 namespace internal {
@@ -91,6 +93,20 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
   typedef typename internal::remove_all<Arg2Type>::type Arg2;
   typedef typename internal::remove_all<Arg3Type>::type Arg3;
 
+  // require the sizes to match
+  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Arg1, Arg2)
+  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Arg1, Arg3)
+
+  // The index types should match
+  EIGEN_STATIC_ASSERT((internal::is_same<
+                       typename internal::traits<Arg1Type>::StorageKind,
+                       typename internal::traits<Arg2Type>::StorageKind>::value),
+                      STORAGE_KIND_MUST_MATCH)
+  EIGEN_STATIC_ASSERT((internal::is_same<
+                       typename internal::traits<Arg1Type>::StorageKind,
+                       typename internal::traits<Arg3Type>::StorageKind>::value),
+                      STORAGE_KIND_MUST_MATCH)
+
   typedef typename CwiseTernaryOpImpl<
       TernaryOp, Arg1Type, Arg2Type, Arg3Type,
       typename internal::traits<Arg1Type>::StorageKind>::Base Base;
@@ -108,20 +124,6 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
                                      const Arg3& a3,
                                      const TernaryOp& func = TernaryOp())
       : m_arg1(a1), m_arg2(a2), m_arg3(a3), m_functor(func) {
-    // require the sizes to match
-    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Arg1, Arg2)
-    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Arg1, Arg3)
-
-    // The index types should match
-    EIGEN_STATIC_ASSERT((internal::is_same<
-                         typename internal::traits<Arg1Type>::StorageKind,
-                         typename internal::traits<Arg2Type>::StorageKind>::value),
-                        STORAGE_KIND_MUST_MATCH)
-    EIGEN_STATIC_ASSERT((internal::is_same<
-                         typename internal::traits<Arg1Type>::StorageKind,
-                         typename internal::traits<Arg3Type>::StorageKind>::value),
-                        STORAGE_KIND_MUST_MATCH)
-
     eigen_assert(a1.rows() == a2.rows() && a1.cols() == a2.cols() &&
                  a1.rows() == a3.rows() && a1.cols() == a3.cols());
   }

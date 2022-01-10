@@ -33,6 +33,8 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H
 
+#include "../InternalHeaderCheck.h"
+
 namespace Eigen { 
 
 namespace internal {
@@ -51,20 +53,22 @@ template< \
   typename Index, \
   int LhsStorageOrder, bool ConjugateLhs, \
   int RhsStorageOrder, bool ConjugateRhs> \
-struct general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor> \
+struct general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor,1> \
 { \
 typedef gebp_traits<EIGTYPE,EIGTYPE> Traits; \
 \
 static void run(Index rows, Index cols, Index depth, \
   const EIGTYPE* _lhs, Index lhsStride, \
   const EIGTYPE* _rhs, Index rhsStride, \
-  EIGTYPE* res, Index resStride, \
+  EIGTYPE* res, Index resIncr, Index resStride, \
   EIGTYPE alpha, \
   level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/, \
   GemmParallelInfo<Index>* /*info = 0*/) \
 { \
   using std::conj; \
 \
+  EIGEN_ONLY_USED_FOR_DEBUG(resIncr); \
+  eigen_assert(resIncr == 1); \
   char transa, transb; \
   BlasIndex m, n, k, lda, ldb, ldc; \
   const EIGTYPE *a, *b; \
