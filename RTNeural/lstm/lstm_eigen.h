@@ -38,16 +38,18 @@ public:
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
             input, Layer<T>::in_size, 1);
 
-        fVec = Wf * inVec + Uf * ht1 + bf;
-        iVec = Wi * inVec + Ui * ht1 + bi;
-        oVec = Wo * inVec + Uo * ht1 + bo;
-        ctVec = (Wc * inVec + Uc * ht1 + bc).array().tanh();
+        fVec.noalias() = Wf * inVec + Uf * ht1 + bf;
+        iVec.noalias() = Wi * inVec + Ui * ht1 + bi;
+        oVec.noalias() = Wo * inVec + Uo * ht1 + bo;
+
+        ctVec.noalias() = Wc * inVec + Uc * ht1 + bc;
+        ctVec = ctVec.array().tanh();
 
         sigmoid(fVec);
         sigmoid(iVec);
         sigmoid(oVec);
 
-        cVec = fVec.cwiseProduct(ct1) + iVec.cwiseProduct(ctVec);
+        cVec.noalias() = fVec.cwiseProduct(ct1) + iVec.cwiseProduct(ctVec);
         ht1 = cVec.array().tanh();
         ht1 = oVec.cwiseProduct(ht1);
 
@@ -138,11 +140,12 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const in_type& ins)
     {
-        fVec = sigmoid(Wf * ins + Uf * outs + bf);
-        iVec = sigmoid(Wi * ins + Ui * outs + bi);
-        oVec = sigmoid(Wo * ins + Uo * outs + bo);
+        fVec.noalias() = sigmoid(Wf * ins + Uf * outs + bf);
+        iVec.noalias() = sigmoid(Wi * ins + Ui * outs + bi);
+        oVec.noalias() = sigmoid(Wo * ins + Uo * outs + bo);
 
-        ctVec = (Wc * ins + Uc * outs + bc).array().tanh();
+        ctVec.noalias() = Wc * ins + Uc * outs + bc;
+        ctVec = ctVec.array().tanh();
         cVec = fVec.cwiseProduct(cVec) + iVec.cwiseProduct(ctVec);
 
         outs = cVec.array().tanh();
