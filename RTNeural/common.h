@@ -30,6 +30,11 @@ static inline T tanh_approx(T x) noexcept
 
 namespace RTNeural
 {
+#if RTNEURAL_DEFAULT_ALIGNMENT == 32
+constexpr auto RTNeuralEigenAlignment = Eigen::Aligned32;
+#else
+constexpr auto RTNeuralEigenAlignment = Eigen::Aligned16;
+#endif
 
 template <typename T>
 static inline void

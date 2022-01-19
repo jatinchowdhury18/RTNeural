@@ -44,7 +44,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
 
         // insert input into double-buffered state
@@ -171,7 +171,7 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
-    Eigen::Map<vec_type, Eigen::Aligned16> outs;
+    Eigen::Map<vec_type, RTNeuralEigenAlignment> outs;
 
 private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];

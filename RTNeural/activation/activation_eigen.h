@@ -27,7 +27,7 @@ public:
     /** Performs forward propagation for tanh activation. */
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
         outVec = inVec.array().tanh();
 
@@ -90,7 +90,7 @@ public:
     /** Performs forward propagation for tanh activation. */
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
         outVec = fast_tanh<T>(inVec);
 
@@ -154,7 +154,7 @@ public:
     /** Performs forward propagation for ReLU activation. */
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
         outVec = inVec.array().max((T)0);
 
@@ -219,7 +219,7 @@ public:
     /** Performs forward propagation for sigmoid activation. */
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
         outVec = inVec.array();
         sigmoid(outVec);
@@ -285,7 +285,7 @@ public:
     /** Performs forward propagation for softmax activation. */
     inline void forward(const T* input, T* out) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
         outVec = inVec.array();
         softmax(outVec);
