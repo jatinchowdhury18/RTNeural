@@ -12,7 +12,8 @@ namespace RTNeural
 /** Utility functions for loading model weights from their json representation. */
 namespace json_parser
 {
-    static void debug_print(std::string str, bool debug)
+
+    [[maybe_unused]] static void debug_print(const std::string& str, bool debug)
     {
         if(debug)
             std::cout << str << std::endl;
@@ -342,8 +343,7 @@ namespace json_parser
         const auto nDims = shape.back().get<int>();
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
-        std::unique_ptr<Model<T>> model;
-        model.reset(new Model<T>(nDims)); // std::make_unique<Model<T>>(nDims);
+        auto model = std::make_unique<Model<T>>(nDims);
 
         for(const auto& l : layers)
         {
