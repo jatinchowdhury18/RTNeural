@@ -38,7 +38,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, Eigen::Aligned16>(
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
 
         zVec.noalias() = wVec_z * inVec + uVec_z * ht1 + bVec_z.col(0) + bVec_z.col(1);
@@ -174,7 +174,7 @@ public:
      */
     void setBVals(const std::vector<std::vector<T>>& bVals);
 
-    Eigen::Map<out_type, Eigen::Aligned16> outs;
+    Eigen::Map<out_type, RTNeuralEigenAlignment> outs;
 
 private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];

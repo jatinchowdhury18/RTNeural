@@ -191,7 +191,7 @@ public:
             v_ins[i] = v_type((T)0);
 #elif RTNEURAL_USE_EIGEN
         auto& layer_outs = get<n_layers - 1>().outs;
-        new(&layer_outs) Eigen::Map<Eigen::Matrix<T, out_size, 1>, Eigen::Aligned16>(outs);
+        new(&layer_outs) Eigen::Map<Eigen::Matrix<T, out_size, 1>, RTNeuralEigenAlignment>(outs);
 #endif
     }
 
@@ -224,7 +224,7 @@ public:
         for(int i = 0; i < v_in_size; ++i)
             v_ins[i] = xsimd::load_aligned(input + i * v_size);
 #elif RTNEURAL_USE_EIGEN
-        auto v_ins = Eigen::Map<const vec_type, Eigen::Aligned16>(input);
+        auto v_ins = Eigen::Map<const vec_type, RTNeuralEigenAlignment>(input);
 #else // RTNEURAL_USE_STL
         std::copy(input, input + in_size, v_ins);
 #endif
