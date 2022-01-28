@@ -142,7 +142,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <bool useFast = fast>
-    inline typename std::enable_if<! useFast, void>::type
+    inline typename std::enable_if<!useFast, void>::type
     forward(const in_type& ins)
     {
         fVec.noalias() = sigmoid(Wf * ins + Uf * outs + bf);

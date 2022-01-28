@@ -158,7 +158,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <int N = in_size, bool useFast = fast>
-    inline typename std::enable_if<(N > 1) && ! useFast, void>::type
+    inline typename std::enable_if<(N > 1) && !useFast, void>::type
     forward(const v_type (&ins)[v_in_size])
     {
         // compute ft
@@ -226,7 +226,7 @@ public:
 
     /** Performs forward propagation for this layer. (1-D) */
     template <int N = in_size, bool useFast = fast>
-    inline typename std::enable_if<N == 1 && ! useFast, void>::type
+    inline typename std::enable_if<N == 1 && !useFast, void>::type
     forward(const v_type (&ins)[v_in_size])
     {
         // compute ft

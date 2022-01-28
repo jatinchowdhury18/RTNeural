@@ -30,8 +30,8 @@ static inline T sigmoid_approx(T x) noexcept
     constexpr auto clamp = (T)7.0;
     x = x > clamp ? clamp : (x < -clamp ? -clamp : x); // clamp to range [-clamp, clamp]
 
-    auto numerator = (T) 0.5 + x * ((T)0.24992827750481075 + x * ((T)0.05251880704605764 + x * ((T)0.005480993464771597 + x * (T)0.000236800130780413)));
-    auto denominator = (T) 1.0 + x * ((T)-1.8312068766514214e-14 + x * ((T)0.10503761409212416 + x * ((T)-1.6911015553389271e-15 + x * (T)0.00047360026156094913)));
+    auto numerator = (T)0.5 + x * ((T)0.24992827750481075 + x * ((T)0.05251880704605764 + x * ((T)0.005480993464771597 + x * (T)0.000236800130780413)));
+    auto denominator = (T)1.0 + x * ((T)-1.8312068766514214e-14 + x * ((T)0.10503761409212416 + x * ((T)-1.6911015553389271e-15 + x * (T)0.00047360026156094913)));
     return numerator / denominator;
 }
 
@@ -81,8 +81,8 @@ static inline auto fast_sigmoid(const MatType& in)
     constexpr auto clamp = (T)7.0;
     auto xc = in.cwiseMin(clamp).cwiseMax(-clamp); // clamp to range [-clamp, clamp]
 
-    auto numerator = (T) 0.5 + xc.array().cwiseProduct((T)0.24992827750481075 + xc.array().cwiseProduct((T)0.05251880704605764 + xc.array().cwiseProduct((T)0.005480993464771597 + (T)0.000236800130780413 * xc.array()).array()).array()).array();
-    auto denominator = (T) 1.0 + xc.array().cwiseProduct((T)-1.8312068766514214e-14 + xc.array().cwiseProduct((T)0.10503761409212416 + xc.array().cwiseProduct((T)-1.6911015553389271e-15 + (T)0.00047360026156094913 * xc.array()).array()).array()).array();
+    auto numerator = (T)0.5 + xc.array().cwiseProduct((T)0.24992827750481075 + xc.array().cwiseProduct((T)0.05251880704605764 + xc.array().cwiseProduct((T)0.005480993464771597 + (T)0.000236800130780413 * xc.array()).array()).array()).array();
+    auto denominator = (T)1.0 + xc.array().cwiseProduct((T)-1.8312068766514214e-14 + xc.array().cwiseProduct((T)0.10503761409212416 + xc.array().cwiseProduct((T)-1.6911015553389271e-15 + (T)0.00047360026156094913 * xc.array()).array()).array()).array();
     return numerator.cwiseProduct(denominator.inverse());
 }
 
