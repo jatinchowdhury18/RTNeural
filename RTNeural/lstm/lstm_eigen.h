@@ -111,8 +111,11 @@ private:
  * To ensure that the recurrent state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
+ *
+ * The template argument `fast` may be used to enable a faster version
+ * of the LSTM layer, which sacrifices some numerical precision.
  */
-template <typename T, int in_sizet, int out_sizet>
+template <typename T, int in_sizet, int out_sizet, bool fast = false>
 class LSTMLayerT
 {
     using b_type = Eigen::Matrix<T, out_sizet, 1>;
@@ -138,7 +141,9 @@ public:
     void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const in_type& ins)
+    template <bool useFast = fast>
+    inline typename std::enable_if<! useFast, void>::type
+    forward(const in_type& ins)
     {
         fVec.noalias() = sigmoid(Wf * ins + Uf * outs + bf);
         iVec.noalias() = sigmoid(Wi * ins + Ui * outs + bi);
@@ -149,6 +154,26 @@ public:
         cVec = fVec.cwiseProduct(cVec) + iVec.cwiseProduct(ctVec);
 
         outs = cVec.array().tanh();
+        outs = oVec.cwiseProduct(outs);
+    }
+
+    /** Performs forward propagation for this layer. (FAST) */
+    template <bool useFast = fast>
+    inline typename std::enable_if<useFast, void>::type
+    forward(const in_type& ins)
+    {
+        fVec.noalias() = Wf * ins + Uf * outs + bf;
+        iVec.noalias() = Wi * ins + Ui * outs + bi;
+        oVec.noalias() = Wo * ins + Uo * outs + bo;
+        fVec = fast_sigmoid<T>(fVec);
+        iVec = fast_sigmoid<T>(iVec);
+        oVec = fast_sigmoid<T>(oVec);
+
+        ctVec.noalias() = Wc * ins + Uc * outs + bc;
+        ctVec = fast_tanh<T>(ctVec);
+        cVec = fVec.cwiseProduct(cVec) + iVec.cwiseProduct(ctVec);
+
+        outs = fast_tanh<T>(cVec);
         outs = oVec.cwiseProduct(outs);
     }
 

@@ -27,4 +27,10 @@ static std::map<std::string, TestConfig> tests {
     { "lstm_1d",
         TestConfig { "LSTM-1D", "models/lstm_1d.json", "test_data/lstm_1d_x_python.csv",
             "test_data/lstm_1d_y_python.csv", 1.0e-6 } },
+    { "lstm_fast",
+        TestConfig { "LSTM (FAST)", "models/lstm.json", "test_data/lstm_x_python.csv",
+            "test_data/lstm_y_python.csv", 8.0e-6 } },
+    { "lstm_1d_fast",
+        TestConfig { "LSTM-1D (FAST)", "models/lstm_1d.json", "test_data/lstm_1d_x_python.csv",
+            "test_data/lstm_1d_y_python.csv", 5.0e-5 } },
 };
