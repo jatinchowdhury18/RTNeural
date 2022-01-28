@@ -117,8 +117,11 @@ protected:
  * To ensure that the recurrent state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
+ *
+ * The template argument `fast` may be used to enable a faster version
+ * of the LSTM layer, which sacrifices some numerical precision.
  */
-template <typename T, int in_sizet, int out_sizet>
+template <typename T, int in_sizet, int out_sizet, bool fast = false>
 class LSTMLayerT
 {
 public:
@@ -137,8 +140,8 @@ public:
     void reset();
 
     /** Performs forward propagation for this layer. */
-    template <int N = in_size>
-    inline typename std::enable_if<(N > 1), void>::type
+    template <int N = in_size, bool useFast = fast>
+    inline typename std::enable_if<(N > 1) && ! useFast, void>::type
     forward(const T (&ins)[in_size])
     {
         // compute ft
@@ -170,9 +173,43 @@ public:
             outs[i] = ot[i] * std::tanh(ct[i]);
     }
 
-    /** Performs forward propagation for this layer. */
-    template <int N = in_size>
-    inline typename std::enable_if<N == 1, void>::type
+    /** Performs forward propagation for this layer. (FAST) */
+    template <int N = in_size, bool useFast = fast>
+    inline typename std::enable_if<(N > 1) && useFast, void>::type
+    forward(const T (&ins)[in_size])
+    {
+        // compute ft
+        recurrent_mat_mul(outs, Uf, ft);
+        kernel_mat_mul(ins, Wf, kernel_outs);
+        for(int i = 0; i < out_size; ++i)
+            ft[i] = sigmoid_approx(ft[i] + bf[i] + kernel_outs[i]);
+
+        // compute it
+        recurrent_mat_mul(outs, Ui, it);
+        kernel_mat_mul(ins, Wi, kernel_outs);
+        for(int i = 0; i < out_size; ++i)
+            it[i] = sigmoid_approx(it[i] + bi[i] + kernel_outs[i]);
+
+        // compute ot
+        recurrent_mat_mul(outs, Uo, ot);
+        kernel_mat_mul(ins, Wo, kernel_outs);
+        for(int i = 0; i < out_size; ++i)
+            ot[i] = sigmoid_approx(ot[i] + bo[i] + kernel_outs[i]);
+
+        // compute ct
+        recurrent_mat_mul(outs, Uc, ht);
+        kernel_mat_mul(ins, Wc, kernel_outs);
+        for(int i = 0; i < out_size; ++i)
+            ct[i] = it[i] * tanh_approx(ht[i] + bc[i] + kernel_outs[i]) + ft[i] * ct[i];
+
+        // compute output
+        for(int i = 0; i < out_size; ++i)
+            outs[i] = ot[i] * tanh_approx(ct[i]);
+    }
+
+    /** Performs forward propagation for this layer. (1-D) */
+    template <int N = in_size, bool useFast = fast>
+    inline typename std::enable_if<N == 1 && ! useFast, void>::type
     forward(const T (&ins)[in_size])
     {
         // compute ft
@@ -198,6 +235,36 @@ public:
         // compute output
         for(int i = 0; i < out_size; ++i)
             outs[i] = ot[i] * std::tanh(ct[i]);
+    }
+
+    /** Performs forward propagation for this layer. (1-D, FAST) */
+    template <int N = in_size, bool useFast = fast>
+    inline typename std::enable_if<N == 1 && useFast, void>::type
+    forward(const T (&ins)[in_size])
+    {
+        // compute ft
+        recurrent_mat_mul(outs, Uf, ft);
+        for(int i = 0; i < out_size; ++i)
+            ft[i] = sigmoid_approx(ft[i] + bf[i] + (Wf_1[i] * ins[0]));
+
+        // compute it
+        recurrent_mat_mul(outs, Ui, it);
+        for(int i = 0; i < out_size; ++i)
+            it[i] = sigmoid_approx(it[i] + bi[i] + (Wi_1[i] * ins[0]));
+
+        // compute ot
+        recurrent_mat_mul(outs, Uo, ot);
+        for(int i = 0; i < out_size; ++i)
+            ot[i] = sigmoid_approx(ot[i] + bo[i] + (Wo_1[i] * ins[0]));
+
+        // compute ct
+        recurrent_mat_mul(outs, Uc, ht);
+        for(int i = 0; i < out_size; ++i)
+            ct[i] = it[i] * tanh_approx(ht[i] + bc[i] + (Wc_1[i] * ins[0])) + ft[i] * ct[i];
+
+        // compute output
+        for(int i = 0; i < out_size; ++i)
+            outs[i] = ot[i] * tanh_approx(ct[i]);
     }
 
     /**

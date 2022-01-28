@@ -124,6 +124,22 @@ int templatedTests(std::string arg)
                             DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
+    else if(arg == "lstm_fast")
+    {
+        using ModelType = ModelT<TestType, 1, 1,
+            DenseT<TestType, 1, 8>,
+            TanhActivationT<TestType, 8>,
+            LSTMLayerT<TestType, 8, 8, true>,
+            DenseT<TestType, 8, 1>>;
+        result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
+    }
+    else if(arg == "lstm_1d_fast")
+    {
+        using ModelType = ModelT<TestType, 1, 1,
+            LSTMLayerT<TestType, 1, 8, true>,
+            DenseT<TestType, 8, 1>>;
+        result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
+    }
 
     return result;
 
