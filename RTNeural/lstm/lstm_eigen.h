@@ -145,13 +145,29 @@ public:
     inline typename std::enable_if<!useFast, void>::type
     forward(const in_type& ins)
     {
-        fVec.noalias() = sigmoid(Wf * ins + Uf * outs + bf);
-        iVec.noalias() = sigmoid(Wi * ins + Ui * outs + bi);
-        oVec.noalias() = sigmoid(Wo * ins + Uo * outs + bo);
+        fVec.noalias() = bf;
+        fVec.noalias() += Uf * outs;
+        fVec.noalias() += Wf * ins;
 
-        ctVec.noalias() = Wc * ins + Uc * outs + bc;
+        iVec.noalias() = bi;
+        iVec.noalias() += Ui * outs;
+        iVec.noalias() += Wi * ins;
+
+        oVec.noalias() = bo;
+        oVec.noalias() += Uo * outs;
+        oVec.noalias() += Wo * ins;
+
+        fVec = sigmoid(fVec);
+        iVec = sigmoid(iVec);
+        oVec = sigmoid(oVec);
+
+        ctVec.noalias() = bc;
+        ctVec.noalias() += Uc * outs;
+        ctVec.noalias() += Wc * ins;
+
         ctVec = ctVec.array().tanh();
-        cVec = fVec.cwiseProduct(cVec) + iVec.cwiseProduct(ctVec);
+        cVec = fVec.cwiseProduct(cVec);
+        cVec.noalias() += iVec.cwiseProduct(ctVec);
 
         outs = cVec.array().tanh();
         outs = oVec.cwiseProduct(outs);
@@ -162,16 +178,29 @@ public:
     inline typename std::enable_if<useFast, void>::type
     forward(const in_type& ins)
     {
-        fVec.noalias() = Wf * ins + Uf * outs + bf;
-        iVec.noalias() = Wi * ins + Ui * outs + bi;
-        oVec.noalias() = Wo * ins + Uo * outs + bo;
+        fVec.noalias() = bf;
+        fVec.noalias() += Uf * outs;
+        fVec.noalias() += Wf * ins;
+
+        iVec.noalias() = bi;
+        iVec.noalias() += Ui * outs;
+        iVec.noalias() += Wi * ins;
+
+        oVec.noalias() = bo;
+        oVec.noalias() += Uo * outs;
+        oVec.noalias() += Wo * ins;
+
         fVec = fast_sigmoid<T>(fVec);
         iVec = fast_sigmoid<T>(iVec);
         oVec = fast_sigmoid<T>(oVec);
 
-        ctVec.noalias() = Wc * ins + Uc * outs + bc;
+        ctVec.noalias() = bc;
+        ctVec.noalias() += Uc * outs;
+        ctVec.noalias() += Wc * ins;
+
         ctVec = fast_tanh<T>(ctVec);
-        cVec = fVec.cwiseProduct(cVec) + iVec.cwiseProduct(ctVec);
+        cVec = fVec.cwiseProduct(cVec);
+        cVec.noalias() += iVec.cwiseProduct(ctVec);
 
         outs = fast_tanh<T>(cVec);
         outs = oVec.cwiseProduct(outs);
