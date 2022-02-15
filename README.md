@@ -7,6 +7,8 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2106.03037-b31b1b.svg)](https://arxiv.org/abs/2106.03037)
 [![License](https://img.shields.io/badge/License-BSD-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
+*Do not use! A temporary fork awaiting propagation of a fix to xsimd to RTNeural!*
+
 A lightweight neural network inferencing engine written in C++.
 This library was designed with the intention of being used in
 real-time systems, specifically real-time audio processing.
