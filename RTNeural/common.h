@@ -22,19 +22,6 @@ static inline T tanh_approx(T x) noexcept
     auto denominator = (T)2027025 + x2 * ((T)945945 + x2 * ((T)51975 + x2 * ((T)630 + x2)));
     return numerator / denominator;
 }
-
-/** Pade approximation of sigmoid */
-template <typename T>
-static inline T sigmoid_approx(T x) noexcept
-{
-    constexpr auto clamp = (T)7.0;
-    x = x > clamp ? clamp : (x < -clamp ? -clamp : x); // clamp to range [-clamp, clamp]
-
-    auto numerator = (T)0.5 + x * ((T)0.24992827750481075 + x * ((T)0.05251880704605764 + x * ((T)0.005480993464771597 + x * (T)0.000236800130780413)));
-    auto denominator = (T)1.0 + x * ((T)-1.8312068766514214e-14 + x * ((T)0.10503761409212416 + x * ((T)-1.6911015553389271e-15 + x * (T)0.00047360026156094913)));
-    return numerator / denominator;
-}
-
 } // namespace RTNeural
 
 #if RTNEURAL_USE_EIGEN
@@ -74,18 +61,6 @@ static inline auto fast_tanh(const MatType& in)
     auto denominator = (T)2027025 + x2.cwiseProduct((T)945945 + x2.cwiseProduct((T)51975 + x2.cwiseProduct((T)630 + x2.array()).array()).array()).array();
     return numerator.cwiseProduct(denominator.inverse());
 }
-
-template <typename T, typename MatType>
-static inline auto fast_sigmoid(const MatType& in)
-{
-    constexpr auto clamp = (T)7.0;
-    auto xc = in.cwiseMin(clamp).cwiseMax(-clamp); // clamp to range [-clamp, clamp]
-
-    auto numerator = (T)0.5 + xc.array().cwiseProduct((T)0.24992827750481075 + xc.array().cwiseProduct((T)0.05251880704605764 + xc.array().cwiseProduct((T)0.005480993464771597 + (T)0.000236800130780413 * xc.array()).array()).array()).array();
-    auto denominator = (T)1.0 + xc.array().cwiseProduct((T)-1.8312068766514214e-14 + xc.array().cwiseProduct((T)0.10503761409212416 + xc.array().cwiseProduct((T)-1.6911015553389271e-15 + (T)0.00047360026156094913 * xc.array()).array()).array()).array();
-    return numerator.cwiseProduct(denominator.inverse());
-}
-
 } // namespace RTNeural
 
 #elif RTNEURAL_USE_XSIMD
@@ -294,51 +269,6 @@ static inline void fast_tanh(const T* in, T* out, int dim) noexcept
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
         out[i] = tanh_approx(in[i]);
-}
-
-template <typename T>
-static inline xsimd::simd_type<T> fast_sigmoid(const xsimd::simd_type<T>& x) noexcept
-{
-    using b_type = xsimd::simd_type<T>;
-
-    static const b_type clamp_hi((T)7.0);
-    static const b_type clamp_lo((T)-7.0);
-    auto xc = xsimd::clip(x, clamp_lo, clamp_hi); // clamp to range [-clamp, clamp]
-
-    static const b_type n0((T)0.5);
-    static const b_type n1((T)0.24992827750481075);
-    static const b_type n2((T)0.05251880704605764);
-    static const b_type n3((T)0.005480993464771597);
-    static const b_type n4((T)0.000236800130780413);
-    static const b_type d0((T)1.0);
-    static const b_type d1((T)-1.8312068766514214e-14);
-    static const b_type d2((T)0.10503761409212416);
-    static const b_type d3((T)-1.6911015553389271e-15);
-    static const b_type d4((T)0.00047360026156094913);
-
-    auto numerator = n0 + xc * (n1 + xc * (n2 + xc * (n3 + xc * n4)));
-    auto denominator = d0 + xc * (d1 + xc * (d2 + xc * (d3 + xc * d4)));
-    return numerator / denominator;
-}
-
-template <typename T>
-static inline void fast_sigmoid(const T* in, T* out, int dim) noexcept
-{
-    using b_type = xsimd::simd_type<T>;
-    constexpr auto inc = (int)b_type::size;
-
-    // size for which the vectorization is possible
-    auto vec_size = dim - dim % inc;
-    for(int i = 0; i < vec_size; i += inc)
-    {
-        b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = fast_sigmoid<T>(x_vec);
-        xsimd::store_aligned(&out[i], y_vec);
-    }
-
-    // Remaining part that cannot be vectorize
-    for(auto i = vec_size; i < dim; ++i)
-        out[i] = sigmoid_approx(in[i]);
 }
 
 } // namespace RTNeural

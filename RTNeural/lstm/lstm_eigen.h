@@ -115,7 +115,7 @@ private:
  * The template argument `fast` may be used to enable a faster version
  * of the LSTM layer, which sacrifices some numerical precision.
  */
-template <typename T, int in_sizet, int out_sizet, bool fast = false>
+template <typename T, int in_sizet, int out_sizet>
 class LSTMLayerT
 {
     using b_type = Eigen::Matrix<T, out_sizet, 1>;
@@ -141,9 +141,7 @@ public:
     void reset();
 
     /** Performs forward propagation for this layer. */
-    template <bool useFast = fast>
-    inline typename std::enable_if<!useFast, void>::type
-    forward(const in_type& ins)
+    inline void forward(const in_type& ins)
     {
         fVec.noalias() = bf;
         fVec.noalias() += Uf * outs;
@@ -170,39 +168,6 @@ public:
         cVec.noalias() += iVec.cwiseProduct(ctVec);
 
         outs = cVec.array().tanh();
-        outs = oVec.cwiseProduct(outs);
-    }
-
-    /** Performs forward propagation for this layer. (FAST) */
-    template <bool useFast = fast>
-    inline typename std::enable_if<useFast, void>::type
-    forward(const in_type& ins)
-    {
-        fVec.noalias() = bf;
-        fVec.noalias() += Uf * outs;
-        fVec.noalias() += Wf * ins;
-
-        iVec.noalias() = bi;
-        iVec.noalias() += Ui * outs;
-        iVec.noalias() += Wi * ins;
-
-        oVec.noalias() = bo;
-        oVec.noalias() += Uo * outs;
-        oVec.noalias() += Wo * ins;
-
-        fVec = fast_sigmoid<T>(fVec);
-        iVec = fast_sigmoid<T>(iVec);
-        oVec = fast_sigmoid<T>(oVec);
-
-        ctVec.noalias() = bc;
-        ctVec.noalias() += Uc * outs;
-        ctVec.noalias() += Wc * ins;
-
-        ctVec = fast_tanh<T>(ctVec);
-        cVec = fVec.cwiseProduct(cVec);
-        cVec.noalias() += iVec.cwiseProduct(ctVec);
-
-        outs = fast_tanh<T>(cVec);
         outs = oVec.cwiseProduct(outs);
     }
 

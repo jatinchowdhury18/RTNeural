@@ -101,8 +101,8 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 }
 
 //====================================================
-template <typename T, int in_sizet, int out_sizet, bool fast>
-LSTMLayerT<T, in_sizet, out_sizet, fast>::LSTMLayerT()
+template <typename T, int in_sizet, int out_sizet>
+LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
     : outs(outs_internal)
 {
     Wf = k_type::Zero();
@@ -123,8 +123,8 @@ LSTMLayerT<T, in_sizet, out_sizet, fast>::LSTMLayerT()
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, bool fast>
-void LSTMLayerT<T, in_sizet, out_sizet, fast>::reset()
+template <typename T, int in_sizet, int out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::reset()
 {
     // reset output state
     outs = out_type::Zero();
@@ -132,8 +132,8 @@ void LSTMLayerT<T, in_sizet, out_sizet, fast>::reset()
 }
 
 // kernel weights
-template <typename T, int in_sizet, int out_sizet, bool fast>
-void LSTMLayerT<T, in_sizet, out_sizet, fast>::setWVals(const std::vector<std::vector<T>>& wVals)
+template <typename T, int in_sizet, int out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(int i = 0; i < in_size; ++i)
     {
@@ -148,8 +148,8 @@ void LSTMLayerT<T, in_sizet, out_sizet, fast>::setWVals(const std::vector<std::v
 }
 
 // recurrent weights
-template <typename T, int in_sizet, int out_sizet, bool fast>
-void LSTMLayerT<T, in_sizet, out_sizet, fast>::setUVals(const std::vector<std::vector<T>>& uVals)
+template <typename T, int in_sizet, int out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
     for(int i = 0; i < out_size; ++i)
     {
@@ -164,8 +164,8 @@ void LSTMLayerT<T, in_sizet, out_sizet, fast>::setUVals(const std::vector<std::v
 }
 
 // biases
-template <typename T, int in_sizet, int out_sizet, bool fast>
-void LSTMLayerT<T, in_sizet, out_sizet, fast>::setBVals(const std::vector<T>& bVals)
+template <typename T, int in_sizet, int out_sizet>
+void LSTMLayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<T>& bVals)
 {
     for(int k = 0; k < out_size; ++k)
     {

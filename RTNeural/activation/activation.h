@@ -251,52 +251,6 @@ public:
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
-/** Dynamic implementation of an approximate sigmoid activation layer. */
-template <typename T>
-class FastSigmoid final : public Activation<T>
-{
-public:
-    /** Constructs a sigmoid activation layer for a given size. */
-    explicit FastSigmoid(int size)
-        : Activation<T>(
-            size, [](T x) { return sigmoid_approx(x); }, "sigmoid")
-    {
-    }
-
-    FastSigmoid(std::initializer_list<int> sizes)
-        : FastSigmoid(*sizes.begin())
-    {
-    }
-};
-
-/** Static implementation of a sigmoid activation layer. */
-template <typename T, int size>
-class FastSigmoidT
-{
-public:
-    static constexpr auto in_size = size;
-    static constexpr auto out_size = size;
-
-    FastSigmoidT() = default;
-
-    /** Returns the name of this layer. */
-    std::string getName() const noexcept { return "sigmoid"; }
-
-    /** Returns true since this layer is an activation layer. */
-    constexpr bool isActivation() const noexcept { return true; }
-
-    void reset() { }
-
-    /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const T (&ins)[size])
-    {
-        for(int i = 0; i < size; ++i)
-            outs[i] = sigmoid_approx(ins[i]);
-    }
-
-    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
-};
-
 /** Dynamic implementation of a softmax activation layer. */
 template <typename T>
 class SoftmaxActivation final : public Activation<T>
