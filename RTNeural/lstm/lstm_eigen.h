@@ -111,9 +111,6 @@ private:
  * To ensure that the recurrent state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
- *
- * The template argument `fast` may be used to enable a faster version
- * of the LSTM layer, which sacrifices some numerical precision.
  */
 template <typename T, int in_sizet, int out_sizet>
 class LSTMLayerT
