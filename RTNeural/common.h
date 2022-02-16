@@ -22,7 +22,6 @@ static inline T tanh_approx(T x) noexcept
     auto denominator = (T)2027025 + x2 * ((T)945945 + x2 * ((T)51975 + x2 * ((T)630 + x2)));
     return numerator / denominator;
 }
-
 } // namespace RTNeural
 
 #if RTNEURAL_USE_EIGEN
@@ -62,7 +61,6 @@ static inline auto fast_tanh(const MatType& in)
     auto denominator = (T)2027025 + x2.cwiseProduct((T)945945 + x2.cwiseProduct((T)51975 + x2.cwiseProduct((T)630 + x2.array()).array()).array()).array();
     return numerator.cwiseProduct(denominator.inverse());
 }
-
 } // namespace RTNeural
 
 #elif RTNEURAL_USE_XSIMD

@@ -140,13 +140,29 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const in_type& ins)
     {
-        fVec.noalias() = sigmoid(Wf * ins + Uf * outs + bf);
-        iVec.noalias() = sigmoid(Wi * ins + Ui * outs + bi);
-        oVec.noalias() = sigmoid(Wo * ins + Uo * outs + bo);
+        fVec.noalias() = bf;
+        fVec.noalias() += Uf * outs;
+        fVec.noalias() += Wf * ins;
 
-        ctVec.noalias() = Wc * ins + Uc * outs + bc;
+        iVec.noalias() = bi;
+        iVec.noalias() += Ui * outs;
+        iVec.noalias() += Wi * ins;
+
+        oVec.noalias() = bo;
+        oVec.noalias() += Uo * outs;
+        oVec.noalias() += Wo * ins;
+
+        fVec = sigmoid(fVec);
+        iVec = sigmoid(iVec);
+        oVec = sigmoid(oVec);
+
+        ctVec.noalias() = bc;
+        ctVec.noalias() += Uc * outs;
+        ctVec.noalias() += Wc * ins;
+
         ctVec = ctVec.array().tanh();
-        cVec = fVec.cwiseProduct(cVec) + iVec.cwiseProduct(ctVec);
+        cVec = fVec.cwiseProduct(cVec);
+        cVec.noalias() += iVec.cwiseProduct(ctVec);
 
         outs = cVec.array().tanh();
         outs = oVec.cwiseProduct(outs);
