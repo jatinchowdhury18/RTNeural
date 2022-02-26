@@ -134,28 +134,28 @@ std::unique_ptr<RTNeural::Layer<double>>
 create_layer(const std::string &layer_type, size_t in_size, size_t out_size) {
   if (layer_type == "dense") {
     auto layer = std::make_unique<RTNeural::Dense<double>>(in_size, out_size);
-    randomise_dense(*layer.get());
+    randomise_dense(*layer);
     return std::move(layer);
   }
 
   if (layer_type == "conv1d") {
     const auto kernel_size = in_size - 1;
     auto layer = std::make_unique<RTNeural::Conv1D<double>>(in_size, out_size, kernel_size, 1);
-    randomise_conv1d(*layer.get(), kernel_size);
+    randomise_conv1d(*layer, kernel_size);
     return std::move(layer);
   }
 
   if (layer_type == "gru") {
     auto layer =
         std::make_unique<RTNeural::GRULayer<double>>(in_size, out_size);
-    randomise_gru(*layer.get());
+    randomise_gru(*layer);
     return std::move(layer);
   }
 
   if (layer_type == "lstm") {
     auto layer =
         std::make_unique<RTNeural::LSTMLayer<double>>(in_size, out_size);
-    randomise_lstm(*layer.get());
+    randomise_lstm(*layer);
     return std::move(layer);
   }
 

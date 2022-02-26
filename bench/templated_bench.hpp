@@ -43,6 +43,12 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             randomise_dense (model.get<0>());
             duration = run_layer(model);
         }
+        else if(in_size == 24 && out_size == 1)
+        {
+            ModelT<double, 24, 1, DenseT<double, 24, 1>> model;
+            randomise_dense (model.get<0>());
+            duration = run_layer(model);
+        }
         else
         {
             std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
@@ -118,6 +124,12 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
         else if(in_size == 16 && out_size == 16)
         {
             ModelT<double, 16, 16, LSTMLayerT<double, 16, 16>> model;
+            randomise_lstm (model.get<0>());
+            duration = run_layer(model);
+        }
+        else if(in_size == 1 && out_size == 24)
+        {
+            ModelT<double, 1, 24, LSTMLayerT<double, 1, 24>> model;
             randomise_lstm (model.get<0>());
             duration = run_layer(model);
         }
