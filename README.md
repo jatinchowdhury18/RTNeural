@@ -209,17 +209,17 @@ RTNeural can be included as a header-only library, along with a few
 extra steps.
 
 1. Add a compile-time definition to define a default byte alignment for RTNeural.
-   For most cases this will be one of either:
+   For most cases this definition will be one of either:
    - `RTNEURAL_DEFAULT_ALIGNMENT=16`
    - `RTNEURAL_DEFAULT_ALIGNMENT=32`
 
 2. Add a compile-time definition to [select a backend](#choosing-a-backend).
-   This should be one of the following:
+   If you wish to use the STL backend, then no definition is required.
+   This definition should be one of the following:
    - `RTNEURAL_USE_EIGEN=1`
    - `RTNEURAL_USE_XSIMD=1`
-   - `RTNEURAL_USE_STIL=1`
 
-3. Add the necessary include paths for your chosen backend. This will be
+4. Add the necessary include paths for your chosen backend. This path will be
    one of either:
    - `<repo>/modules/Eigen`
    - `<repo>/modules/xsimd/include/xsimd`

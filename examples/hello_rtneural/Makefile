@@ -6,9 +6,6 @@ CXXFLAGS = -O3 -I../../ -std=c++17 -DRTNEURAL_DEFAULT_ALIGNMENT=16
 # Extra flags for compiling with XSIMD backend
 # CXXFLAGS += -DRTNEURAL_USE_XSIMD=1 -I../../modules/xsimd/include
 
-# Extra flags for compiling with STL backend
-CXXFLAGS += -DRTNEURAL_USE_STL=1
-
 SRCS=hello_rtneural.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
