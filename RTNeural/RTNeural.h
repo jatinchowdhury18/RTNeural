@@ -8,7 +8,7 @@
 // Handle default RTNeural defines
 #ifndef RTNEURAL_DEFAULT_ALIGNMENT
 #if _MSC_VER
-#pragma message ("RTNEURAL_DEFAULT_ALIGNMENT was not defined! Using default alignment = 16.")
+#pragma message("RTNEURAL_DEFAULT_ALIGNMENT was not defined! Using default alignment = 16.")
 #else
 #warning "RTNEURAL_DEFAULT_ALIGNMENT was not defined! Using default alignment = 16."
 #endif
