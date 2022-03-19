@@ -129,6 +129,9 @@ include_directories(RTNeural)
 target_link_libraries(MyCMakeProject LINK_PUBLIC RTNeural)
 ```
 
+If you are trying to use RTNeural in a project that does not use
+CMake, please see the [instructions below](#building-without-cmake).
+
 ### Choosing a Backend
 
 `RTNeural` supports three backends,
@@ -198,6 +201,31 @@ The example programs will then be located in
 An example of using RTNeural within a real-time
 audio plugin can be found on GitHub
 [here](https://github.com/jatinchowdhury18/RTNeural-example).
+
+## Building without CMake
+
+If you wish to use RTNeural in a project that doesn't use CMake,
+RTNeural can be included as a header-only library, along with a few
+extra steps.
+
+1. Add a compile-time definition to define a default byte alignment for RTNeural.
+   For most cases this definition will be one of either:
+   - `RTNEURAL_DEFAULT_ALIGNMENT=16`
+   - `RTNEURAL_DEFAULT_ALIGNMENT=32`
+
+2. Add a compile-time definition to [select a backend](#choosing-a-backend).
+   If you wish to use the STL backend, then no definition is required.
+   This definition should be one of the following:
+   - `RTNEURAL_USE_EIGEN=1`
+   - `RTNEURAL_USE_XSIMD=1`
+
+4. Add the necessary include paths for your chosen backend. This path will be
+   one of either:
+   - `<repo>/modules/Eigen`
+   - `<repo>/modules/xsimd/include/xsimd`
+
+It may also be worth checking out the
+[example Makefile](./examples/hello_rtneural/Makefile).
 
 ## Contributing
 
