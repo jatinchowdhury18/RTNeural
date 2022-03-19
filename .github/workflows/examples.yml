@@ -60,5 +60,5 @@ jobs:
     - name: Hello RTNeural with Makefile
       if: runner.os == 'Linux'
       shell: bash
-      working-directory: ${{env.WORK_DIR}}/examples/hello_rtneural
+      working-directory: ${{github.workspace}}/examples/hello_rtneural
       run: make hello_rtneural.exe
