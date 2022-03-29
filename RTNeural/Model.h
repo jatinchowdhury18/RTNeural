@@ -90,7 +90,7 @@ public:
 
 private:
 #if RTNEURAL_USE_XSIMD
-    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+    using vec_type = std::vector<T, xsimd::aligned_allocator<T>>;
 #elif RTNEURAL_USE_EIGEN
     using vec_type = std::vector<T, Eigen::aligned_allocator<T>>;
 #else

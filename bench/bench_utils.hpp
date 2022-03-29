@@ -5,7 +5,7 @@
 
 #if RTNEURAL_USE_XSIMD
 #include <xsimd/xsimd.hpp>
-using vec_type = std::vector<double, XSIMD_DEFAULT_ALLOCATOR(double)>;
+using vec_type = std::vector<double, xsimd::aligned_allocator<double>>;
 #elif RTNEURAL_USE_EIGEN
 #include <Eigen/Dense>
 using vec_type = std::vector<double, Eigen::aligned_allocator<double>>;

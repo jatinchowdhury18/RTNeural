@@ -86,7 +86,7 @@ public:
     int getDilationRate() const noexcept { return dilation_rate; }
 
 private:
-    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+    using vec_type = std::vector<T, xsimd::aligned_allocator<T>>;
     using vec2_type = std::vector<vec_type>;
     using vec3_type = std::vector<vec2_type>;
 
