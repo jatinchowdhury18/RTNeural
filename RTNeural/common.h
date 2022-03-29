@@ -64,8 +64,8 @@ static inline auto fast_tanh(const MatType& in)
 } // namespace RTNeural
 
 #elif RTNEURAL_USE_XSIMD
-#include <xsimd/xsimd.hpp>
 #include <xsimd/stl/algorithms.hpp>
+#include <xsimd/xsimd.hpp>
 
 namespace RTNeural
 {
