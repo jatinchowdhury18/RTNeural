@@ -89,7 +89,7 @@ public:
     void setBVals(const std::vector<T>& bVals);
 
 protected:
-    using vec_type = std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)>;
+    using vec_type = std::vector<T, xsimd::aligned_allocator<T>>;
     using vec2_type = std::vector<vec_type>;
 
     vec_type ht1;

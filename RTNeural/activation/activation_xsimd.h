@@ -149,7 +149,7 @@ public:
             [](auto const& a, auto const& b) { return xsimd::max(a, b); });
     }
 
-    std::vector<T, XSIMD_DEFAULT_ALLOCATOR(T)> zeros;
+    std::vector<T, xsimd::aligned_allocator<T>> zeros;
 };
 
 /** Static implementation of a ReLU activation layer. */
