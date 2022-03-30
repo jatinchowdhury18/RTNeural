@@ -49,7 +49,7 @@ public:
     static constexpr auto out_size = size;
 
     TanhActivationT()
-            : outs(outs_internal)
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
@@ -116,7 +116,7 @@ public:
     static constexpr auto out_size = size;
 
     FastTanhT()
-            : outs(outs_internal)
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
@@ -254,7 +254,7 @@ public:
     static constexpr auto out_size = size;
 
     SigmoidActivationT()
-            : outs(outs_internal)
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
