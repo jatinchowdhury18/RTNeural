@@ -49,6 +49,7 @@ public:
     static constexpr auto out_size = size;
 
     TanhActivationT()
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
@@ -67,7 +68,10 @@ public:
         outs = ins.array().tanh();
     }
 
-    v_type outs;
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 /** Dynamic implementation of an approximate tanh activation layer. */
 template <typename T>
@@ -112,6 +116,7 @@ public:
     static constexpr auto out_size = size;
 
     FastTanhT()
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
@@ -130,7 +135,10 @@ public:
         outs = fast_tanh<T>(ins);
     }
 
-    v_type outs;
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 
 /** Dynamic implementation of a ReLU activation layer. */
@@ -176,6 +184,7 @@ public:
     static constexpr auto out_size = size;
 
     ReLuActivationT()
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
@@ -194,7 +203,10 @@ public:
         outs = ins.array().max((T)0);
     }
 
-    v_type outs;
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 
 /** Dynamic implementation of a sigmoid activation layer. */
@@ -242,6 +254,7 @@ public:
     static constexpr auto out_size = size;
 
     SigmoidActivationT()
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
@@ -260,7 +273,10 @@ public:
         outs = (T)1 / (((T)-1 * ins.array()).array().exp() + (T)1);
     }
 
-    v_type outs;
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 
 /** Dynamic implementation of a softmax activation layer. */
@@ -308,6 +324,7 @@ public:
     static constexpr auto out_size = size;
 
     SoftmaxActivationT()
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
     }
@@ -327,7 +344,10 @@ public:
         outs = outs / outs.sum();
     }
 
-    v_type outs;
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 
 } // namespace RTNeural
