@@ -12,7 +12,6 @@ namespace RTNeural
 /** Utility functions for loading model weights from their json representation. */
 namespace json_parser
 {
-
     [[maybe_unused]] static void debug_print(const std::string& str, bool debug)
     {
         if(debug)
