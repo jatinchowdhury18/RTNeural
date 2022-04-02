@@ -32,4 +32,9 @@ add_library(RTNeural STATIC
 
 set_property(TARGET RTNeural PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(RTNeural PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(RTNeural PUBLIC ../modules/json)
+target_include_directories(RTNeural
+    PUBLIC
+        ../modules/json
+    INTERFACE
+        ..
+)
