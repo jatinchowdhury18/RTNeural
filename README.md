@@ -124,8 +124,6 @@ is to include `RTNeural` as a submodule:
 ```cmake
 ...
 add_subdirectory(RTNeural)
-include_directories(RTNeural)
-...
 target_link_libraries(MyCMakeProject LINK_PUBLIC RTNeural)
 ```
 
@@ -152,7 +150,7 @@ In general, the `Eigen` backend typically has the best
 performance for larger networks, while smaller networks
 may perform better with XSIMD. However, it is recommended
 to measure the performance of your network with all the 
-backends that available on your target platform
+backends that are available on your target platform
 to ensure optimal performance. For more information see the
 [benchmark results](https://github.com/jatinchowdhury18/RTNeural/actions?query=workflow%3ABench).
 
@@ -174,7 +172,7 @@ do not support AVX2 instructions.
 
 ### Building the Unit Tests
 
-To build the RTNeural's unit tests, run
+To build RTNeural's unit tests, run
 `cmake -Bbuild -DBUILD_TESTS=ON`, followed by
 `cmake --build build`. To run the full testing suite,
 run `./build/rtneural_tests all`. For more information,
@@ -255,6 +253,8 @@ RTNeural is currently being used by several audio plugins:
 - [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
 - [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
 - [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
+
+If you are using RTNeural in one of your projects, let us know and we will add it to this list!
 
 ## Citation
 
