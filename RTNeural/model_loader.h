@@ -307,6 +307,9 @@ namespace json_parser
         if(activationType == "softmax")
             return std::make_unique<SoftmaxActivation<T>>(dims);
 
+        if(activationType == "elu")
+            return std::make_unique<ELuActivation<T>>(dims);
+
         return {};
     }
 

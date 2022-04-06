@@ -44,6 +44,9 @@ def save_model_json(model):
 
         if layer.activation == keras.activations.softmax:
             return 'softmax'
+
+        if layer.activation == keras.activations.elu:
+            return 'elu'
         
         return ''
 

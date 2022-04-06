@@ -18,7 +18,7 @@ static std::map<std::string, TestConfig> tests {
             "test_data/conv_y_python.csv", 1.0e-6 } },
     { "dense",
         TestConfig { "DENSE", "models/dense.json", "test_data/dense_x_python.csv",
-            "test_data/dense_y_python.csv", 2.0e-8 } },
+            "test_data/dense_y_python.csv", 1.0e-6 } },
     { "gru", TestConfig { "GRU", "models/gru.json", "test_data/gru_x_python.csv", "test_data/gru_y_python.csv", 5.0e-6 } },
     { "gru_1d", TestConfig { "GRU-1D", "models/gru_1d.json", "test_data/gru_1d_x_python.csv", "test_data/gru_1d_y_python.csv", 1.0e-6 } },
     { "lstm",

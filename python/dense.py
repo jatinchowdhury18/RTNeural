@@ -9,11 +9,12 @@ from model_utils import save_model
 
 # construct TensorFlow model
 model = keras.Sequential()
-model.add(keras.layers.Input(1))
+model.add(keras.layers.InputLayer(1))
 model.add(keras.layers.Dense(8, activation='tanh', kernel_initializer='random_normal', bias_initializer='random_normal'))
-model.add(keras.layers.Dense(8, activation='relu', kernel_initializer='random_normal', bias_initializer='random_normal'))
-model.add(keras.layers.Dense(8, activation='softmax', kernel_initializer='random_normal', bias_initializer='random_normal'))
-model.add(keras.layers.Dense(1, kernel_initializer='random_normal', bias_initializer='random_normal'))
+model.add(keras.layers.Dense(8, activation='relu', kernel_initializer='orthogonal', bias_initializer='random_normal'))
+model.add(keras.layers.Dense(8, activation='elu', kernel_initializer='orthogonal', bias_initializer='random_normal'))
+model.add(keras.layers.Dense(8, activation='softmax', kernel_initializer='orthogonal', bias_initializer='random_normal'))
+model.add(keras.layers.Dense(1, kernel_initializer='orthogonal', bias_initializer='random_normal'))
 
 # construct signals
 N = 100
