@@ -264,7 +264,6 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-
     inline void forward(const T* input, T* out) override
     {
         softmax(input, out, Layer<T>::in_size);
@@ -310,6 +309,80 @@ public:
         auto v_exp_sum = (v_type)exp_sum;
         for(int i = 0; i < v_io_size; ++i)
             outs[i] = outs[i] / v_exp_sum;
+    }
+
+    v_type outs[v_io_size];
+};
+
+/** Dynamic implementation of a elu activation layer. */
+template <typename T>
+class ELuActivation final : public Activation<T>
+{
+public:
+    /** Constructs a elu activation layer for a given size. */
+    explicit ELuActivation(int size)
+        : Activation<T>(
+            size, {}, "elu")
+    {
+    }
+
+    ELuActivation(std::initializer_list<int> sizes)
+        : ELuActivation(*sizes.begin())
+    {
+    }
+
+    /** Performs forward propagation for softmax activation. */
+    inline void forward(const T* input, T* out) override
+    {
+        elu(input, out, Layer<T>::in_size, alpha);
+    }
+
+    /** Sets a custom value for the layer's "alpha" parameter. */
+    void set_alpha(T newAlpha) { alpha = newAlpha; }
+
+private:
+    T alpha = (T)1;
+};
+
+/** Static implementation of a elu activation layer. */
+template <typename T, int size, int AlphaNumerator = 1, int AlphaDenominator = 1>
+class ELuActivationT
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_io_size = ceil_div(size, v_size);
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    ELuActivationT() = default;
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "elu"; }
+
+    /** Returns true since this layer is an activation layer. */
+    constexpr bool isActivation() const noexcept { return true; }
+
+    void reset() { }
+
+    /** Performs forward propagation for elu activation. */
+    template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
+    inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
+    forward(const v_type (&ins)[v_io_size])
+    {
+        for(int i = 0; i < v_io_size; ++i)
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], xsimd::exp(ins[i]) - (T)1);
+    }
+
+    /** Performs forward propagation for elu activation (with custom alpha parameter). */
+    template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
+    inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
+    forward(const v_type (&ins)[v_io_size])
+    {
+        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
+        for(int i = 0; i < v_io_size; ++i)
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], alpha * (xsimd::exp(ins[i]) - (T)1));
     }
 
     v_type outs[v_io_size];

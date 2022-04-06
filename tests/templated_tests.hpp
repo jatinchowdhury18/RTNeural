@@ -72,6 +72,8 @@ int templatedTests(std::string arg)
                             DenseT<TestType, 8, 8>,
                             ReLuActivationT<TestType, 8>,
                             DenseT<TestType, 8, 8>,
+                            ELuActivationT<TestType, 8>,
+                            DenseT<TestType, 8, 8>,
                             SoftmaxActivationT<TestType, 8>,
                             DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));

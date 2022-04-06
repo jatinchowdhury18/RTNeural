@@ -312,6 +312,70 @@ public:
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
+/** Dynamic implementation of a elu activation layer. */
+template <typename T>
+class ELuActivation final : public Activation<T>
+{
+public:
+    /** Constructs a softmax activation layer for a given size. */
+    explicit ELuActivation(int size)
+        : Activation<T>(
+            size, [this](T x) { return x > (T)0 ? x : (alpha * (std::exp(x) - (T)1)); }, "elu")
+    {
+    }
+
+    ELuActivation(std::initializer_list<int> sizes)
+        : ELuActivation(*sizes.begin())
+    {
+    }
+
+    /** Sets a custom value for the layer's "alpha" parameter. */
+    void set_alpha(T newAlpha) { alpha = newAlpha; }
+
+private:
+    T alpha = (T)1;
+};
+
+/** Static implementation of a elu activation layer. */
+template <typename T, int size, int AlphaNumerator = 1, int AlphaDenominator = 1>
+class ELuActivationT
+{
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    ELuActivationT() = default;
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "elu"; }
+
+    /** Returns true since this layer is an activation layer. */
+    constexpr bool isActivation() const noexcept { return true; }
+
+    void reset() { }
+
+    /** Performs forward propagation for elu activation. */
+    template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
+    inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
+    forward(const T (&ins)[size])
+    {
+        for(int i = 0; i < size; ++i)
+            outs[i] = ins[i] > (T)0 ? ins[i] : (std::exp(ins[i]) - (T)1);
+    }
+
+    /** Performs forward propagation for elu activation (with custom alpha parameter). */
+    template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
+    inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
+    forward(const T (&ins)[size])
+    {
+        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
+        for(int i = 0; i < size; ++i)
+            outs[i] = ins[i] > (T)0 ? ins[i] : (alpha * (std::exp(ins[i]) - (T)1));
+    }
+
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
+};
+
 } // namespace RTNeural
 
 #endif // RTNEURAL_USE_EIGEN
