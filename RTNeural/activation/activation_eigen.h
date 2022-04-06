@@ -280,7 +280,6 @@ private:
 };
 
 /** Dynamic implementation of a softmax activation layer. */
-
 template <typename T>
 class SoftmaxActivation : public Activation<T>
 {
@@ -347,6 +346,94 @@ public:
     Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
 
 private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+};
+
+/** Dynamic implementation of a elu activation layer. */
+template <typename T>
+class ELuActivation : public Activation<T>
+{
+public:
+    /** Constructs a elu activation layer for a given size. */
+    explicit ELuActivation(int size)
+        : Activation<T>(size, {}, "elu"),
+          ones(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Ones(size, 1))
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    ELuActivation(std::initializer_list<int> sizes)
+        : ELuActivation(*sizes.begin())
+    {
+    }
+
+    /** Performs forward propagation for softmax activation. */
+    inline void forward(const T* input, T* out) override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            input, Layer<T>::in_size, 1);
+
+        outVec = (inVec.array() > (T) 0).select(inVec, alpha * (inVec.array().exp() - ones.array()));
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+
+    /** Sets a custom value for the layer's "alpha" parameter. */
+    void set_alpha(T newAlpha) { alpha = newAlpha; }
+
+private:
+    const Eigen::Matrix<T, Eigen::Dynamic, 1> ones;
+    T alpha = (T) 1;
+};
+
+/** Static implementation of a elu activation layer. */
+template <typename T, int size, int AlphaNumerator = 1, int AlphaDenominator = 1>
+class ELuActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    ELuActivationT()
+        : outs(outs_internal)
+    {
+        outs = v_type::Zero();
+    }
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "elu"; }
+
+    /** Returns true since this layer is an activation layer. */
+    constexpr bool isActivation() const noexcept { return true; }
+
+    void reset() { }
+
+    /** Performs forward propagation for elu activation. */
+    template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
+    inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
+    forward(const v_type& ins)
+    {
+        outs = (ins.array() > (T) 0).select(ins, ins.array().exp() - ones.array());
+    }
+
+    /** Performs forward propagation for elu activation (with custom alpha parameter). */
+    template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
+    inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
+    forward(const v_type& ins)
+    {
+        constexpr T alpha = (T) AlphaNumerator / (T) AlphaDenominator;
+        outs = (ins.array() > (T) 0).select(ins, alpha * (ins.array().exp() - ones.array()));
+    }
+
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    const v_type ones = v_type::Ones();
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 };
 
