@@ -241,13 +241,13 @@ static inline void elu(const T* in, T* out, int dim, T alpha) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = xsimd::select(x_vec > (T) 0, x_vec, alpha * (xsimd::exp(x_vec) - (T) 1));
+        b_type y_vec = xsimd::select(x_vec > (T)0, x_vec, alpha * (xsimd::exp(x_vec) - (T)1));
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorized
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = in[i] > (T) 0 ? in[i] : (alpha * (std::exp (in[i]) - (T) 1));
+        out[i] = in[i] > (T)0 ? in[i] : (alpha * (std::exp(in[i]) - (T)1));
 }
 
 template <typename T>

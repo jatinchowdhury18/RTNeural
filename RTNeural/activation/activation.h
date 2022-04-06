@@ -320,7 +320,7 @@ public:
     /** Constructs a softmax activation layer for a given size. */
     explicit ELuActivation(int size)
         : Activation<T>(
-            size, [this](T x) { return x > (T) 0 ? x : (alpha * (std::exp (x) - (T) 1)); }, "elu")
+            size, [this](T x) { return x > (T)0 ? x : (alpha * (std::exp(x) - (T)1)); }, "elu")
     {
     }
 
@@ -333,7 +333,7 @@ public:
     void set_alpha(T newAlpha) { alpha = newAlpha; }
 
 private:
-    T alpha = (T) 1;
+    T alpha = (T)1;
 };
 
 /** Static implementation of a elu activation layer. */
@@ -360,7 +360,7 @@ public:
     forward(const T (&ins)[size])
     {
         for(int i = 0; i < size; ++i)
-            outs[i] = ins[i] > (T) 0 ? ins[i] : (std::exp(ins[i]) - (T) 1);
+            outs[i] = ins[i] > (T)0 ? ins[i] : (std::exp(ins[i]) - (T)1);
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
@@ -368,9 +368,9 @@ public:
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const T (&ins)[size])
     {
-        constexpr T alpha = (T) AlphaNumerator / (T) AlphaDenominator;
+        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < size; ++i)
-            outs[i] = ins[i] > (T) 0 ? ins[i] : (alpha * (std::exp(ins[i]) - (T) 1));
+            outs[i] = ins[i] > (T)0 ? ins[i] : (alpha * (std::exp(ins[i]) - (T)1));
     }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];

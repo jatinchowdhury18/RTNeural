@@ -341,7 +341,7 @@ public:
     void set_alpha(T newAlpha) { alpha = newAlpha; }
 
 private:
-    T alpha = (T) 1;
+    T alpha = (T)1;
 };
 
 /** Static implementation of a elu activation layer. */
@@ -372,7 +372,7 @@ public:
     forward(const v_type (&ins)[v_io_size])
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::select(ins[i] > (T) 0, ins[i], xsimd::exp(ins[i]) - (T) 1);
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], xsimd::exp(ins[i]) - (T)1);
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
@@ -380,9 +380,9 @@ public:
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const v_type (&ins)[v_io_size])
     {
-        constexpr T alpha = (T) AlphaNumerator / (T) AlphaDenominator;
+        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::select(ins[i] > (T) 0, ins[i], alpha * (xsimd::exp(ins[i]) - (T) 1));
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], alpha * (xsimd::exp(ins[i]) - (T)1));
     }
 
     v_type outs[v_io_size];

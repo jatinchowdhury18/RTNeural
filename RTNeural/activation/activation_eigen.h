@@ -356,8 +356,8 @@ class ELuActivation : public Activation<T>
 public:
     /** Constructs a elu activation layer for a given size. */
     explicit ELuActivation(int size)
-        : Activation<T>(size, {}, "elu"),
-          ones(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Ones(size, 1))
+        : Activation<T>(size, {}, "elu")
+        , ones(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Ones(size, 1))
     {
         inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
         outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
@@ -374,7 +374,7 @@ public:
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
 
-        outVec = (inVec.array() > (T) 0).select(inVec, alpha * (inVec.array().exp() - ones.array()));
+        outVec = (inVec.array() > (T)0).select(inVec, alpha * (inVec.array().exp() - ones.array()));
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
 
@@ -386,7 +386,7 @@ public:
 
 private:
     const Eigen::Matrix<T, Eigen::Dynamic, 1> ones;
-    T alpha = (T) 1;
+    T alpha = (T)1;
 };
 
 /** Static implementation of a elu activation layer. */
@@ -418,7 +418,7 @@ public:
     inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
     forward(const v_type& ins)
     {
-        outs = (ins.array() > (T) 0).select(ins, ins.array().exp() - ones.array());
+        outs = (ins.array() > (T)0).select(ins, ins.array().exp() - ones.array());
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
@@ -426,8 +426,8 @@ public:
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const v_type& ins)
     {
-        constexpr T alpha = (T) AlphaNumerator / (T) AlphaDenominator;
-        outs = (ins.array() > (T) 0).select(ins, alpha * (ins.array().exp() - ones.array()));
+        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
+        outs = (ins.array() > (T)0).select(ins, alpha * (ins.array().exp() - ones.array()));
     }
 
     Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
