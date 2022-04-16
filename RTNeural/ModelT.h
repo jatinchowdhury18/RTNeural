@@ -276,7 +276,7 @@ public:
     }
 
     /** Loads neural network model weights from a json stream. */
-    void parseJson(const nlohmann::json& parent, const bool debug = false)
+    void parseJson(const nlohmann::json& parent, const bool debug = false, std::initializer_list<std::string> custom_layers = {})
     {
         using namespace json_parser;
 
@@ -327,17 +327,24 @@ public:
                 return;
             }
 
+            if (std::find(custom_layers.begin(), custom_layers.end(), type) != custom_layers.end())
+            {
+                std::cout << "Skipping loading weights for custom layer: " << type << std::endl;
+                json_stream_idx++;
+                return;
+            }
+
             modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug);
         },
             layers);
     }
 
     /** Loads neural network model weights from a json stream. */
-    void parseJson(std::ifstream& jsonStream, const bool debug = false)
+    void parseJson(std::ifstream& jsonStream, const bool debug = false, std::initializer_list<std::string> custom_layers = {})
     {
         nlohmann::json parent;
         jsonStream >> parent;
-        return parseJson(parent, debug);
+        return parseJson(parent, debug, custom_layers);
     }
 
 private:
