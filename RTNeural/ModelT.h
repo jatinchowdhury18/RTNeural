@@ -327,7 +327,7 @@ public:
                 return;
             }
 
-            if (std::find(custom_layers.begin(), custom_layers.end(), type) != custom_layers.end())
+            if(std::find(custom_layers.begin(), custom_layers.end(), type) != custom_layers.end())
             {
                 std::cout << "Skipping loading weights for custom layer: " << type << std::endl;
                 json_stream_idx++;
