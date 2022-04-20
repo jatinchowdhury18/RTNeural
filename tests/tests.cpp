@@ -76,6 +76,11 @@ using TestType = double;
 
 int main(int argc, char* argv[])
 {
+#if RTNEURAL_USE_XSIMD
+    std::cout << "XSIMD float register width: " << xsimd::simd_type<float>::size << std::endl;
+    std::cout << "XSIMD double register width: " << xsimd::simd_type<double>::size << std::endl;
+#endif
+
     if(argc != 2)
     {
         help();
