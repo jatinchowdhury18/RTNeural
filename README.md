@@ -166,10 +166,10 @@ Note that you must abide by the licensing rules of whichever backend library you
 
 ### Other configuration flags
 
-If you would like to build RTNeural with the AVX2 SIMD extensions,
-you may run CMake with the `-DRTNEURAL_USE_AVX2=ON`. Note that
+If you would like to build RTNeural with the AVX SIMD extensions,
+you may run CMake with the `-DRTNEURAL_USE_AVX=ON`. Note that
 this flag will have no effect when compiling for platforms that
-do not support AVX2 instructions.
+do not support AVX instructions.
 
 ### Building the Unit Tests
 
