@@ -258,34 +258,36 @@ public:
 private:
     static inline void recurrent_mat_mul(const v_type (&vec)[v_out_size], const v_type (&mat)[out_size][v_out_size], v_type (&out)[v_out_size]) noexcept
     {
-        T sums alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size] { (T)0 };
-        for(int i = 0; i < v_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
+            out[i] = v_type(0);
+
+        T scalar_in alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
+        for(int k = 0; k < v_out_size; ++k)
         {
-            for(int j = 0; j < v_out_size; ++j)
+            vec[k].store_aligned(scalar_in);
+            for(int i = 0; i < v_out_size; ++i)
             {
-                for(int k = 0; k < v_out_size; ++k)
-                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
+                for(int j = 0; j < v_size; ++j)
+                    out[i] += scalar_in[j] * mat[k * v_size + j][i];
             }
         }
-
-        for(int i = 0; i < v_out_size; ++i)
-            out[i] = xsimd::load_aligned(sums + i * v_size);
     }
 
-    static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[out_size][v_in_size], v_type (&out)[v_out_size]) noexcept
+    static inline void kernel_mat_mul(const v_type (&vec)[v_in_size], const v_type (&mat)[in_size][v_out_size], v_type (&out)[v_out_size]) noexcept
     {
-        T sums alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size] { (T)0 };
-        for(int i = 0; i < v_size; ++i)
+        for(int i = 0; i < v_out_size; ++i)
+            out[i] = v_type(0);
+
+        T scalar_in alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
+        for(int k = 0; k < v_in_size; ++k)
         {
-            for(int j = 0; j < v_out_size; ++j)
+            vec[k].store_aligned(scalar_in);
+            for(int i = 0; i < v_out_size; ++i)
             {
-                for(int k = 0; k < v_in_size; ++k)
-                    sums[i + j * v_size] += xsimd::hadd(mat[i + j * v_size][k] * vec[k]);
+                for(int j = 0; j < v_size; ++j)
+                    out[i] += scalar_in[j] * mat[k * v_size + j][i];
             }
         }
-
-        for(int i = 0; i < v_out_size; ++i)
-            out[i] = xsimd::load_aligned(sums + i * v_size);
     }
 
     static inline v_type sigmoid(v_type x) noexcept
@@ -294,9 +296,9 @@ private:
     }
 
     // kernel weights
-    v_type Wz[out_size][v_in_size];
-    v_type Wr[out_size][v_in_size];
-    v_type Wh[out_size][v_in_size];
+    v_type Wz[in_size][v_out_size];
+    v_type Wr[in_size][v_out_size];
+    v_type Wh[in_size][v_out_size];
     v_type kernel_outs[v_out_size];
 
     // single-input kernel weights

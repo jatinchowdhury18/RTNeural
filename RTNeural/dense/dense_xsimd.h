@@ -123,7 +123,6 @@ class DenseT
     static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
     static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
-    static constexpr auto weights_size = v_in_size * out_sizet;
 
 public:
     static constexpr auto in_size = in_sizet;
@@ -131,8 +130,9 @@ public:
 
     DenseT()
     {
-        for(int i = 0; i < weights_size; ++i)
-            weights[i] = v_type((T)0.0);
+        for(int i = 0; i < v_out_size; ++i)
+            for(int k = 0; k < in_size; ++k)
+                weights[k][i] = v_type((T)0.0);
 
         for(int i = 0; i < v_out_size; ++i)
             bias[i] = v_type((T)0.0);
@@ -154,15 +154,17 @@ public:
     inline void forward(const v_type (&ins)[v_in_size])
     {
         for(int i = 0; i < v_out_size; ++i)
+            outs[i] = bias[i];
+
+        T scalar_in alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
+        for(int k = 0; k < v_in_size; ++k)
         {
-            T out_sum alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
-            for(int k = 0; k < v_in_size; ++k)
+            ins[k].store_aligned(scalar_in);
+            for(int i = 0; i < v_out_size; ++i)
             {
                 for(int j = 0; j < v_size; ++j)
-                    out_sum[j] += xsimd::hadd(ins[k] * weights[(i * v_size + j) * v_in_size + k]);
+                    outs[i] += scalar_in[j] * weights[k * v_size + j][i];
             }
-
-            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
         }
     }
 
@@ -178,8 +180,7 @@ public:
         {
             for(int k = 0; k < in_size; ++k)
             {
-                auto idx = i * v_in_size + k / v_size;
-                weights[idx] = set_value(weights[idx], k % v_size, newWeights[i][k]);
+                weights[k][i / v_size] = set_value(weights[k][i / v_size], i % v_size, newWeights[i][k]);
             }
         }
     }
@@ -196,8 +197,7 @@ public:
         {
             for(int k = 0; k < in_size; ++k)
             {
-                auto idx = i * v_in_size + k / v_size;
-                weights[idx] = set_value(weights[idx], k % v_size, newWeights[i][k]);
+                weights[k][i / v_size] = set_value(weights[k][i / v_size], i % v_size, newWeights[i][k]);
             }
         }
     }
@@ -216,9 +216,13 @@ public:
 
 private:
     v_type bias[v_out_size];
-    v_type weights[weights_size];
+    v_type weights[in_size][v_out_size];
 };
 
+/**
+ * Static implementation of a fully-connected (dense) layer,
+ * optimized for out_size=1.
+ */
 template <typename T, int in_sizet>
 class DenseT<T, in_sizet, 1>
 {
@@ -245,13 +249,11 @@ public:
 
     inline void forward(const v_type (&ins)[v_in_size])
     {
-        T y = (T)0;
+        v_type y {};
         for(int k = 0; k < v_in_size; ++k)
-        {
-            y += xsimd::hadd(ins[k] * weights[k]);
-        }
+            y += ins[k] * weights[k];
 
-        outs[0] = v_type(y + bias);
+        outs[0] = v_type(xsimd::hadd(y) + bias);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
@@ -288,6 +290,93 @@ public:
 private:
     T bias;
     v_type weights[v_in_size];
+};
+
+/**
+ * Static implementation of a fully-connected (dense) layer,
+ * optimized for in_size=1.
+ */
+template <typename T, int out_sizet>
+class DenseT<T, 1, out_sizet>
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
+
+public:
+    static constexpr auto in_size = 1;
+    static constexpr auto out_size = out_sizet;
+
+    DenseT()
+    {
+        for(int i = 0; i < v_out_size; ++i)
+            weights[i] = v_type((T)0.0);
+
+        for(int i = 0; i < v_out_size; ++i)
+            bias[i] = v_type((T)0.0);
+
+        for(int i = 0; i < v_out_size; ++i)
+            outs[i] = v_type((T)0.0);
+    }
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "dense"; }
+
+    /** Returns false since dense is not an activation layer. */
+    constexpr bool isActivation() const noexcept { return false; }
+
+    /** Reset is a no-op, since Dense does not have state. */
+    void reset() { }
+
+    /** Performs forward propagation for this layer. */
+    inline void forward(const v_type (&ins)[1])
+    {
+        for(int i = 0; i < v_out_size; ++i)
+            outs[i] = bias[i];
+
+        for(int i = 0; i < v_out_size; ++i)
+            outs[i] += ins[0] * weights[i];
+    }
+
+    /**
+     * Sets the layer weights from a given vector.
+     *
+     * The dimension of the weights vector must be
+     * weights[out_size][in_size]
+     */
+    void setWeights(const std::vector<std::vector<T>>& newWeights)
+    {
+        for(int i = 0; i < out_size; ++i)
+            weights[i / v_size] = set_value(weights[i / v_size], i % v_size, newWeights[i][0]);
+    }
+
+    /**
+     * Sets the layer weights from a given vector.
+     *
+     * The dimension of the weights array must be
+     * weights[out_size][in_size]
+     */
+    void setWeights(T** newWeights)
+    {
+        for(int i = 0; i < out_size; ++i)
+            weights[i / v_size] = set_value(weights[i / v_size], i % v_size, newWeights[i][0]);
+    }
+
+    /**
+     * Sets the layer bias from a given array of size
+     * bias[out_size]
+     */
+    void setBias(T* b)
+    {
+        for(int i = 0; i < out_size; ++i)
+            bias[i / v_size] = set_value(bias[i / v_size], i % v_size, b[i]);
+    }
+
+    v_type outs[v_out_size];
+
+private:
+    v_type bias[v_out_size];
+    v_type weights[v_out_size];
 };
 
 } // namespace RTNeural
