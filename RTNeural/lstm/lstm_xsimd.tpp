@@ -143,9 +143,9 @@ LSTMLayerT<T, in_sizet, out_sizet>::LSTMLayerT()
         }
     }
 
+    // recurrent weights
     for(int i = 0; i < out_size; ++i)
     {
-        // recurrent weights
         for(int k = 0; k < v_out_size; ++k)
         {
             Uf[i][k] = v_type((T)0);

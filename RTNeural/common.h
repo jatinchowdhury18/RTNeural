@@ -162,7 +162,7 @@ static inline void sigmoid(const T* in, T* out, int dim) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = 1.0 / (1.0 + xsimd::exp(-x_vec));
+        b_type y_vec = xsimd::reciprocal((T)1.0 + xsimd::exp(-x_vec));
         xsimd::store_aligned(&out[i], y_vec);
     }
 
