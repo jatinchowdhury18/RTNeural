@@ -219,22 +219,25 @@ GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
         ht[i] = v_type((T)0);
     }
 
+    // kernel weights
+    for(int k = 0; k < in_size; ++k)
+    {
+        for(int i = 0; i < v_out_size; ++i)
+        {
+            Wz[k][i] = v_type((T)0);
+            Wr[k][i] = v_type((T)0);
+            Wh[k][i] = v_type((T)0);
+        }
+    }
+
+    // recurrent weights
     for(int i = 0; i < out_size; ++i)
     {
-        // recurrent weights
         for(int k = 0; k < v_out_size; ++k)
         {
             Uz[i][k] = v_type((T)0);
             Ur[i][k] = v_type((T)0);
             Uh[i][k] = v_type((T)0);
-        }
-
-        // kernel weights
-        for(int k = 0; k < v_in_size; ++k)
-        {
-            Wz[i][k] = v_type((T)0);
-            Wr[i][k] = v_type((T)0);
-            Wh[i][k] = v_type((T)0);
         }
     }
 
@@ -253,13 +256,13 @@ void GRULayerT<T, in_sizet, out_sizet>::reset()
 template <typename T, int in_sizet, int out_sizet>
 void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
-    for(int i = 0; i < in_size; ++i)
+    for(int i = 0; i < out_size; ++i)
     {
-        for(int j = 0; j < out_size; ++j)
+        for(int k = 0; k < in_size; ++k)
         {
-            Wz[j][i / v_size] = set_value(Wz[j][i / v_size], i % v_size, wVals[i][j]);
-            Wr[j][i / v_size] = set_value(Wr[j][i / v_size], i % v_size, wVals[i][j + out_size]);
-            Wh[j][i / v_size] = set_value(Wh[j][i / v_size], i % v_size, wVals[i][j + 2 * out_size]);
+            Wz[k][i / v_size] = set_value(Wz[k][i / v_size], i % v_size, wVals[k][i]);
+            Wr[k][i / v_size] = set_value(Wr[k][i / v_size], i % v_size, wVals[k][i + out_size]);
+            Wh[k][i / v_size] = set_value(Wh[k][i / v_size], i % v_size, wVals[k][i + 2 * out_size]);
         }
     }
 
@@ -277,11 +280,11 @@ void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T
 {
     for(int i = 0; i < out_size; ++i)
     {
-        for(int j = 0; j < out_size; ++j)
+        for(int k = 0; k < out_size; ++k)
         {
-            Uz[j][i / v_size] = set_value(Uz[j][i / v_size], i % v_size, uVals[i][j]);
-            Ur[j][i / v_size] = set_value(Ur[j][i / v_size], i % v_size, uVals[i][j + out_size]);
-            Uh[j][i / v_size] = set_value(Uh[j][i / v_size], i % v_size, uVals[i][j + 2 * out_size]);
+            Uz[k][i / v_size] = set_value(Uz[k][i / v_size], i % v_size, uVals[k][i]);
+            Ur[k][i / v_size] = set_value(Ur[k][i / v_size], i % v_size, uVals[k][i + out_size]);
+            Uh[k][i / v_size] = set_value(Uh[k][i / v_size], i % v_size, uVals[k][i + 2 * out_size]);
         }
     }
 }

@@ -102,6 +102,12 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
             randomise_gru (model.get<0>());
             duration = run_layer(model);
         }
+        else if(in_size == 1 && out_size == 24)
+        {
+            ModelT<double, 1, 24, GRULayerT<double, 1, 24>> model;
+            randomise_gru (model.get<0>());
+            duration = run_layer(model);
+        }
         else
         {
             std::cout << "Layer size not supported for templated benchmarks!" << std::endl;
