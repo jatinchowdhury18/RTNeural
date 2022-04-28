@@ -287,16 +287,6 @@ void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T
             Uh[k][i / v_size] = set_value(Uh[k][i / v_size], i % v_size, uVals[k][i + 2 * out_size]);
         }
     }
-
-    for(int i = 0; i < out_size; ++i)
-    {
-        for(int j = 0; j < out_size; ++j)
-        {
-            Uz[j][i / v_size] = set_value(Uz[j][i / v_size], i % v_size, uVals[i][j]);
-            Ur[j][i / v_size] = set_value(Ur[j][i / v_size], i % v_size, uVals[i][j + out_size]);
-            Uh[j][i / v_size] = set_value(Uh[j][i / v_size], i % v_size, uVals[i][j + 2 * out_size]);
-        }
-    }
 }
 
 // biases
