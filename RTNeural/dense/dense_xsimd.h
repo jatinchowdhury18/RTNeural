@@ -131,7 +131,7 @@ public:
     DenseT()
     {
         for(int i = 0; i < v_out_size; ++i)
-            for (int k = 0; k < in_size; ++k)
+            for(int k = 0; k < in_size; ++k)
                 weights[k][i] = v_type((T)0.0);
 
         for(int i = 0; i < v_out_size; ++i)
@@ -297,7 +297,7 @@ private:
  * optimized for in_size=1.
  */
 template <typename T, int out_sizet>
-class DenseT <T, 1, out_sizet>
+class DenseT<T, 1, out_sizet>
 {
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = (int)v_type::size;
