@@ -377,8 +377,6 @@ public:
 private:
     v_type bias[v_out_size];
     v_type weights[v_out_size];
-
-    v_type scalar_in { (T)0 };
 };
 
 } // namespace RTNeural
