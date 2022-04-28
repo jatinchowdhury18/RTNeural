@@ -160,11 +160,10 @@ public:
         for(int k = 0; k < v_in_size; ++k)
         {
             ins[k].store_aligned(scalar_in);
-
             for(int i = 0; i < v_out_size; ++i)
             {
                 for(int j = 0; j < v_size; ++j)
-                    outs[i] += scalar_in[j] * weights[k][i];
+                    outs[i] += scalar_in[j] * weights[k * v_size + j][i];
             }
         }
     }
