@@ -277,7 +277,7 @@ private:
 
     static inline v_type sigmoid(v_type x) noexcept
     {
-        return (T) 1.0 / ((T)1.0 + xsimd::exp(-x));
+        return (T)1.0 / ((T)1.0 + xsimd::exp(-x));
     }
 
     // kernel weights
