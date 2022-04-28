@@ -241,7 +241,7 @@ public:
     inline void forward(const v_type (&ins)[v_io_size])
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::reciprocal((T)1.0 + xsimd::exp(-ins[i]));
+            outs[i] = (T) 1.0 / ((T)1.0 + xsimd::exp(-ins[i]));
     }
 
     v_type outs[v_io_size];
