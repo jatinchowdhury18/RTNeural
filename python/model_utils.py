@@ -10,7 +10,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def save_model_json(model):
+def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
     def get_layer_type(layer):
         if isinstance(layer, keras.layers.TimeDistributed):
             return 'time-distributed-dense'
@@ -30,6 +30,9 @@ def save_model_json(model):
         return 'unknown'
 
     def get_layer_activation(layer):
+        if not hasattr(layer, 'activation'):
+            return ''
+
         if isinstance(layer, keras.layers.TimeDistributed):
             return get_layer_activation(layer.layer)
 
@@ -70,13 +73,17 @@ def save_model_json(model):
     model_dict["in_shape"] = model.input_shape
     layers = []
     for layer in model.layers:
+        if isinstance(layer, layers_to_skip):
+            print(f'Skipping layer: {layer}')
+            continue
+
         layer_dict = save_layer(layer)
         layers.append(layer_dict)
 
     model_dict["layers"] = layers
     return model_dict
 
-def save_model(model, filename):
-    model_dict = save_model_json(model)
+def save_model(model, filename, layers_to_skip=(keras.layers.InputLayer)):
+    model_dict = save_model_json(model, layers_to_skip)
     with open(filename, 'w') as outfile:
         json.dump(model_dict, outfile, cls=NumpyArrayEncoder, indent=4)
