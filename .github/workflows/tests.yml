@@ -23,15 +23,15 @@ jobs:
         - os: ubuntu-latest
           name: "Eigen"
           backend: "-DRTNEURAL_EIGEN=ON"
-        - os: ubuntu-latest
-          name: "Eigen - AVX"
-          backend: "-DRTNEURAL_EIGEN=ON -DRTNEURAL_USE_AVX=ON"
+#        - os: ubuntu-latest
+#          name: "Eigen - AVX"
+#          backend: "-DRTNEURAL_EIGEN=ON -DRTNEURAL_USE_AVX=ON"
         - os: ubuntu-latest
           name: "xsimd"
           backend: "-DRTNEURAL_XSIMD=ON"
-        - os: ubuntu-latest
-          name: "xsimd - AVX"
-          backend: "-DRTNEURAL_XSIMD=ON -DRTNEURAL_USE_AVX=ON"
+#        - os: ubuntu-latest
+#          name: "xsimd - AVX"
+#          backend: "-DRTNEURAL_XSIMD=ON -DRTNEURAL_USE_AVX=ON"
         - os: ubuntu-latest
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
