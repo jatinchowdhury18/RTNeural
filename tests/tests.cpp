@@ -4,6 +4,7 @@
 #include "templated_tests.hpp"
 #include "test_configs.hpp"
 #include "util_tests.hpp"
+#include "sample_rate_rnn_test.hpp"
 
 // @TODO: make tests for both float and double precision
 void help()
@@ -17,6 +18,7 @@ void help()
     std::cout << "    util" << std::endl;
     std::cout << "    model" << std::endl;
     std::cout << "    approx" << std::endl;
+    std::cout << "    sample_rate_rnn" << std::endl;
     for(auto& testConfig : tests)
         std::cout << "    " << testConfig.first << std::endl;
 }
@@ -101,6 +103,7 @@ int main(int argc, char* argv[])
         int result = 0;
         result |= model_test::model_test();
         result |= approximationTests();
+        result |= sampleRateRNNTest();
 
         for(auto& testConfig : tests)
         {
@@ -125,6 +128,11 @@ int main(int argc, char* argv[])
     if(arg == "approx")
     {
         return approximationTests();
+    }
+
+    if(arg == "sample_rate_rnn")
+    {
+        return sampleRateRNNTest();
     }
 
     if(tests.find(arg) != tests.end())

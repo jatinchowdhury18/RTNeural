@@ -3,6 +3,26 @@
 namespace RTNeural
 {
 
+/**
+ * For templated recurrent layers (e.g. LSTMLayerT, GRULayerT),
+ * this class can be used as a template argument to allow for the
+ * RNN to perform real-time sample-rate correction.
+ *
+ * For example, if you have a GRU network that was trained at 48 kHz
+ * and want to process data at 96 kHz, you could enable sample-rate
+ * correction for that layer, and prepare it to use a 2-sample delay,
+ * instead of the standard 1-sample delay (since the target sample rate
+ * is double the training sample rate). Note that sample-rate correction
+ * does not support delay lengths less than 1-sample, so the target sample
+ * rate must always be greater than or equal to the training sample rate.
+ */
+enum class SampleRateCorrectionMode
+{
+    None, // no sample rate correction
+    NoInterp, // sample rate correction with no interpolation (only appropriate for integer delay lengths)
+    LinInterp, // sample rate correction with linear interpolation (can be used with non-integer delay lengths)
+};
+
 /** Divides two numbers and rounds up if there is a remainder. */
 template <typename T>
 constexpr T ceil_div(T num, T den)

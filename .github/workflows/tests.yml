@@ -14,7 +14,6 @@ on:
 
 jobs:
   build_and_test:
-    if: contains(toJson(github.event.commits), '***NO_CI***') == false && contains(toJson(github.event.commits), '[ci skip]') == false && contains(toJson(github.event.commits), '[skip ci]') == false
     name: Test library with backend ${{ matrix.name }}, running on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
