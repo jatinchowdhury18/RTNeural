@@ -206,7 +206,7 @@ private:
     }
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
-    static inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
     processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
     {
         out = delayVec[0];

@@ -266,7 +266,7 @@ private:
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
-    static inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
     processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
     {
         for(int i = 0; i < out_size; ++i)

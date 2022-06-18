@@ -16,8 +16,8 @@ auto getSampleRateVector(double sampleRate)
     return x;
 }
 
-template <template <RTNeural::SampleRateCorrectionMode> class ModelType, RTNeural::SampleRateCorrectionMode mode, int RLayerIdx>
-int runModelTest(const std::string& modelFile, double sampleRateMult)
+template <template <RTNeural::SampleRateCorrectionMode> class ModelType, RTNeural::SampleRateCorrectionMode mode, int RLayerIdx, typename MultType>
+int runModelTest(const std::string& modelFile, MultType sampleRateMult)
 {
     static constexpr auto baseSampleRate = 48000.0;
 
@@ -90,22 +90,22 @@ int runTestAtSampleRateOffset(const std::string& model)
     int result = 0;
     if(model == "gru")
     {
-        result |= runModelTest<GRUModel, SampleRateCorrectionMode::NoInterp, 2>("gru.json", 3.0);
+        result |= runModelTest<GRUModel, SampleRateCorrectionMode::NoInterp, 2>("gru.json", 3);
         result |= runModelTest<GRUModel, SampleRateCorrectionMode::LinInterp, 2>("gru.json", 1.75);
     }
     else if(model == "gru_1d")
     {
-        result |= runModelTest<GRU1DModel, SampleRateCorrectionMode::NoInterp, 0>("gru_1d.json", 3.0);
+        result |= runModelTest<GRU1DModel, SampleRateCorrectionMode::NoInterp, 0>("gru_1d.json", 3);
         result |= runModelTest<GRU1DModel, SampleRateCorrectionMode::LinInterp, 0>("gru_1d.json", 1.75);
     }
     else if(model == "lstm")
     {
-        result |= runModelTest<LSTMModel, SampleRateCorrectionMode::NoInterp, 2>("lstm.json", 4.0);
+        result |= runModelTest<LSTMModel, SampleRateCorrectionMode::NoInterp, 2>("lstm.json", 4);
         result |= runModelTest<LSTMModel, SampleRateCorrectionMode::LinInterp, 2>("lstm.json", 2.5);
     }
     else if(model == "lstm_1d")
     {
-        result |= runModelTest<LSTM1DModel, SampleRateCorrectionMode::NoInterp, 0>("lstm_1d.json", 2.0);
+        result |= runModelTest<LSTM1DModel, SampleRateCorrectionMode::NoInterp, 0>("lstm_1d.json", 2);
         result |= runModelTest<LSTM1DModel, SampleRateCorrectionMode::LinInterp, 0>("lstm_1d.json", 2.25);
     }
 
