@@ -145,7 +145,7 @@ protected:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
 class GRULayerT
 {
 public:
@@ -159,6 +159,16 @@ public:
 
     /** Returns false since GRU is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
+
+    /** Prepares the GRU to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    prepare(int delaySamples);
+
+    /** Prepares the GRU to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    prepare(T delaySamples);
 
     /** Resets the state of the GRU. */
     void reset();
@@ -186,9 +196,7 @@ public:
         for(int i = 0; i < out_size; ++i)
             ht[i] = std::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + kernel_outs[i]);
 
-        // compute output
-        for(int i = 0; i < out_size; ++i)
-            outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
+        computeOutput();
     }
 
     /** Performs forward propagation for this layer. */
@@ -211,9 +219,7 @@ public:
         for(int i = 0; i < out_size; ++i)
             ht[i] = std::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + (Wh_1[i] * ins[0]));
 
-        // compute output
-        for(int i = 0; i < out_size; ++i)
-            outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
+        computeOutput();
     }
 
     /**
@@ -240,6 +246,52 @@ public:
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
+    computeOutput()
+    {
+        for(int i = 0; i < out_size; ++i)
+            outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
+    computeOutput()
+    {
+        for(int i = 0; i < out_size; ++i)
+            outs_delayed[delayWriteIdx][i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
+
+        processDelay(outs_delayed, outs, delayWriteIdx);
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    {
+        for(int i = 0; i < out_size; ++i)
+            out[i] = delayVec[0][i];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+        {
+            for(int i = 0; i < out_size; ++i)
+                delayVec[j][i] = delayVec[j + 1][i];
+        }
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    {
+        for(int i = 0; i < out_size; ++i)
+            out[i] = delayPlus1Mult * delayVec[0][i] + delayMult * delayVec[1][i];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+        {
+            for(int i = 0; i < out_size; ++i)
+                delayVec[j][i] = delayVec[j + 1][i];
+        }
+    }
+
     static inline void recurrent_mat_mul(const T (&vec)[out_size], const T (&mat)[out_size][out_size], T (&out)[out_size]) noexcept
     {
         for(int j = 0; j < out_size; ++j)
@@ -279,6 +331,12 @@ private:
     T rt alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
     T ct alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
     T ht alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+
+    // needed for delays when doing sample rate correction
+    std::vector<std::array<T, out_size>> outs_delayed;
+    int delayWriteIdx = 0;
+    T delayMult = (T)1;
+    T delayPlus1Mult = (T)0;
 };
 
 } // namespace RTNeural

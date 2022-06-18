@@ -112,7 +112,7 @@ private:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
 class LSTMLayerT
 {
     using b_type = Eigen::Matrix<T, out_sizet, 1>;
@@ -133,6 +133,16 @@ public:
 
     /** Returns false since LSTM is not an activation. */
     constexpr bool isActivation() const noexcept { return false; }
+
+    /** Prepares the LSTM to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    prepare(int delaySamples);
+
+    /** Prepares the LSTM to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    prepare(T delaySamples);
 
     /** Resets the state of the LSTM. */
     void reset();
@@ -156,16 +166,7 @@ public:
         iVec = sigmoid(iVec);
         oVec = sigmoid(oVec);
 
-        ctVec.noalias() = bc;
-        ctVec.noalias() += Uc * outs;
-        ctVec.noalias() += Wc * ins;
-
-        ctVec = ctVec.array().tanh();
-        cVec = fVec.cwiseProduct(cVec);
-        cVec.noalias() += iVec.cwiseProduct(ctVec);
-
-        outs = cVec.array().tanh();
-        outs = oVec.cwiseProduct(outs);
+        computeOutputs(ins);
     }
 
     /**
@@ -193,6 +194,58 @@ public:
 
 private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
+    computeOutputs(const in_type& ins)
+    {
+        computeOutputsInternal(ins, cVec, outs);
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
+    computeOutputs(const in_type& ins)
+    {
+        computeOutputsInternal(ins, ct_delayed[delayWriteIdx], outs_delayed[delayWriteIdx]);
+
+        processDelay(ct_delayed, cVec, delayWriteIdx);
+        processDelay(outs_delayed, outs, delayWriteIdx);
+    }
+
+    template <typename VecType1, typename VecType2>
+    inline void computeOutputsInternal(const in_type& ins, VecType1& cVecLocal, VecType2& outsVec)
+    {
+        ctVec.noalias() = bc;
+        ctVec.noalias() += Uc * outs;
+        ctVec.noalias() += Wc * ins;
+
+        ctVec = ctVec.array().tanh();
+        cVecLocal = fVec.cwiseProduct(cVec);
+        cVecLocal.noalias() += iVec.cwiseProduct(ctVec);
+
+        outsVec = cVecLocal.array().tanh();
+        outsVec = oVec.cwiseProduct(outsVec);
+    }
+
+    template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    {
+        out = delayVec[0];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+            delayVec[j] = delayVec[j + 1];
+    }
+
+    template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    {
+        out = delayPlus1Mult * delayVec[0] + delayMult * delayVec[1];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+            delayVec[j] = delayVec[j + 1];
+    }
 
     static inline out_type sigmoid(const out_type& x) noexcept
     {
@@ -223,6 +276,13 @@ private:
     out_type oVec;
     out_type ctVec;
     out_type cVec;
+
+    // needed for delays when doing sample rate correction
+    std::vector<out_type> ct_delayed;
+    std::vector<out_type> outs_delayed;
+    int delayWriteIdx = 0;
+    T delayMult = (T)1;
+    T delayPlus1Mult = (T)0;
 };
 
 } // namespace RTNeural

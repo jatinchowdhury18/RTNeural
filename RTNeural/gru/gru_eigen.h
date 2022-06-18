@@ -116,7 +116,7 @@ private:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
 class GRULayerT
 {
     using b_type = Eigen::Matrix<T, out_sizet, 1>;
@@ -138,6 +138,16 @@ public:
     /** Returns false since GRU is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
+    /** Prepares the GRU to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    prepare(int delaySamples);
+
+    /** Prepares the GRU to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    prepare(T delaySamples);
+
     /** Resets the state of the GRU. */
     void reset();
 
@@ -150,7 +160,7 @@ public:
         cVec.noalias() = wVec_c * ins + rVec.cwiseProduct(uVec_c * outs + bVec_c1) + bVec_c0;
         cVec = cVec.array().tanh();
 
-        outs = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
+        computeOutput();
     }
 
     /**
@@ -179,6 +189,42 @@ public:
 private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
+    computeOutput()
+    {
+        outs = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
+    computeOutput()
+    {
+        outs_delayed[delayWriteIdx] = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
+
+        processDelay(outs_delayed, outs, delayWriteIdx);
+    }
+
+    template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    {
+        out = delayVec[0];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+            delayVec[j] = delayVec[j + 1];
+    }
+
+    template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    {
+        out = delayPlus1Mult * delayVec[0] + delayMult * delayVec[1];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+            delayVec[j] = delayVec[j + 1];
+    }
+
     static inline out_type sigmoid(const out_type& x) noexcept
     {
         return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
@@ -203,6 +249,12 @@ private:
     out_type zVec;
     out_type rVec;
     out_type cVec;
+
+    // needed for delays when doing sample rate correction
+    std::vector<out_type> outs_delayed;
+    int delayWriteIdx = 0;
+    T delayMult = (T)1;
+    T delayPlus1Mult = (T)0;
 };
 
 } // namespace RTNeural

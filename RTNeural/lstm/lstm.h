@@ -118,7 +118,7 @@ protected:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
 class LSTMLayerT
 {
 public:
@@ -132,6 +132,16 @@ public:
 
     /** Returns false since LSTM is not an activation. */
     constexpr bool isActivation() const noexcept { return false; }
+
+    /** Prepares the LSTM to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    prepare(int delaySamples);
+
+    /** Prepares the LSTM to process with a given delay length. */
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    prepare(T delaySamples);
 
     /** Resets the state of the LSTM. */
     void reset();
@@ -159,15 +169,7 @@ public:
         for(int i = 0; i < out_size; ++i)
             ot[i] = sigmoid(ot[i] + bo[i] + kernel_outs[i]);
 
-        // compute ct
-        recurrent_mat_mul(outs, Uc, ht);
-        kernel_mat_mul(ins, Wc, kernel_outs);
-        for(int i = 0; i < out_size; ++i)
-            ct[i] = it[i] * std::tanh(ht[i] + bc[i] + kernel_outs[i]) + ft[i] * ct[i];
-
-        // compute output
-        for(int i = 0; i < out_size; ++i)
-            outs[i] = ot[i] * std::tanh(ct[i]);
+        computeOutputs(ins);
     }
 
     /** Performs forward propagation for this layer. */
@@ -190,14 +192,7 @@ public:
         for(int i = 0; i < out_size; ++i)
             ot[i] = sigmoid(ot[i] + bo[i] + (Wo_1[i] * ins[0]));
 
-        // compute ct
-        recurrent_mat_mul(outs, Uc, ht);
-        for(int i = 0; i < out_size; ++i)
-            ct[i] = it[i] * std::tanh(ht[i] + bc[i] + (Wc_1[i] * ins[0])) + ft[i] * ct[i];
-
-        // compute output
-        for(int i = 0; i < out_size; ++i)
-            outs[i] = ot[i] * std::tanh(ct[i]);
+        computeOutputs(ins);
     }
 
     /**
@@ -224,6 +219,80 @@ public:
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
+    computeOutputs(const T (&ins)[in_size])
+    {
+        computeOutputsInternal(ins, ct, outs);
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
+    computeOutputs(const T (&ins)[in_size])
+    {
+        computeOutputsInternal(ins, ct_delayed[delayWriteIdx], outs_delayed[delayWriteIdx]);
+
+        processDelay(ct_delayed, ct, delayWriteIdx);
+        processDelay(outs_delayed, outs, delayWriteIdx);
+    }
+
+    template <typename VecType, int N = in_size>
+    inline std::enable_if_t<(N > 1), void>
+    computeOutputsInternal(const T (&ins)[in_size], VecType& ctVec, VecType& outsVec)
+    {
+        // compute ct
+        recurrent_mat_mul(outs, Uc, ht);
+        kernel_mat_mul(ins, Wc, kernel_outs);
+        for(int i = 0; i < out_size; ++i)
+            ctVec[i] = it[i] * std::tanh(ht[i] + bc[i] + kernel_outs[i]) + ft[i] * ct[i];
+
+        // compute output
+        for(int i = 0; i < out_size; ++i)
+            outsVec[i] = ot[i] * std::tanh(ctVec[i]);
+    }
+
+    template <typename VecType, int N = in_size>
+    inline std::enable_if_t<N == 1, void>
+    computeOutputsInternal(const T (&ins)[in_size], VecType& ctVec, VecType& outsVec)
+    {
+        // compute ct
+        recurrent_mat_mul(outs, Uc, ht);
+        for(int i = 0; i < out_size; ++i)
+            ctVec[i] = it[i] * std::tanh(ht[i] + bc[i] + (Wc_1[i] * ins[0])) + ft[i] * ct[i];
+
+        // compute output
+        for(int i = 0; i < out_size; ++i)
+            outsVec[i] = ot[i] * std::tanh(ctVec[i]);
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    {
+        for(int i = 0; i < out_size; ++i)
+            out[i] = delayVec[0][i];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+        {
+            for(int i = 0; i < out_size; ++i)
+                delayVec[j][i] = delayVec[j + 1][i];
+        }
+    }
+
+    template <SampleRateCorrectionMode srCorr = sampleRateCorr>
+    inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    {
+        for(int i = 0; i < out_size; ++i)
+            out[i] = delayPlus1Mult * delayVec[0][i] + delayMult * delayVec[1][i];
+
+        for(int j = 0; j < delayWriteIndex; ++j)
+        {
+            for(int i = 0; i < out_size; ++i)
+                delayVec[j][i] = delayVec[j + 1][i];
+        }
+    }
+
     static inline void recurrent_mat_mul(const T (&vec)[out_size], const T (&mat)[out_size][out_size], T (&out)[out_size]) noexcept
     {
         for(int j = 0; j < out_size; ++j)
@@ -267,6 +336,13 @@ private:
     T ot alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
     T ht alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
     T ct alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+
+    // needed for delays when doing sample rate correction
+    std::vector<std::array<T, out_size>> ct_delayed;
+    std::vector<std::array<T, out_size>> outs_delayed;
+    int delayWriteIdx = 0;
+    T delayMult = (T)1;
+    T delayPlus1Mult = (T)0;
 };
 
 } // namespace RTNeural
