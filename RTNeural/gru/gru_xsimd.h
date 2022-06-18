@@ -275,9 +275,9 @@ private:
     computeOutput()
     {
         for (int i = 0; i < v_out_size; ++i)
-            outs_internal[delayWriteIdx][i] = xsimd::fma ((v_type ((T) 1.0) - zt[i]), ht[i], zt[i] * outs[i]);
+            outs_delayed[delayWriteIdx][i] = xsimd::fma ((v_type ((T) 1.0) - zt[i]), ht[i], zt[i] * outs[i]);
 
-        processDelay (outs_internal, outs, delayWriteIdx);
+        processDelay (outs_delayed, outs, delayWriteIdx);
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
@@ -376,7 +376,7 @@ private:
     v_type ht[v_out_size];
 
     // needed for delays when doing sample rate correction
-    std::vector<std::array<v_type, v_out_size>> outs_internal;
+    std::vector<std::array<v_type, v_out_size>> outs_delayed;
     int delayWriteIdx = 0;
     v_type delayMult = (T) 1;
     v_type delayPlus1Mult = (T) 0;

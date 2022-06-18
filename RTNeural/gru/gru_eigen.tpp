@@ -167,8 +167,8 @@ T GRULayer<T>::getBVal(int i, int k) const noexcept
 }
 
 //====================================================
-template <typename T, int in_sizet, int out_sizet>
-GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::GRULayerT()
     : outs(outs_internal)
 {
     wVec_z = k_type::Zero();
@@ -187,16 +187,48 @@ GRULayerT<T, in_sizet, out_sizet>::GRULayerT()
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet>
-void GRULayerT<T, in_sizet, out_sizet>::reset()
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+template <SampleRateCorrectionMode srCorr>
+std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (int delaySamples)
 {
+    delayWriteIdx = delaySamples - 1;
+    outs_delayed.resize (delayWriteIdx + 1, {});
+
+    reset();
+}
+
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+template <SampleRateCorrectionMode srCorr>
+std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (T delaySamples)
+{
+    const auto delayOffFactor = delaySamples - std::floor(delaySamples);
+    delayMult = (T) 1 - delayOffFactor;
+    delayPlus1Mult = delayOffFactor;
+
+    delayWriteIdx = (int) std::ceil(delaySamples) - (int) std::ceil(delayOffFactor);
+    outs_delayed.resize (delayWriteIdx + 1, {});
+
+    reset();
+}
+
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
+{
+    if (sampleRateCorr != SampleRateCorrectionMode::None)
+    {
+        for(auto& vec : outs_delayed)
+            vec = out_type::Zero();
+    }
+
     // reset output state
     outs = out_type::Zero();
 }
 
 // kernel weights
-template <typename T, int in_sizet, int out_sizet>
-void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T>>& wVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(int i = 0; i < in_size; ++i)
     {
@@ -210,8 +242,8 @@ void GRULayerT<T, in_sizet, out_sizet>::setWVals(const std::vector<std::vector<T
 }
 
 // recurrent weights
-template <typename T, int in_sizet, int out_sizet>
-void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T>>& uVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
     for(int i = 0; i < out_size; ++i)
     {
@@ -225,8 +257,8 @@ void GRULayerT<T, in_sizet, out_sizet>::setUVals(const std::vector<std::vector<T
 }
 
 // biases
-template <typename T, int in_sizet, int out_sizet>
-void GRULayerT<T, in_sizet, out_sizet>::setBVals(const std::vector<std::vector<T>>& bVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
     for(int k = 0; k < out_size; ++k)
     {

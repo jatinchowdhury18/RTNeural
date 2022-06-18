@@ -42,6 +42,7 @@ int runModelTest(const std::string& modelFile, double sampleRateMult)
     const auto checkSamplesInc = int (sampleRateMult * 4.0);
     for (int i = 0, j = (int) std::ceil (sampleRateMult) - 1; i < baseSampleRateSignal.size() && j < testSampleRateSignal.size(); i += 4, j += checkSamplesInc)
         maxErr = std::max(maxErr, std::abs(baseSampleRateSignal[i] - testSampleRateSignal[j]));
+//    std::cout << maxErr << std::endl;
 
     double maxErrLimit = sampleRateMult == std::floor (sampleRateMult) ? 0.0 : 5.0e-4;
     if (maxErr > maxErrLimit)

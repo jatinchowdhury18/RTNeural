@@ -247,10 +247,10 @@ private:
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
     computeOutputs(const v_type (&ins)[v_in_size])
     {
-        computeOutputsInternal(ins, ct_internal[delayWriteIdx], outs_internal[delayWriteIdx]);
+        computeOutputsInternal(ins, ct_delayed[delayWriteIdx], outs_delayed[delayWriteIdx]);
 
-        processDelay (ct_internal, ct, delayWriteIdx);
-        processDelay (outs_internal, outs, delayWriteIdx);
+        processDelay (ct_delayed, ct, delayWriteIdx);
+        processDelay (outs_delayed, outs, delayWriteIdx);
     }
 
     template <typename VecType, int N = in_size>
@@ -382,8 +382,8 @@ private:
     v_type ct[v_out_size];
 
     // needed for delays when doing sample rate correction
-    std::vector<std::array<v_type, v_out_size>> ct_internal;
-    std::vector<std::array<v_type, v_out_size>> outs_internal;
+    std::vector<std::array<v_type, v_out_size>> ct_delayed;
+    std::vector<std::array<v_type, v_out_size>> outs_delayed;
     int delayWriteIdx = 0;
     v_type delayMult = (T) 1;
     v_type delayPlus1Mult = (T) 0;
