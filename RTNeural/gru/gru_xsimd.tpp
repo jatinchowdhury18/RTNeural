@@ -247,10 +247,10 @@ GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::GRULayerT()
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (int delaySamples)
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(int delaySamples)
 {
     delayWriteIdx = delaySamples - 1;
-    outs_delayed.resize (delayWriteIdx + 1, {});
+    outs_delayed.resize(delayWriteIdx + 1, {});
 
     reset();
 }
@@ -258,14 +258,14 @@ GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (int delaySamples)
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (T delaySamples)
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(T delaySamples)
 {
     const auto delayOffFactor = delaySamples - std::floor(delaySamples);
-    delayMult = (T) 1 - delayOffFactor;
+    delayMult = (T)1 - delayOffFactor;
     delayPlus1Mult = delayOffFactor;
 
-    delayWriteIdx = (int) std::ceil(delaySamples) - (int) std::ceil(delayOffFactor);
-    outs_delayed.resize (delayWriteIdx + 1, {});
+    delayWriteIdx = (int)std::ceil(delaySamples) - (int)std::ceil(delayOffFactor);
+    outs_delayed.resize(delayWriteIdx + 1, {});
 
     reset();
 }
@@ -273,7 +273,7 @@ GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (T delaySamples)
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
 {
-    if (sampleRateCorr != SampleRateCorrectionMode::None)
+    if(sampleRateCorr != SampleRateCorrectionMode::None)
     {
         for(auto& vec : outs_delayed)
             std::fill(vec.begin(), vec.end(), v_type {});

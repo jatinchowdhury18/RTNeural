@@ -163,12 +163,12 @@ public:
     /** Prepares the GRU to process with a given delay length. */
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-    prepare (int delaySamples);
+    prepare(int delaySamples);
 
     /** Prepares the GRU to process with a given delay length. */
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-    prepare (T delaySamples);
+    prepare(T delaySamples);
 
     /** Resets the state of the GRU. */
     void reset();
@@ -261,33 +261,33 @@ private:
         for(int i = 0; i < out_size; ++i)
             outs_delayed[delayWriteIdx][i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
 
-        processDelay (outs_delayed, outs, delayWriteIdx);
+        processDelay(outs_delayed, outs, delayWriteIdx);
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     static inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-    processDelay (std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
     {
-        for (int i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             out[i] = delayVec[0][i];
 
-        for (int j = 0; j < delayWriteIndex; ++j)
+        for(int j = 0; j < delayWriteIndex; ++j)
         {
-            for (int i = 0; i < out_size; ++i)
+            for(int i = 0; i < out_size; ++i)
                 delayVec[j][i] = delayVec[j + 1][i];
         }
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-    processDelay (std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
     {
-        for (int i = 0; i < out_size; ++i)
+        for(int i = 0; i < out_size; ++i)
             out[i] = delayPlus1Mult * delayVec[0][i] + delayMult * delayVec[1][i];
 
-        for (int j = 0; j < delayWriteIndex; ++j)
+        for(int j = 0; j < delayWriteIndex; ++j)
         {
-            for (int i = 0; i < out_size; ++i)
+            for(int i = 0; i < out_size; ++i)
                 delayVec[j][i] = delayVec[j + 1][i];
         }
     }
@@ -335,8 +335,8 @@ private:
     // needed for delays when doing sample rate correction
     std::vector<std::array<T, out_size>> outs_delayed;
     int delayWriteIdx = 0;
-    T delayMult = (T) 1;
-    T delayPlus1Mult = (T) 0;
+    T delayMult = (T)1;
+    T delayPlus1Mult = (T)0;
 };
 
 } // namespace RTNeural

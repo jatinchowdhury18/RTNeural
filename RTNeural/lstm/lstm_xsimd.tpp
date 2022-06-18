@@ -161,11 +161,11 @@ LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::LSTMLayerT()
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (int delaySamples)
+LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(int delaySamples)
 {
     delayWriteIdx = delaySamples - 1;
-    ct_delayed.resize (delayWriteIdx + 1, {});
-    outs_delayed.resize (delayWriteIdx + 1, {});
+    ct_delayed.resize(delayWriteIdx + 1, {});
+    outs_delayed.resize(delayWriteIdx + 1, {});
 
     reset();
 }
@@ -173,15 +173,15 @@ LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (int delaySamples)
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (T delaySamples)
+LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(T delaySamples)
 {
     const auto delayOffFactor = delaySamples - std::floor(delaySamples);
-    delayMult = (T) 1 - delayOffFactor;
+    delayMult = (T)1 - delayOffFactor;
     delayPlus1Mult = delayOffFactor;
 
-    delayWriteIdx = (int) std::ceil(delaySamples) - (int) std::ceil(delayOffFactor);
-    ct_delayed.resize (delayWriteIdx + 1, {});
-    outs_delayed.resize (delayWriteIdx + 1, {});
+    delayWriteIdx = (int)std::ceil(delaySamples) - (int)std::ceil(delayOffFactor);
+    ct_delayed.resize(delayWriteIdx + 1, {});
+    outs_delayed.resize(delayWriteIdx + 1, {});
 
     reset();
 }
@@ -189,13 +189,13 @@ LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare (T delaySamples)
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
 {
-    if (sampleRateCorr != SampleRateCorrectionMode::None)
+    if(sampleRateCorr != SampleRateCorrectionMode::None)
     {
-        for (auto& x : ct_delayed)
-            std::fill(x.begin(), x.end(), v_type{});
+        for(auto& x : ct_delayed)
+            std::fill(x.begin(), x.end(), v_type {});
 
-        for (auto& x : outs_delayed)
-            std::fill(x.begin(), x.end(), v_type{});
+        for(auto& x : outs_delayed)
+            std::fill(x.begin(), x.end(), v_type {});
     }
 
     // reset output state

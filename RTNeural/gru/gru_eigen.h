@@ -141,12 +141,12 @@ public:
     /** Prepares the GRU to process with a given delay length. */
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-    prepare (int delaySamples);
+    prepare(int delaySamples);
 
     /** Prepares the GRU to process with a given delay length. */
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-    prepare (T delaySamples);
+    prepare(T delaySamples);
 
     /** Resets the state of the GRU. */
     void reset();
@@ -202,26 +202,26 @@ private:
     {
         outs_delayed[delayWriteIdx] = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
 
-        processDelay (outs_delayed, outs, delayWriteIdx);
+        processDelay(outs_delayed, outs, delayWriteIdx);
     }
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
     static inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-    processDelay (std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
     {
         out = delayVec[0];
 
-        for (int j = 0; j < delayWriteIndex; ++j)
+        for(int j = 0; j < delayWriteIndex; ++j)
             delayVec[j] = delayVec[j + 1];
     }
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-    processDelay (std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
     {
         out = delayPlus1Mult * delayVec[0] + delayMult * delayVec[1];
 
-        for (int j = 0; j < delayWriteIndex; ++j)
+        for(int j = 0; j < delayWriteIndex; ++j)
             delayVec[j] = delayVec[j + 1];
     }
 
@@ -253,8 +253,8 @@ private:
     // needed for delays when doing sample rate correction
     std::vector<out_type> outs_delayed;
     int delayWriteIdx = 0;
-    T delayMult = (T) 1;
-    T delayPlus1Mult = (T) 0;
+    T delayMult = (T)1;
+    T delayPlus1Mult = (T)0;
 };
 
 } // namespace RTNeural
