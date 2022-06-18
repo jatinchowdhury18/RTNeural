@@ -3,6 +3,14 @@
 namespace RTNeural
 {
 
+
+enum class SampleRateCorrectionMode
+{
+    None, // no sample rate correction
+    NoInterp, // sample rate correction with no interpolation
+    LinInterp, // sample rate correction with linear interpolation
+};
+
 /** Divides two numbers and rounds up if there is a remainder. */
 template <typename T>
 constexpr T ceil_div(T num, T den)
