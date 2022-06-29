@@ -1,3 +1,9 @@
+<p align=center>
+  <picture>
+    <img src="./doxygen/logo.png" height="200"/>
+  </picture>
+</p>
+
 # RTNeural
 
 [![Tests](https://github.com/jatinchowdhury18/RTNeural/workflows/Tests/badge.svg)](https://github.com/jatinchowdhury18/RTNeural/actions/workflows/tests.yml)
