@@ -27,7 +27,7 @@ public:
     std::string getName() const noexcept override { return "gru"; }
 
     /** Performs forward propagation for this layer. */
-    virtual inline void forward(const T* input, T* h) override
+    virtual inline void forward(const T* input, T* h) noexcept override
     {
         forward_internal(input, h);
     }
@@ -57,7 +57,7 @@ public:
 protected:
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
-    forward_internal(const float* input, float* h)
+    forward_internal(const float* input, float* h) noexcept
     {
         float dotpr_out;
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -103,7 +103,7 @@ protected:
 
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
-    forward_internal(const double* input, double* h)
+    forward_internal(const double* input, double* h) noexcept
     {
         double dotpr_out;
         for(int i = 0; i < Layer<T>::out_size; ++i)

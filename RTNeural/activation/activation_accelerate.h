@@ -23,7 +23,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         forward_internal(input, out);
     }
@@ -31,7 +31,7 @@ public:
 private:
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
-    forward_internal(const float* input, float* out)
+    forward_internal(const float* input, float* out) noexcept
     {
         const auto dim_int = static_cast<int>(Layer<T>::in_size);
         vvtanhf(out, input, &dim_int);
@@ -39,7 +39,7 @@ private:
 
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
-    forward_internal(const double* input, double* out)
+    forward_internal(const double* input, double* out) noexcept
     {
         const auto dim_int = static_cast<int>(Layer<T>::in_size);
         vvtanh(out, input, &dim_int);
@@ -64,7 +64,7 @@ public:
     }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         forward_internal(input, out);
     }
@@ -72,14 +72,14 @@ public:
 private:
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
-    forward_internal(const float* input, float* out)
+    forward_internal(const float* input, float* out) noexcept
     {
         vDSP_vmax(input, 1, zeros.data(), 1, out, 1, Layer<T>::in_size);
     }
 
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
-    forward_internal(const double* input, double* out)
+    forward_internal(const double* input, double* out) noexcept
     {
         vDSP_vmaxD(input, 1, zeros.data(), 1, out, 1, Layer<T>::in_size);
     }
@@ -104,7 +104,7 @@ public:
     }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         sigmoid(input, out, Layer<T>::in_size);
     }
@@ -127,7 +127,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         softmax(input, out, Layer<T>::in_size);
     }

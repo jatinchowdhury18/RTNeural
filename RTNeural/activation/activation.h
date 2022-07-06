@@ -24,7 +24,7 @@ public:
     std::string getName() const noexcept override { return name; }
 
     /** Implements the forward propagation step for this layer. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = func(input[i]);
@@ -71,7 +71,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = std::tanh(input[i]);
@@ -97,7 +97,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T (&ins)[size])
+    inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = std::tanh(ins[i]);
@@ -124,7 +124,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = tanh_approx(input[i]);
@@ -150,7 +150,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T (&ins)[size])
+    inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = tanh_approx(ins[i]);
@@ -196,7 +196,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const T (&ins)[size])
+    inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = std::max((T)0, ins[i]);
@@ -242,7 +242,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const T (&ins)[size])
+    inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = sigmoid(ins[i]);
@@ -269,7 +269,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         softmax(input, out, Layer<T>::out_size);
     }
@@ -294,7 +294,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T (&ins)[size])
+    inline void forward(const T (&ins)[size]) noexcept
     {
         T exp_sum = 0;
         for(int i = 0; i < size; ++i)
@@ -357,7 +357,7 @@ public:
     /** Performs forward propagation for elu activation. */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
     inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
-    forward(const T (&ins)[size])
+    forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = ins[i] > (T)0 ? ins[i] : (std::exp(ins[i]) - (T)1);
@@ -366,7 +366,7 @@ public:
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
-    forward(const T (&ins)[size])
+    forward(const T (&ins)[size]) noexcept
     {
         constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < size; ++i)

@@ -25,7 +25,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for gated activation. */
-    inline void forward(const T (&ins)[in_size])
+    inline void forward(const T (&ins)[in_size]) noexcept
     {
         for(int i = 0; i < out_size; ++i)
             outs[i] = std::tanh(ins[i]) * RTNeural::sigmoid(ins[i + out_size]);

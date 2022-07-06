@@ -36,7 +36,7 @@ public:
     std::string getName() const noexcept override { return "gru"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) override
+    inline void forward(const T* input, T* h) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -152,7 +152,7 @@ public:
     void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const in_type& ins)
+    inline void forward(const in_type& ins) noexcept
     {
         zVec.noalias() = sigmoid(wVec_z * ins + uVec_z * outs + bVec_z);
         rVec.noalias() = sigmoid(wVec_r * ins + uVec_r * outs + bVec_r);
@@ -191,14 +191,14 @@ private:
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
-    computeOutput()
+    computeOutput() noexcept
     {
         outs = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
-    computeOutput()
+    computeOutput() noexcept
     {
         outs_delayed[delayWriteIdx] = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
 
@@ -207,7 +207,7 @@ private:
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex) noexcept
     {
         out = delayVec[0];
 
@@ -217,7 +217,7 @@ private:
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex) noexcept
     {
         out = delayPlus1Mult * delayVec[0] + delayMult * delayVec[1];
 

@@ -47,7 +47,7 @@ public:
     std::string getName() const noexcept override { return "dense"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)
         {
@@ -151,7 +151,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const v_type (&ins)[v_in_size])
+    inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         for(int i = 0; i < v_out_size; ++i)
             outs[i] = bias[i];
@@ -247,7 +247,7 @@ public:
 
     void reset() { }
 
-    inline void forward(const v_type (&ins)[v_in_size])
+    inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         v_type y {};
         for(int k = 0; k < v_in_size; ++k)
@@ -329,7 +329,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const v_type (&ins)[1])
+    inline void forward(const v_type (&ins)[1]) noexcept
     {
         for(int i = 0; i < v_out_size; ++i)
             outs[i] = bias[i];

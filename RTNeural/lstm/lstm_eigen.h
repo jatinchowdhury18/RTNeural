@@ -33,7 +33,7 @@ public:
     void reset() override;
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) override
+    inline void forward(const T* input, T* h) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -148,7 +148,7 @@ public:
     void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const in_type& ins)
+    inline void forward(const in_type& ins) noexcept
     {
         fVec.noalias() = bf;
         fVec.noalias() += Uf * outs;
@@ -197,14 +197,14 @@ private:
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
-    computeOutputs(const in_type& ins)
+    computeOutputs(const in_type& ins) noexcept
     {
         computeOutputsInternal(ins, cVec, outs);
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
-    computeOutputs(const in_type& ins)
+    computeOutputs(const in_type& ins) noexcept
     {
         computeOutputsInternal(ins, ct_delayed[delayWriteIdx], outs_delayed[delayWriteIdx]);
 
@@ -213,7 +213,7 @@ private:
     }
 
     template <typename VecType1, typename VecType2>
-    inline void computeOutputsInternal(const in_type& ins, VecType1& cVecLocal, VecType2& outsVec)
+    inline void computeOutputsInternal(const in_type& ins, VecType1& cVecLocal, VecType2& outsVec) noexcept
     {
         ctVec.noalias() = bc;
         ctVec.noalias() += Uc * outs;
@@ -229,7 +229,7 @@ private:
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex) noexcept
     {
         out = delayVec[0];
 
@@ -239,7 +239,7 @@ private:
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex)
+    processDelay(std::vector<out_type>& delayVec, OutVec& out, int delayWriteIndex) noexcept
     {
         out = delayPlus1Mult * delayVec[0] + delayMult * delayVec[1];
 
