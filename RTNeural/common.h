@@ -71,7 +71,7 @@ softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
 }
 
 template <typename T, typename MatType>
-static inline auto fast_tanh(const MatType& in)
+static inline auto fast_tanh(const MatType& in) noexcept
 {
     constexpr auto clamp = (T)5.7;
     auto xc = in.cwiseMin(clamp).cwiseMax(-clamp); // clamp to range [-clamp, clamp]
@@ -92,7 +92,7 @@ namespace RTNeural
 {
 
 template <typename T>
-static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, int idx, T value)
+static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, int idx, T value) noexcept
 {
     union UnionType
     {
@@ -106,7 +106,7 @@ static inline xsimd::simd_type<T> set_value(xsimd::simd_type<T> x, int idx, T va
 }
 
 template <typename T>
-static inline T get_value(xsimd::simd_type<T> x, int idx)
+static inline T get_value(xsimd::simd_type<T> x, int idx) noexcept
 {
     union UnionType
     {

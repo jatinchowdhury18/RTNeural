@@ -31,7 +31,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for the gated activation. */
-    inline void forward(const v_type (&ins)[v_in_size])
+    inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         for(int i = 0; i < v_out_size; ++i)
         {

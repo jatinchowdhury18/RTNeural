@@ -47,7 +47,7 @@ public:
     std::string getName() const noexcept override { return "dense"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -139,7 +139,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const Eigen::Matrix<T, in_size, 1>& ins)
+    inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         outs.noalias() = weights * ins + bias;
     }

@@ -46,7 +46,7 @@ public:
     std::string getName() const noexcept override { return "gru"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) override
+    inline void forward(const T* input, T* h) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {
@@ -176,7 +176,7 @@ public:
     /** Performs forward propagation for this layer. */
     template <int N = in_size>
     inline typename std::enable_if<(N > 1), void>::type
-    forward(const T (&ins)[in_size])
+    forward(const T (&ins)[in_size]) noexcept
     {
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
@@ -202,7 +202,7 @@ public:
     /** Performs forward propagation for this layer. */
     template <int N = in_size>
     inline typename std::enable_if<N == 1, void>::type
-    forward(const T (&ins)[in_size])
+    forward(const T (&ins)[in_size]) noexcept
     {
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
@@ -248,7 +248,7 @@ public:
 private:
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
-    computeOutput()
+    computeOutput() noexcept
     {
         for(int i = 0; i < out_size; ++i)
             outs[i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
@@ -256,7 +256,7 @@ private:
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
-    computeOutput()
+    computeOutput() noexcept
     {
         for(int i = 0; i < out_size; ++i)
             outs_delayed[delayWriteIdx][i] = ((T)1.0 - zt[i]) * ht[i] + zt[i] * outs[i];
@@ -266,7 +266,7 @@ private:
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex) noexcept
     {
         for(int i = 0; i < out_size; ++i)
             out[i] = delayVec[0][i];
@@ -280,7 +280,7 @@ private:
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex)
+    processDelay(std::vector<std::array<T, out_size>>& delayVec, T (&out)[out_size], int delayWriteIndex) noexcept
     {
         for(int i = 0; i < out_size; ++i)
             out[i] = delayPlus1Mult * delayVec[0][i] + delayMult * delayVec[1][i];

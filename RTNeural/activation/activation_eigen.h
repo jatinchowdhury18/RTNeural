@@ -25,7 +25,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -63,7 +63,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const v_type& ins)
+    inline void forward(const v_type& ins) noexcept
     {
         outs = ins.array().tanh();
     }
@@ -92,7 +92,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -130,7 +130,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const v_type& ins)
+    inline void forward(const v_type& ins) noexcept
     {
         outs = fast_tanh<T>(ins);
     }
@@ -160,7 +160,7 @@ public:
     }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -198,7 +198,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const v_type& ins)
+    inline void forward(const v_type& ins) noexcept
     {
         outs = ins.array().max((T)0);
     }
@@ -229,7 +229,7 @@ public:
     }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -268,7 +268,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const v_type& ins)
+    inline void forward(const v_type& ins) noexcept
     {
         outs = (T)1 / (((T)-1 * ins.array()).array().exp() + (T)1);
     }
@@ -298,7 +298,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -337,7 +337,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const v_type& ins)
+    inline void forward(const v_type& ins) noexcept
     {
         outs = ins.array().exp();
         outs = outs / outs.sum();
@@ -369,7 +369,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -416,7 +416,7 @@ public:
     /** Performs forward propagation for elu activation. */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
     inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
-    forward(const v_type& ins)
+    forward(const v_type& ins) noexcept
     {
         outs = (ins.array() > (T)0).select(ins, ins.array().exp() - ones.array());
     }
@@ -424,7 +424,7 @@ public:
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
-    forward(const v_type& ins)
+    forward(const v_type& ins) noexcept
     {
         constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         outs = (ins.array() > (T)0).select(ins, alpha * (ins.array().exp() - ones.array()));

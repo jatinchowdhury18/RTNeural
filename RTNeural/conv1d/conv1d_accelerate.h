@@ -27,7 +27,7 @@ public:
     std::string getName() const noexcept override { return "conv1d"; }
 
     /** Performs forward propagation for this layer. */
-    virtual inline void forward(const T* input, T* h) override
+    virtual inline void forward(const T* input, T* h) noexcept override
     {
         // @TODO: vectorize this!
         for(int k = 0; k < Layer<T>::in_size; ++k)
@@ -56,7 +56,7 @@ public:
 private:
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
-    conv_internal(float* h)
+    conv_internal(float* h) noexcept
     {
         float dotpr_out;
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -74,7 +74,7 @@ private:
 
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
-    conv_internal(double* h)
+    conv_internal(double* h) noexcept
     {
         double dotpr_out;
         for(int i = 0; i < Layer<T>::out_size; ++i)

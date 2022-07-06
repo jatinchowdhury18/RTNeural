@@ -51,7 +51,7 @@ public:
     std::string getName() const noexcept override { return "dense"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         forward_internal(input, out);
     }
@@ -88,7 +88,7 @@ public:
 private:
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, float>::value>::type
-    forward_internal(const float* input, float* out)
+    forward_internal(const float* input, float* out) noexcept
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)
             vDSP_dotpr(input, 1, weights[l], 1, &sums[l], Layer<T>::in_size);
@@ -98,7 +98,7 @@ private:
 
     template <typename FloatType = T>
     inline typename std::enable_if<std::is_same<FloatType, double>::value>::type
-    forward_internal(const double* input, double* out)
+    forward_internal(const double* input, double* out) noexcept
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)
             vDSP_dotprD(input, 1, weights[l], 1, &sums[l], Layer<T>::in_size);

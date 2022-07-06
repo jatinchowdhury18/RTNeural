@@ -31,7 +31,7 @@ public:
 
     ~Dense1() { delete[] weights; }
 
-    inline T forward(const T* input)
+    inline T forward(const T* input) noexcept
     {
         return std::inner_product(weights, weights + in_size, input, (T)0) + bias;
     }
@@ -100,7 +100,7 @@ public:
     std::string getName() const noexcept override { return "dense"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = subLayers[i]->forward(input);
@@ -189,7 +189,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T (&ins)[in_size])
+    inline void forward(const T (&ins)[in_size]) noexcept
     {
         for(int i = 0; i < out_size; ++i)
             outs[i] = std::inner_product(ins, ins + in_size, &weights[i * in_size], (T)0) + bias[i];

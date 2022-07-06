@@ -37,7 +37,7 @@ public:
     virtual void reset() { }
 
     /** Implements the forward propagation step for this layer. */
-    virtual void forward(const T* input, T* out) = 0;
+    virtual void forward(const T* input, T* out) noexcept = 0;
 
     const int in_size;
     const int out_size;

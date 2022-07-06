@@ -32,7 +32,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for gated activation. */
-    inline void forward(const v_in_type& ins)
+    inline void forward(const v_in_type& ins) noexcept
     {
         auto tanh = ins.template head<out_size>().array().tanh();
         auto sigmoid = (T)1 / (((T)-1 * ins.template tail<out_size>().array()).array().exp() + (T)1);

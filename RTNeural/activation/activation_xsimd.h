@@ -23,7 +23,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         tanh(input, out, Layer<T>::in_size);
     }
@@ -56,7 +56,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const v_type (&ins)[v_io_size])
+    inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
             outs[i] = xsimd::tanh(ins[i]);
@@ -82,7 +82,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         fast_tanh(input, out, Layer<T>::in_size);
     }
@@ -115,7 +115,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const v_type (&ins)[v_io_size])
+    inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
             outs[i] = fast_tanh<T>(ins[i]);
@@ -142,7 +142,7 @@ public:
     }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         xsimd::transform(
             input, &input[Layer<T>::in_size], zeros.begin(), out,
@@ -179,7 +179,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const v_type (&ins)[v_io_size])
+    inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
             outs[i] = xsimd::max(ins[i], v_type((T)0));
@@ -205,7 +205,7 @@ public:
     }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         sigmoid(input, out, Layer<T>::in_size);
     }
@@ -238,7 +238,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const v_type (&ins)[v_io_size])
+    inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
             outs[i] = (T)1.0 / ((T)1.0 + xsimd::exp(-ins[i]));
@@ -264,7 +264,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         softmax(input, out, Layer<T>::in_size);
     }
@@ -297,7 +297,7 @@ public:
     void reset() { }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const v_type (&ins)[v_io_size])
+    inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         auto exp_sum = (T)0.0;
         for(int i = 0; i < v_io_size; ++i)
@@ -332,7 +332,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) override
+    inline void forward(const T* input, T* out) noexcept override
     {
         elu(input, out, Layer<T>::in_size, alpha);
     }
@@ -369,7 +369,7 @@ public:
     /** Performs forward propagation for elu activation. */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
     inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
-    forward(const v_type (&ins)[v_io_size])
+    forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
             outs[i] = xsimd::select(ins[i] > (T)0, ins[i], xsimd::exp(ins[i]) - (T)1);
@@ -378,7 +378,7 @@ public:
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
-    forward(const v_type (&ins)[v_io_size])
+    forward(const v_type (&ins)[v_io_size]) noexcept
     {
         constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < v_io_size; ++i)

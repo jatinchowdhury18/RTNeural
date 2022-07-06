@@ -43,7 +43,7 @@ public:
     std::string getName() const noexcept override { return "conv1d"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) override
+    inline void forward(const T* input, T* h) noexcept override
     {
         // insert input into double-buffered state
         // @TODO: vectorize this!
@@ -144,7 +144,7 @@ public:
     void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const v_type (&ins)[v_in_size])
+    inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         // insert input into double-buffered state
         for(int k = 0; k < v_in_size; ++k)
