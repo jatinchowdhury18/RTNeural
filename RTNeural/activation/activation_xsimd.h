@@ -299,16 +299,16 @@ public:
     /** Performs forward propagation for softmax activation. */
     inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
-        auto exp_sum = (T)0.0;
+        v_type exp_sum {};
         for(int i = 0; i < v_io_size; ++i)
         {
             outs[i] = xsimd::exp(ins[i]);
-            exp_sum += xsimd::hadd(outs[i]);
+            exp_sum += outs[i];
         }
 
-        auto v_exp_sum = (v_type)exp_sum;
+        const auto exp_sum_recip = v_type((T)1 / xsimd::hadd(exp_sum));
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = outs[i] / v_exp_sum;
+            outs[i] *= exp_sum_recip;
     }
 
     v_type outs[v_io_size];
@@ -380,7 +380,7 @@ public:
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const v_type (&ins)[v_io_size]) noexcept
     {
-        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
+        static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < v_io_size; ++i)
             outs[i] = xsimd::select(ins[i] > (T)0, ins[i], alpha * (xsimd::exp(ins[i]) - (T)1));
     }

@@ -54,7 +54,7 @@ public:
             xsimd::transform(input, &input[Layer<T>::in_size], weights[l].data(), prod.data(),
                 [](auto const& a, auto const& b) { return a * b; });
 
-            auto sum = xsimd::reduce(prod.data(), &prod[Layer<T>::in_size], (T)0);
+            auto sum = xsimd::reduce(prod.begin(), prod.begin() + Layer<T>::in_size, (T)0);
             out[l] = sum + bias[l];
         }
     }

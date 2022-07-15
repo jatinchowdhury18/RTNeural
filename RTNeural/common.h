@@ -216,17 +216,18 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
         exp_sum += out[i];
     }
 
+    const auto exp_sum_recip = (T)1 / exp_sum;
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&out[i]);
-        b_type y_vec = x_vec / exp_sum;
+        b_type y_vec = x_vec * exp_sum_recip;
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
     {
-        out[i] /= exp_sum;
+        out[i] *= exp_sum_recip;
     }
 }
 
@@ -397,9 +398,10 @@ static inline void softmax(const T* input, T* out, int size) noexcept
         exp_sum += out[i];
     }
 
+    const auto exp_sum_recip = (T) 1 / exp_sum;
     for(int i = 0; i < size; ++i)
     {
-        out[i] /= exp_sum;
+        out[i] *= exp_sum_recip;
     }
 }
 
