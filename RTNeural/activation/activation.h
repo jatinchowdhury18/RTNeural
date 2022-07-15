@@ -303,9 +303,10 @@ public:
             exp_sum += outs[i];
         }
 
+        const auto exp_sum_recip = (T) 1 / exp_sum;
         for(int i = 0; i < size; ++i)
         {
-            outs[i] /= exp_sum;
+            outs[i] *= exp_sum_recip;
         }
     }
 
@@ -368,7 +369,7 @@ public:
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const T (&ins)[size]) noexcept
     {
-        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
+        static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < size; ++i)
             outs[i] = ins[i] > (T)0 ? ins[i] : (alpha * (std::exp(ins[i]) - (T)1));
     }
