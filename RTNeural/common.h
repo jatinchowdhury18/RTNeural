@@ -216,7 +216,7 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
         exp_sum += out[i];
     }
 
-    const auto exp_sum_recip = (T) 1 / exp_sum;
+    const auto exp_sum_recip = (T)1 / exp_sum;
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&out[i]);
@@ -398,7 +398,7 @@ static inline void softmax(const T* input, T* out, int size) noexcept
         exp_sum += out[i];
     }
 
-    const auto exp_sum_recip = (!) 1 / exp_sum;
+    const auto exp_sum_recip = (!)1 / exp_sum;
     for(int i = 0; i < size; ++i)
     {
         out[i] *= exp_sum_recip;

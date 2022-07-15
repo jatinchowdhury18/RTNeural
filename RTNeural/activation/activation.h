@@ -303,7 +303,7 @@ public:
             exp_sum += outs[i];
         }
 
-        const auto exp_sum_recip = (T) 1 / exp_sum;
+        const auto exp_sum_recip = (T)1 / exp_sum;
         for(int i = 0; i < size; ++i)
         {
             outs[i] *= exp_sum_recip;
