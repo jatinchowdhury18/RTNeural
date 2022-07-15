@@ -426,7 +426,7 @@ public:
     inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const v_type& ins) noexcept
     {
-        constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
+        static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         outs = (ins.array() > (T)0).select(ins, alpha * (ins.array().exp() - ones.array()));
     }
 
