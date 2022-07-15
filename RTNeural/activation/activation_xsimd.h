@@ -302,7 +302,8 @@ public:
         v_type exp_sum {};
         for(int i = 0; i < v_io_size; ++i)
         {
-            exp_sum += xsimd::exp(ins[i]);
+            outs[i] = xsimd::exp(ins[i]);
+            exp_sum += outs[i];
         }
 
         const auto exp_sum_recip = v_type((T)1 / xsimd::hadd(exp_sum));
