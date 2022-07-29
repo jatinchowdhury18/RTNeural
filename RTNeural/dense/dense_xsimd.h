@@ -153,6 +153,8 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
+        static constexpr auto v_size_inner = std::min(v_size, in_size);
+
         for(int i = 0; i < v_out_size; ++i)
             outs[i] = bias[i];
 
@@ -162,7 +164,7 @@ public:
             ins[k].store_aligned(scalar_in);
             for(int i = 0; i < v_out_size; ++i)
             {
-                for(int j = 0; j < v_size; ++j)
+                for(int j = 0; j < v_size_inner; ++j)
                     outs[i] += scalar_in[j] * weights[k * v_size + j][i];
             }
         }
