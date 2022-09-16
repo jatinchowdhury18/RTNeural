@@ -161,7 +161,7 @@ public:
                 for(int k = 0; k < v_size; ++k)
                 {
                     for(int l = 0; l < state_size; ++l)
-                        out_sum[k] += xsimd::hadd(state[j][state_ptr + l] * weights[i * v_size + k][j][l]);
+                        out_sum[k] += xsimd::reduce_add(state[j][state_ptr + l] * weights[i * v_size + k][j][l]);
                 }
             }
 

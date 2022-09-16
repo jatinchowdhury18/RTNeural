@@ -255,7 +255,7 @@ public:
         for(int k = 0; k < v_in_size; ++k)
             y += ins[k] * weights[k];
 
-        outs[0] = v_type(xsimd::hadd(y) + bias);
+        outs[0] = v_type(xsimd::reduce_add(y) + bias);
     }
 
     void setWeights(const std::vector<std::vector<T>>& newWeights)
