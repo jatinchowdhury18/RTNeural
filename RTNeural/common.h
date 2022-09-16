@@ -209,7 +209,7 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
         xsimd::store_aligned(&out[i], y_vec);
     }
 
-    T exp_sum = xsimd::reduce_add (exp_sum_vec);
+    T exp_sum = xsimd::reduce_add(exp_sum_vec);
 
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
