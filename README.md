@@ -38,6 +38,18 @@ see the [API docs](https://ccrma.stanford.edu/~jatin/chowdsp/RTNeural).
 For more information on the design and purpose of the library,
 see the [reference paper](https://arxiv.org/abs/2106.03037).
 
+## Citation
+
+If you are using RTNeural as part of an academic work, please cite the library as follows:
+```
+@article{chowdhury2021rtneural,
+        title={RTNeural: Fast Neural Inferencing for Real-Time Systems}, 
+        author={Jatin Chowdhury},
+        year={2021},
+        journal={arXiv preprint arXiv:2106.03037}
+}
+```
+
 ## How To Use
 
 `RTNeural` is capable of taking a neural network that
@@ -262,18 +274,6 @@ RTNeural is currently being used by several audio plugins:
 - [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
 
 If you are using RTNeural in one of your projects, let us know and we will add it to this list!
-
-## Citation
-
-If you are using RTNeural as part of an academic work, please cite the library as follows:
-```
-@article{chowdhury2021rtneural,
-        title={RTNeural: Fast Neural Inferencing for Real-Time Systems}, 
-        author={Jatin Chowdhury},
-        year={2021},
-        journal={arXiv preprint arXiv:2106.03037}
-}
-```
 
 ## License
 
