@@ -5,3 +5,7 @@ __pycache__
 /docs
 .DS_Store
 /.idea
+
+/out
+/.vs
+CMakeSettings.json
