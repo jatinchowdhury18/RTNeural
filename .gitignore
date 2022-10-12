@@ -6,6 +6,8 @@ __pycache__
 .DS_Store
 /.idea
 
+
+/fast_conv
 /out
 /.vs
 CMakeSettings.json

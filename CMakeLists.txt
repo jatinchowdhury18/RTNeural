@@ -24,3 +24,5 @@ if(BUILD_EXAMPLES)
     message(STATUS "RTNeural -- Configuring examples...")
     add_subdirectory(examples)
 endif()
+
+add_subdirectory(fast_conv)
