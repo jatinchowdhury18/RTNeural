@@ -90,7 +90,7 @@ private:
     Eigen::VectorXi state_ptrs;
     int state_ptr = 0;
 
-    /** Set pointers to state array columns. */
+    /** Sets pointers to state array columns. */
     inline void setStatePointers()
     {
         for(int i = 0; i < kernel_size; ++i)
