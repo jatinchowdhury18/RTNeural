@@ -44,20 +44,17 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            input, Layer<T>::in_size, 1);
+        state.col(state_ptr) = Eigen::Map<const Eigen::Vector<T, Eigen::Dynamic>, RTNeuralEigenAlignment>(input, Layer<T>::in_size);
 
-        // insert input into double-buffered state
-        state.col(state_ptr) = inVec;
-        state.col(state_ptr + state_size) = inVec;
+        setStatePointers();
 
+        for(int k = 0; k < kernel_size; ++k)
+            state_cols.col(k) = state.col(state_ptrs(k));
+        
         for(int i = 0; i < Layer<T>::out_size; ++i)
-            outVec(i, 0) = state.block(0, state_ptr, Layer<T>::in_size, state_size).cwiseProduct(kernelWeights[i]).sum();
+            h[i] = state_cols.cwiseProduct(kernelWeights[i]).sum() + bias(i);
 
-        outVec = outVec + bias;
-        std::copy(outVec.data(), outVec.data() + Layer<T>::out_size, h);
-
-        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
     /**
@@ -86,13 +83,23 @@ private:
     const int state_size;
 
     std::vector<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> kernelWeights;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> bias;
+    Eigen::Vector<T, Eigen::Dynamic> bias;
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> state;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> state_cols;
+    Eigen::VectorXi state_ptrs;
     int state_ptr = 0;
 
-    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+    /** Set pointers to state array columns. */
+    inline void setStatePointers()
+    {
+        for(int i = 0; i < kernel_size; ++i)
+        {
+            int r = (state_ptr - i * dilation_rate) % state_size;
+            state_ptrs(i) = r < 0 ? r + state_size : r; 
+        }
+    }
+
 };
 
 //====================================================
