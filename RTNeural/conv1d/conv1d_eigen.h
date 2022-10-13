@@ -54,7 +54,7 @@ public:
         // copy selected columns to a helper variable
         for(int k = 0; k < kernel_size; ++k)
             state_cols.col(k) = state.col(state_ptrs(k));
-        
+
         // perform a multichannel convolution
         for(int i = 0; i < Layer<T>::out_size; ++i)
             h[i] = state_cols.cwiseProduct(kernelWeights[i]).sum() + bias(i);
