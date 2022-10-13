@@ -81,13 +81,13 @@ public:
 
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
-
+    
 private:
     const int dilation_rate;
     const int kernel_size;
     const int state_size;
 
-    std::vector<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> weights;
+    std::vector<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> kernelWeights;
     Eigen::Vector<T, Eigen::Dynamic> bias;
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> state;
@@ -165,7 +165,7 @@ public:
 
         // perform a multichannel convolution
         for(int i = 0; i < out_size; ++i)
-            outs(i) = state_cols.cwiseProduct(kernelWeights[i]).sum() + bias(i);
+            outs(i) = state_cols.cwiseProduct(weights[i]).sum() + bias(i);
 
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
@@ -201,7 +201,7 @@ private:
     int state_ptr = 0;
     state_ptrs_type state_ptrs;
     
-    weights_type kernelWeights[out_size];
+    weights_type weights[out_size];
     vec_type bias;
 
     /** Sets pointers to state array columns. */
