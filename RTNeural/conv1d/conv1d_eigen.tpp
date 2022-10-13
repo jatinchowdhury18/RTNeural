@@ -81,9 +81,11 @@ Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT()
 
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
 void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::reset()
-{
-    state_ptr = 0;
+{ 
     state = state_type::Zero();
+    state_cols = weights_type::Zero();
+    state_ptrs = state_ptrs_type::Zero();
+    state_ptr = 0;
 }
 
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
@@ -92,7 +94,7 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setWeights(con
     for(int i = 0; i < out_size; ++i)
         for(int k = 0; k < in_size; ++k)
             for(int j = 0; j < kernel_size; ++j)
-                weights[i](k, j * dilation_rate) = ws[i][k][j];
+                weights[i](k, j) = ws[i][k][j];
 }
 
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
