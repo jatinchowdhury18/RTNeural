@@ -44,13 +44,17 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
+        // insert input into a circular buffer
         state.col(state_ptr) = Eigen::Map<const Eigen::Vector<T, Eigen::Dynamic>, RTNeuralEigenAlignment>(input, Layer<T>::in_size);
 
+        // set state pointers to the particular columns of the buffer
         setStatePointers();
 
+        // copy selected columns to a helper variable
         for(int k = 0; k < kernel_size; ++k)
             state_cols.col(k) = state.col(state_ptrs(k));
         
+        // perform a multichannel convolution
         for(int i = 0; i < Layer<T>::out_size; ++i)
             h[i] = state_cols.cwiseProduct(kernelWeights[i]).sum() + bias(i);
 
@@ -93,10 +97,10 @@ private:
     /** Sets pointers to state array columns. */
     inline void setStatePointers()
     {
-        for(int i = 0; i < kernel_size; ++i)
+        for(int k = 0; k < kernel_size; ++k)
         {
-            int r = (state_ptr - i * dilation_rate) % state_size;
-            state_ptrs(i) = r < 0 ? r + state_size : r; 
+            int r = (state_ptr - k * dilation_rate) % state_size;
+            state_ptrs(k) = r < 0 ? r + state_size : r; 
         }
     }
 
@@ -121,16 +125,18 @@ private:
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
 class Conv1DT
 {
-    using vec_type = Eigen::Matrix<T, out_sizet, 1>;
+    using vec_type = Eigen::Vector<T, out_sizet>;
 
-    static constexpr auto state_size = kernel_size * dilation_rate;
-    using state_type = Eigen::Matrix<T, in_sizet, 2 * state_size>;
-
-    using weights_type = Eigen::Matrix<T, in_sizet, state_size>;
+    static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
+    using state_type = Eigen::Matrix<T, in_sizet, state_size>;
+    using weights_type = Eigen::Matrix<T, in_sizet, kernel_size>;
+    using state_ptrs_type = Eigen::Vector<int, kernel_size>;
 
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
+    static constexpr auto dilation = dilation_rate;
+    static constexpr auto kernel_length = kernel_size;
 
     Conv1DT();
 
@@ -146,16 +152,21 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
-        // insert input into double-buffered state
+        // insert input into a circular buffer
         state.col(state_ptr) = ins;
-        state.col(state_ptr + state_size) = ins;
 
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // copy selected columns to a helper variable
+        for(int k = 0; k < kernel_length; ++k)
+            state_cols.col(k) = state.col(state_ptrs(k));
+
+        // perform a multichannel convolution
         for(int i = 0; i < out_size; ++i)
-            outs(i) = state.block(0, state_ptr, in_size, state_size).cwiseProduct(weights[i]).sum();
+            outs(i) = state_cols.cwiseProduct(weights[i]).sum() + bias(i);
 
-        outs = outs + bias;
-
-        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
     /**
@@ -184,10 +195,23 @@ private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     state_type state;
-    int state_ptr = 0;
+    weights_type state_cols;
 
+    int state_ptr = 0;
+    state_ptrs_type state_ptrs;
+    
     weights_type weights[out_size];
     vec_type bias;
+
+    /** Sets pointers to state array columns. */
+    inline void setStatePointers()
+    {
+        for(int k = 0; k < kernel_length; ++k)
+        {
+            int r = (state_ptr - k * dilation) % state_size;
+            state_ptrs(k) = r < 0 ? r + state_size : r;
+        }
+    }
 };
 
 } // RTNeural
