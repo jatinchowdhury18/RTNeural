@@ -265,13 +265,25 @@ for all the backends, though it is recommended to at
 least provide a "fallback" implementation using the STL
 backend.
 
+## Contributors
+
+Shout out to the following individuals for their important contributions:
+
+- [wayne-chen](https://github.com/wayne-chen): Softmax activation layer and general API improvements
+- [hollance](https://github.com/hollance): RTNeural logo
+
 ## Powered by RTNeural
 
-RTNeural is currently being used by several audio plugins:
+RTNeural is currently being used by several audio plugins and other projects:
 
 - [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
 - [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
+- [BYOD](https://github.com/Chowdhury-DSP/BYOD): A guitar distortion plugin containing several machine learning-based effects.
 - [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
+- [cppTimbreID](https://github.com/domenicostefani/cpp-timbreID): An audio feature extraction library.
+- [MLTerror15](https://github.com/IHorvalds/MLTerror15): Deeply learned simulator for the Orange Tiny Terror with Recurrent Neural Networks.
+- [4000DB-NeuralAmp](https://github.com/EnrcDamn/4000DB-NeuralAmp): Neural emulation of the pre-amp section from the Akai 4000DB tape machine.
+- [ToobAmp](https://github.com/rerdavies/ToobAmp): Guitar effect plugins for the Raspberry Pi.
 
 If you are using RTNeural in one of your projects, let us know and we will add it to this list!
 
