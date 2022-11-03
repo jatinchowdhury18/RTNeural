@@ -10,7 +10,7 @@ namespace RTNeural
 /**
  * Dynamic implementation of a 1-dimensional convolution layer
  * with no activation.
- * 
+ *
  * This implementation was designed to be used for "temporal
  * convolution", so the layer has a "state" made up of past inputs
  * to the layer. To ensure that the state is initialized to zero,
@@ -23,7 +23,7 @@ class Conv1D : public Layer<T>
 public:
     /**
      * Constructs a convolution layer for the given dimensions.
-     * 
+     *
      * @param in_size: the input size for the layer
      * @param out_size: the output size for the layer
      * @param kernel_size: the size of the convolution kernel
@@ -45,7 +45,7 @@ public:
     inline void forward(const T* input, T* h) noexcept override
     {
         // insert input into a circular buffer
-        state.col(state_ptr) = Eigen::Map<const Eigen::Vector<T, Eigen::Dynamic>, 
+        state.col(state_ptr) = Eigen::Map<const Eigen::Vector<T, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(input, Layer<T>::in_size);
 
         // set state pointers to the particular columns of the buffer
@@ -64,14 +64,14 @@ public:
 
     /**
      * Sets the layer weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
-     * 
+     *
      * The bias vector must have size bias[out_size]
      */
     void setBias(const std::vector<T>& biasVals);
@@ -81,7 +81,7 @@ public:
 
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
-    
+
 private:
     const int dilation_rate;
     const int kernel_size;
@@ -101,23 +101,22 @@ private:
         for(int k = 0; k < kernel_size; ++k)
         {
             int r = (state_ptr - k * dilation_rate) % state_size;
-            state_ptrs(k) = r < 0 ? r + state_size : r; 
+            state_ptrs(k) = r < 0 ? r + state_size : r;
         }
     }
-
 };
 
 //====================================================
 /**
  * Static implementation of a 1-dimensional convolution layer
  * with no activation.
- * 
+ *
  * This implementation was designed to be used for "temporal
  * convolution", so the layer has a "state" made up of past inputs
  * to the layer. To ensure that the state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
- * 
+ *
  * @param in_sizet: the input size for the layer
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
@@ -172,14 +171,14 @@ public:
 
     /**
      * Sets the layer weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
-     * 
+     *
      * The bias vector must have size bias[out_size]
      */
     void setBias(const std::vector<T>& biasVals);
@@ -200,7 +199,7 @@ private:
 
     int state_ptr = 0;
     state_ptrs_type state_ptrs;
-    
+
     weights_type weights[out_size];
     vec_type bias;
 
