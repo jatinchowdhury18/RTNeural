@@ -271,6 +271,7 @@ Shout out to the following individuals for their important contributions:
 
 - [wayne-chen](https://github.com/wayne-chen): Softmax activation layer and general API improvements
 - [hollance](https://github.com/hollance): RTNeural logo
+- [stepanmk](https://github.com/stepanmk): Eigen Conv1D layer optimization
 
 ## Powered by RTNeural
 
