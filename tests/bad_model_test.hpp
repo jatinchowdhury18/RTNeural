@@ -2,6 +2,10 @@
 
 #include <RTNeural.h>
 
+// The idea here is to purposely feed an incorrect JSON file to the parseJson() method,
+// and make sure that the parser handles it gracefully.
+// @TODO: add more test cases, and provide better error messages when parsing fails.
+
 int badModelTest()
 {
     int result = 1;
