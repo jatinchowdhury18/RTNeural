@@ -27,18 +27,18 @@ namespace json_parser
         for(auto& w : denseWeights)
             w.resize(dense.in_size, (T)0);
 
-        auto layerWeights = weights[0];
+        auto layerWeights = weights.at(0);
         for(size_t i = 0; i < layerWeights.size(); ++i)
         {
-            auto lw = layerWeights[i];
+            auto lw = layerWeights.at(i);
             for(size_t j = 0; j < lw.size(); ++j)
-                denseWeights[j][i] = lw[j].get<T>();
+                denseWeights.at(j).at(i) = lw.at(j).get<T>();
         }
 
         dense.setWeights(denseWeights);
 
         // load biases
-        std::vector<T> denseBias = weights[1].get<std::vector<T>>();
+        std::vector<T> denseBias = weights.at(1).get<std::vector<T>>();
         dense.setBias(denseBias.data());
     }
 
@@ -84,22 +84,22 @@ namespace json_parser
                 w.resize(kernel_size, (T)0);
         }
 
-        auto layerWeights = weights[0];
+        auto layerWeights = weights.at(0);
         for(size_t i = 0; i < layerWeights.size(); ++i)
         {
-            auto lw = layerWeights[i];
+            auto lw = layerWeights.at(i);
             for(size_t j = 0; j < lw.size(); ++j)
             {
-                auto l = lw[j];
+                auto l = lw.at(j);
                 for(size_t k = 0; k < l.size(); ++k)
-                    convWeights[k][j][kernel_size - 1 - i] = l[k].get<T>();
+                    convWeights.at(k).at(j).at(kernel_size - 1 - i) = l.at(k).get<T>();
             }
         }
 
         conv.setWeights(convWeights);
 
         // load biases
-        std::vector<T> convBias = weights[1].get<std::vector<T>>();
+        std::vector<T> convBias = weights.at(1).get<std::vector<T>>();
         conv.setBias(convBias);
     }
 
@@ -154,12 +154,12 @@ namespace json_parser
         for(auto& w : kernelWeights)
             w.resize(3 * gru.out_size, (T)0);
 
-        auto layerWeights = weights[0];
+        auto layerWeights = weights.at(0);
         for(size_t i = 0; i < layerWeights.size(); ++i)
         {
-            auto lw = layerWeights[i];
+            auto lw = layerWeights.at(i);
             for(size_t j = 0; j < lw.size(); ++j)
-                kernelWeights[i][j] = lw[j].get<T>();
+                kernelWeights.at(i).at(j) = lw.at(j).get<T>();
         }
 
         gru.setWVals(kernelWeights);
@@ -169,12 +169,12 @@ namespace json_parser
         for(auto& w : recurrentWeights)
             w.resize(3 * gru.out_size, (T)0);
 
-        auto layerWeights2 = weights[1];
+        auto layerWeights2 = weights.at(1);
         for(size_t i = 0; i < layerWeights2.size(); ++i)
         {
-            auto lw = layerWeights2[i];
+            auto lw = layerWeights2.at(i);
             for(size_t j = 0; j < lw.size(); ++j)
-                recurrentWeights[i][j] = lw[j].get<T>();
+                recurrentWeights.at(i).at(j) = lw.at(j).get<T>();
         }
 
         gru.setUVals(recurrentWeights);
@@ -184,12 +184,12 @@ namespace json_parser
         for(auto& b : gruBias)
             b.resize(3 * gru.out_size, (T)0);
 
-        auto layerBias = weights[2];
+        auto layerBias = weights.at(2);
         for(size_t i = 0; i < layerBias.size(); ++i)
         {
-            auto lw = layerBias[i];
+            auto lw = layerBias.at(i);
             for(size_t j = 0; j < lw.size(); ++j)
-                gruBias[i][j] = lw[j].get<T>();
+                gruBias.at(i).at(j) = lw.at(j).get<T>();
         }
 
         gru.setBVals(gruBias);
@@ -232,12 +232,12 @@ namespace json_parser
         for(auto& w : kernelWeights)
             w.resize(4 * lstm.out_size, (T)0);
 
-        auto layerWeights = weights[0];
+        auto layerWeights = weights.at(0);
         for(size_t i = 0; i < layerWeights.size(); ++i)
         {
-            auto lw = layerWeights[i];
+            auto lw = layerWeights.at(i);
             for(size_t j = 0; j < lw.size(); ++j)
-                kernelWeights[i][j] = lw[j].get<T>();
+                kernelWeights.at(i).at(j) = lw.at(j).get<T>();
         }
 
         lstm.setWVals(kernelWeights);
@@ -247,18 +247,18 @@ namespace json_parser
         for(auto& w : recurrentWeights)
             w.resize(4 * lstm.out_size, (T)0);
 
-        auto layerWeights2 = weights[1];
+        auto layerWeights2 = weights.at(1);
         for(size_t i = 0; i < layerWeights2.size(); ++i)
         {
-            auto lw = layerWeights2[i];
+            auto lw = layerWeights2.at(i);
             for(size_t j = 0; j < lw.size(); ++j)
-                recurrentWeights[i][j] = lw[j].get<T>();
+                recurrentWeights.at(i).at(j) = lw.at(j).get<T>();
         }
 
         lstm.setUVals(recurrentWeights);
 
         // load biases
-        std::vector<T> lstmBias = weights[2].get<std::vector<T>>();
+        std::vector<T> lstmBias = weights.at(2).get<std::vector<T>>();
         lstm.setBVals(lstmBias);
     }
 
@@ -336,8 +336,8 @@ namespace json_parser
     template <typename T>
     std::unique_ptr<Model<T>> parseJson(const nlohmann::json& parent, const bool debug = false)
     {
-        auto shape = parent["in_shape"];
-        auto layers = parent["layers"];
+        auto shape = parent.at("in_shape");
+        auto layers = parent.at("layers");
 
         if(!shape.is_array() || !layers.is_array())
             return {};
@@ -349,14 +349,14 @@ namespace json_parser
 
         for(const auto& l : layers)
         {
-            const auto type = l["type"].get<std::string>();
+            const auto type = l.at("type").get<std::string>();
             debug_print("Layer: " + type, debug);
 
-            const auto layerShape = l["shape"];
+            const auto layerShape = l.at("shape");
             const auto layerDims = layerShape.back().get<int>();
             debug_print("  Dims: " + std::to_string(layerDims), debug);
 
-            const auto weights = l["weights"];
+            const auto weights = l.at("weights");
 
             auto add_activation = [=](std::unique_ptr<Model<T>>& _model, const nlohmann::json& _l) {
                 if(_l.contains("activation"))
@@ -379,8 +379,8 @@ namespace json_parser
             }
             else if(type == "conv1d")
             {
-                const auto kernel_size = l["kernel_size"].back().get<int>();
-                const auto dilation = l["dilation"].back().get<int>();
+                const auto kernel_size = l.at("kernel_size").back().get<int>();
+                const auto dilation = l.at("dilation").back().get<int>();
 
                 auto conv = createConv1D<T>(model->getNextInSize(), layerDims, kernel_size, dilation, weights);
                 model->addLayer(conv.release());

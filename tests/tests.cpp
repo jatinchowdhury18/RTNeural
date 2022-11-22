@@ -1,4 +1,5 @@
 #include "approx_tests.hpp"
+#include "bad_model_test.hpp"
 #include "load_csv.hpp"
 #include "model_test.hpp"
 #include "sample_rate_rnn_test.hpp"
@@ -19,6 +20,7 @@ void help()
     std::cout << "    model" << std::endl;
     std::cout << "    approx" << std::endl;
     std::cout << "    sample_rate_rnn" << std::endl;
+    std::cout << "    bad_model" << std::endl;
     for(auto& testConfig : tests)
         std::cout << "    " << testConfig.first << std::endl;
 }
@@ -133,6 +135,11 @@ int main(int argc, char* argv[])
     if(arg == "sample_rate_rnn")
     {
         return sampleRateRNNTest();
+    }
+
+    if(arg == "bad_model")
+    {
+        return badModelTest();
     }
 
     if(tests.find(arg) != tests.end())
