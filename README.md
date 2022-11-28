@@ -281,6 +281,7 @@ RTNeural is currently being used by several audio plugins and other projects:
 - [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
 - [BYOD](https://github.com/Chowdhury-DSP/BYOD): A guitar distortion plugin containing several machine learning-based effects.
 - [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
+- [rt-neural-lv2](https://github.com/AidaDSP/aidadsp-lv2): A headless lv2 plugin using RTNeural to model guitar pedals and amplifiers.
 - [cppTimbreID](https://github.com/domenicostefani/cpp-timbreID): An audio feature extraction library.
 - [MLTerror15](https://github.com/IHorvalds/MLTerror15): Deeply learned simulator for the Orange Tiny Terror with Recurrent Neural Networks.
 - [4000DB-NeuralAmp](https://github.com/EnrcDamn/4000DB-NeuralAmp): Neural emulation of the pre-amp section from the Akai 4000DB tape machine.
