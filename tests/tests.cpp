@@ -6,6 +6,7 @@
 #include "templated_tests.hpp"
 #include "test_configs.hpp"
 #include "util_tests.hpp"
+#include "pytorch_imported_test.hpp"
 
 // @TODO: make tests for both float and double precision
 void help()
@@ -21,6 +22,7 @@ void help()
     std::cout << "    approx" << std::endl;
     std::cout << "    sample_rate_rnn" << std::endl;
     std::cout << "    bad_model" << std::endl;
+    std::cout << "    pytorch_imported" << std::endl;
     for(auto& testConfig : tests)
         std::cout << "    " << testConfig.first << std::endl;
 }
@@ -140,6 +142,11 @@ int main(int argc, char* argv[])
     if(arg == "bad_model")
     {
         return badModelTest();
+    }
+
+    if(arg == "pytorch_imported")
+    {
+        return pytorch_imported_test::pytorch_imported_test();
     }
 
     if(tests.find(arg) != tests.end())
