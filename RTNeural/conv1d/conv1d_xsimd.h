@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../common.h"
+#include <numeric>
 #include <vector>
 
 namespace RTNeural
@@ -11,7 +12,7 @@ namespace RTNeural
 /**
  * Dynamic implementation of a 1-dimensional convolution layer
  * with no activation.
- * 
+ *
  * This implementation was designed to be used for "temporal
  * convolution", so the layer has a "state" made up of past inputs
  * to the layer. To ensure that the state is initialized to zero,
@@ -24,7 +25,7 @@ class Conv1D : public Layer<T>
 public:
     /**
      * Constructs a convolution layer for the given dimensions.
-     * 
+     *
      * @param in_size: the input size for the layer
      * @param out_size: the output size for the layer
      * @param kernel_size: the size of the convolution kernel
@@ -45,36 +46,40 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
-        // insert input into double-buffered state
-        // @TODO: vectorize this!
-        for(int k = 0; k < Layer<T>::in_size; ++k)
+        // insert input into a circular buffer
+        vCopy (input, state[state_ptr].data(), Layer<T>::in_size);
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // copy selected columns to a helper variable
+        for(int k = 0; k < kernel_size; ++k)
         {
-            state[k][state_ptr] = input[k];
-            state[k][state_ptr + state_size] = input[k];
+            const auto& col = state[state_ptrs[k]];
+            vCopy (col.data(), state_cols[k].data(), Layer<T>::in_size);
         }
 
+        // perform multi-channel convolution
+        vCopy (bias.data(), h, Layer<T>::out_size);
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {
-            h[i] = (T)0;
-            for(int k = 0; k < Layer<T>::in_size; ++k)
-                h[i] += vMult(&state[k][state_ptr], kernelWeights[i][k].data(), prod_state.data(), state_size);
+            for(int k = 0; k < kernel_size; ++k)
+                h[i] += vMult(weights[i][k].data(), state_cols[k].data(), prod_state.data(), Layer<T>::in_size);
         }
 
-        vAdd(h, bias.data(), h, Layer<T>::out_size);
-
-        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
     /**
      * Sets the layer weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
-     * 
+     *
      * The bias vector must have size bias[out_size]
      */
     void setBias(const std::vector<T>& biasVals);
@@ -94,25 +99,39 @@ private:
     const int kernel_size;
     const int state_size;
 
-    vec3_type kernelWeights;
+    vec3_type weights;
     vec_type bias;
+
     vec2_type state;
+    vec2_type state_cols;
+
     int state_ptr = 0;
+    std::vector<int> state_ptrs;
 
     vec_type prod_state;
+
+    /** Sets pointers to state array columns. */
+    inline void setStatePointers()
+    {
+        for(int k = 0; k < kernel_size; ++k)
+        {
+            int r = (state_ptr - k * dilation_rate) % state_size;
+            state_ptrs[k] = r < 0 ? r + state_size : r;
+        }
+    }
 };
 
 //====================================================
 /**
  * Static implementation of a 1-dimensional convolution layer
  * with no activation.
- * 
+ *
  * This implementation was designed to be used for "temporal
  * convolution", so the layer has a "state" made up of past inputs
  * to the layer. To ensure that the state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
- * 
+ *
  * @param in_sizet: the input size for the layer
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
@@ -123,10 +142,9 @@ class Conv1DT
 {
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
     static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
-    static constexpr auto state_size = kernel_size * dilation_rate;
-    static constexpr auto v_state_size = ceil_div(state_size, v_size);
 
 public:
     static constexpr auto in_size = in_sizet;
@@ -146,41 +164,54 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
-        // insert input into double-buffered state
-        for(int k = 0; k < v_in_size; ++k)
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // copy selected columns to a helper variable
+        for(int k = 0; k < kernel_size; ++k)
         {
-            state[k][state_ptr] = ins[k];
-            state[k][state_ptr + state_size] = ins[k];
+            const auto& col = state[state_ptrs[k]];
+            std::copy(col.begin(), col.end(), state_cols[k].begin());
         }
 
+        // perform multi-channel convolution
         for(int i = 0; i < v_out_size; ++i)
         {
-            T out_sum alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
-            for(int j = 0; j < v_in_size; ++j)
+            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+            for(int k = 0; k < v_size; ++k)
             {
-                for(int k = 0; k < v_size; ++k)
+                const auto& subWeights = weights[i * v_size + k];
+                v_type accum {};
+                for(int j = 0; j < kernel_size; ++j)
                 {
-                    for(int l = 0; l < state_size; ++l)
-                        out_sum[k] += xsimd::reduce_add(state[j][state_ptr + l] * weights[i * v_size + k][j][l]);
+                    accum += std::inner_product(
+                        subWeights[j].begin(),
+                        subWeights[j].end(),
+                        state_cols[j].begin(),
+                        v_type {});
                 }
+                out_sum[k] = xsimd::reduce_add(accum);
             }
 
             outs[i] = xsimd::load_aligned(out_sum) + bias[i];
         }
 
-        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
     /**
      * Sets the layer weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
-     * 
+     *
      * The bias vector must have size bias[out_size]
      */
     void setBias(const std::vector<T>& biasVals);
@@ -194,11 +225,27 @@ public:
     v_type outs[v_out_size];
 
 private:
-    v_type state[v_in_size][state_size * 2];
-    int state_ptr = 0;
+    using state_type = std::array<std::array<v_type, v_in_size>, state_size>;
+    using weights_type = std::array<std::array<v_type, v_in_size>, kernel_size>;
 
-    v_type weights[out_size][v_in_size][state_size];
+    state_type state;
+    weights_type state_cols;
+
+    int state_ptr = 0;
+    std::array<int, kernel_size> state_ptrs;
+
+    weights_type weights[out_size];
     v_type bias[v_out_size];
+
+    /** Sets pointers to state array columns. */
+    inline void setStatePointers()
+    {
+        for(int k = 0; k < kernel_size; ++k)
+        {
+            int r = (state_ptr - k * dilation_rate) % state_size;
+            state_ptrs[k] = r < 0 ? r + state_size : r;
+        }
+    }
 };
 
 } // namespace RTNeural
