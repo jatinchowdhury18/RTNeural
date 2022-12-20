@@ -21,7 +21,7 @@ namespace RTNeural
 /**
  * Dynamic implementation of a 1-dimensional convolution layer
  * with no activation.
- * 
+ *
  * This implementation was designed to be used for "temporal
  * convolution", so the layer has a "state" made up of past inputs
  * to the layer. To ensure that the state is initialized to zero,
@@ -34,7 +34,7 @@ class Conv1D final : public Layer<T>
 public:
     /**
      * Constructs a convolution layer for the given dimensions.
-     * 
+     *
      * @param in_size: the input size for the layer
      * @param out_size: the output size for the layer
      * @param kernel_size: the size of the convolution kernel
@@ -55,44 +55,47 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
-        // insert input into double-buffered state
-        for(int k = 0; k < Layer<T>::in_size; ++k)
+        // insert input into a circular buffer
+        std::copy(input, input + Layer<T>::in_size, state[state_ptr]);
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // copy selected columns to a helper variable
+        for(int k = 0; k < kernel_size; ++k)
         {
-            state[k][state_ptr] = input[k];
-            state[k][state_ptr + state_size] = input[k];
+            const auto& col = state[state_ptrs[k]];
+            std::copy(col, col + Layer<T>::in_size, state_cols[k]);
         }
 
+        // perform multi-channel convolution
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {
-            h[i] = (T)0;
-            for(int k = 0; k < Layer<T>::in_size; ++k)
-                h[i] += vMult(&state[k][state_ptr], kernelWeights[i][k], state_size);
-
-            h[i] += bias[i];
+            h[i] = bias[i];
+            for(int k = 0; k < kernel_size; ++k)
+                h[i] = std::inner_product(
+                    weights[i][k],
+                    weights[i][k] + Layer<T>::in_size,
+                    state_cols[k],
+                    h[i]);
         }
 
-        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
     /**
      * Sets the layer weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
-     * 
+     *
      * The bias vector must have size bias[out_size]
      */
     void setBias(const std::vector<T>& biasVals);
-
-    /** Returns the weights value for the given indices. */
-    T getWeight(int outIndex, int inIndex, int kernelIndex) const noexcept
-    {
-        return kernelWeights[outIndex][inIndex][kernelIndex];
-    }
 
     /** Returns the size of the convolution kernel. */
     int getKernelSize() const noexcept { return kernel_size; }
@@ -105,23 +108,37 @@ private:
     const int kernel_size;
     const int state_size;
 
-    T*** kernelWeights;
+    T*** weights;
     T* bias;
+
     T** state;
+    T** state_cols;
+
+    int* state_ptrs;
     int state_ptr = 0;
+
+    /** Sets pointers to state array columns. */
+    inline void setStatePointers()
+    {
+        for(int k = 0; k < kernel_size; ++k)
+        {
+            int r = (state_ptr - k * dilation_rate) % state_size;
+            state_ptrs[k] = r < 0 ? r + state_size : r;
+        }
+    }
 };
 
 //====================================================
 /**
  * Static implementation of a 1-dimensional convolution layer
  * with no activation.
- * 
+ *
  * This implementation was designed to be used for "temporal
  * convolution", so the layer has a "state" made up of past inputs
  * to the layer. To ensure that the state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
- * 
+ *
  * @param in_sizet: the input size for the layer
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
@@ -130,7 +147,7 @@ private:
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
 class Conv1DT
 {
-    static constexpr auto state_size = kernel_size * dilation_rate;
+    static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
 
 public:
     static constexpr auto in_size = in_sizet;
@@ -150,33 +167,44 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T (&ins)[in_size]) noexcept
     {
-        // insert input into double-buffered state
-        for(int k = 0; k < in_size; ++k)
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // copy selected columns to a helper variable
+        for(int k = 0; k < kernel_size; ++k)
         {
-            state[k][state_ptr] = ins[k];
-            state[k][state_ptr + state_size] = ins[k];
+            const auto& col = state[state_ptrs[k]];
+            std::copy(col.begin(), col.end(), state_cols[k].begin());
         }
 
+        // perform multi-channel convolution
         for(int i = 0; i < out_size; ++i)
         {
             outs[i] = bias[i];
-            for(int k = 0; k < in_size; ++k)
-                outs[i] += std::inner_product(&state[k][state_ptr], &state[k][state_ptr + state_size], weights[i][k], (T)0);
+            for(int k = 0; k < kernel_size; ++k)
+                outs[i] = std::inner_product(
+                    weights[i][k].begin(),
+                    weights[i][k].end(),
+                    state_cols[k].begin(),
+                    outs[i]);
         }
 
-        state_ptr = (state_ptr == 0 ? state_size - 1 : state_ptr - 1); // iterate state pointer in reverse
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
     /**
      * Sets the layer weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
-     * 
+     *
      * The bias vector must have size bias[out_size]
      */
     void setBias(const std::vector<T>& biasVals);
@@ -190,11 +218,27 @@ public:
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
-    T state alignas(RTNEURAL_DEFAULT_ALIGNMENT)[in_size][state_size * 2];
-    int state_ptr = 0;
+    using state_type = std::array<std::array<T, in_size>, state_size>;
+    using weights_type = std::array<std::array<T, in_size>, kernel_size>;
 
-    T weights alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size][in_size][state_size];
-    T bias alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) state_type state;
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) weights_type state_cols;
+
+    int state_ptr = 0;
+    std::array<int, kernel_size> state_ptrs;
+
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) weights_type weights[out_size];
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<T, out_size> bias;
+
+    /** Sets pointers to state array columns. */
+    inline void setStatePointers()
+    {
+        for(int k = 0; k < kernel_size; ++k)
+        {
+            int r = (state_ptr - k * dilation_rate) % state_size;
+            state_ptrs[k] = r < 0 ? r + state_size : r;
+        }
+    }
 };
 
 } // namespace RTNeural
