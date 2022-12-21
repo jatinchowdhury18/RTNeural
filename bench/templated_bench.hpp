@@ -66,14 +66,16 @@ double runTemplatedBench(const std::vector<vec_type>& signal, const size_t n_sam
         else if(in_size == 8 && out_size == 8)
         {
             constexpr size_t kernel_size = 7; // in_size - 1
-            ModelT<double, 8, 8, Conv1DT<double, 8, 8, kernel_size, 1>> model;
+            constexpr size_t dilation_rate = 2; // in_size / 4
+            ModelT<double, 8, 8, Conv1DT<double, 8, 8, kernel_size, dilation_rate>> model;
             randomise_conv1d (model.get<0>(), kernel_size);
             duration = run_layer(model);
         }
         else if(in_size == 16 && out_size == 16)
         {
             constexpr size_t kernel_size = 15; // in_size - 1
-            ModelT<double, 16, 16, Conv1DT<double, 16, 16, kernel_size, 1>> model;
+            constexpr size_t dilation_rate = 4; // in_size / 4
+            ModelT<double, 16, 16, Conv1DT<double, 16, 16, kernel_size, dilation_rate>> model;
             randomise_conv1d (model.get<0>(), kernel_size);
             duration = run_layer(model);
         }

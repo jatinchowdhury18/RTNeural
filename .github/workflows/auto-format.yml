@@ -20,11 +20,9 @@ jobs:
     steps:
     - name: Install Linux Deps
       run: |
-        wget https://apt.llvm.org/llvm.sh
-        chmod +x llvm.sh
-        sudo ./llvm.sh 11
-        sudo apt-get install clang-format-11
-        clang-format-11 --version
+        sudo apt update
+        sudo apt -y install clang-format-14
+        clang-format-14 --version
 
     - name: Checkout code
       uses: actions/checkout@v2
@@ -34,7 +32,7 @@ jobs:
 
     - name: Run clang-format
       shell: bash
-      run: find {RTNeural/,tests/,bench/} -iname *.h -o -iname *.cpp -o -iname *.tpp | xargs clang-format-11 -style=file -verbose -i
+      run: find {RTNeural/,tests/,bench/} -iname *.h -o -iname *.cpp -o -iname *.tpp | xargs clang-format-14 -style=file -verbose -i
 
     - name: Commit & Push changes
       uses: actions-js/push@master
