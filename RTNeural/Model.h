@@ -17,9 +17,9 @@
 namespace RTNeural
 {
 
-/** 
+/**
  *  A dynamic sequential neural network model.
- *  
+ *
  *  Instances of this class should typically be created
  *  `json_parser::parseJson`.
  */

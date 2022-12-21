@@ -13,7 +13,7 @@ namespace RTNeural
 /**
  * Some utilities for constructing and working
  * with variadic templates of layers.
- * 
+ *
  * Note that this API may change at any time,
  * so probably don't use any of this directly.
  */
@@ -170,7 +170,7 @@ namespace modelt_detail
 
 /**
  *  A static sequential neural network model.
- *  
+ *
  *  To use this class, you must define the layers at compile-time:
  *  ```
  *  ModelT<double, 1, 1,
@@ -212,7 +212,9 @@ public:
     /** Resets the state of the network layers. */
     void reset()
     {
-        modelt_detail::forEachInTuple([&](auto& layer, size_t) { layer.reset(); }, layers);
+        modelt_detail::forEachInTuple([&](auto& layer, size_t)
+            { layer.reset(); },
+            layers);
     }
 
     /** Performs forward propagation for this model. */
@@ -296,7 +298,8 @@ public:
         }
 
         int json_stream_idx = 0;
-        modelt_detail::forEachInTuple([&](auto& layer, size_t) {
+        modelt_detail::forEachInTuple([&](auto& layer, size_t)
+            {
             if(json_stream_idx >= (int)json_layers.size())
             {
                 debug_print("Too many layers!", debug);
@@ -334,8 +337,7 @@ public:
                 return;
             }
 
-            modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug);
-        },
+            modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug); },
             layers);
     }
 

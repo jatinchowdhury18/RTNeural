@@ -48,7 +48,7 @@ void Conv1D<T>::reset()
     for(int k = 0; k < kernel_size; ++k)
         std::fill(state_cols[k].begin(), state_cols[k].end(), (T)0);
 
-    std::fill (state_ptrs.begin(), state_ptrs.end(), 0);
+    std::fill(state_ptrs.begin(), state_ptrs.end(), 0);
     state_ptr = 0;
 }
 

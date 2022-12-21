@@ -52,7 +52,8 @@ public:
         for(int l = 0; l < Layer<T>::out_size; ++l)
         {
             xsimd::transform(input, &input[Layer<T>::in_size], weights[l].data(), prod.data(),
-                [](auto const& a, auto const& b) { return a * b; });
+                [](auto const& a, auto const& b)
+                { return a * b; });
 
             auto sum = xsimd::reduce(prod.begin(), prod.begin() + Layer<T>::in_size, (T)0);
             out[l] = sum + bias[l];
@@ -61,7 +62,7 @@ public:
 
     /**
      * Sets the layer weights from a given vector.
-     * 
+     *
      * The dimension of the weights vector must be
      * weights[out_size][in_size]
      */
@@ -74,7 +75,7 @@ public:
 
     /**
      * Sets the layer weights from a given array.
-     * 
+     *
      * The dimension of the weights array must be
      * weights[out_size][in_size]
      */
@@ -172,7 +173,7 @@ public:
 
     /**
      * Sets the layer weights from a given vector.
-     * 
+     *
      * The dimension of the weights vector must be
      * weights[out_size][in_size]
      */
@@ -189,7 +190,7 @@ public:
 
     /**
      * Sets the layer weights from a given vector.
-     * 
+     *
      * The dimension of the weights array must be
      * weights[out_size][in_size]
      */

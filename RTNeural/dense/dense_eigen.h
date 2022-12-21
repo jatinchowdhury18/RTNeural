@@ -58,7 +58,7 @@ public:
 
     /**
      * Sets the layer weights from a given vector.
-     * 
+     *
      * The dimension of the weights vector must be
      * weights[out_size][in_size]
      */
@@ -71,7 +71,7 @@ public:
 
     /**
      * Sets the layer weights from a given array.
-     * 
+     *
      * The dimension of the weights array must be
      * weights[out_size][in_size]
      */
@@ -146,7 +146,7 @@ public:
 
     /**
      * Sets the layer weights from a given vector.
-     * 
+     *
      * The dimension of the weights vector must be
      * weights[out_size][in_size]
      */
@@ -159,7 +159,7 @@ public:
 
     /**
      * Sets the layer weights from a given vector.
-     * 
+     *
      * The dimension of the weights array must be
      * weights[out_size][in_size]
      */

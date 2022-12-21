@@ -11,7 +11,7 @@ namespace RTNeural
 /**
  * Dynamic implementation of a LSTM layer with tanh
  * activation and sigmoid recurrent activation.
- * 
+ *
  * To ensure that the recurrent state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
@@ -69,21 +69,21 @@ public:
 
     /**
      * Sets the layer kernel weights.
-     * 
+     *
      * The weights vector must have size weights[in_size][4 * out_size]
      */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
     /**
      * Sets the layer recurrent weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][4 * out_size]
      */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
     /**
      * Sets the layer bias.
-     * 
+     *
      * The bias vector must have size weights[4 * out_size]
      */
     void setBVals(const std::vector<T>& bVals);
@@ -125,7 +125,7 @@ protected:
 /**
  * Static implementation of a LSTM layer with tanh
  * activation and sigmoid recurrent activation.
- * 
+ *
  * To ensure that the recurrent state is initialized to zero,
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
@@ -214,21 +214,21 @@ public:
 
     /**
      * Sets the layer kernel weights.
-     * 
+     *
      * The weights vector must have size weights[in_size][4 * out_size]
      */
     void setWVals(const std::vector<std::vector<T>>& wVals);
 
     /**
      * Sets the layer recurrent weights.
-     * 
+     *
      * The weights vector must have size weights[out_size][4 * out_size]
      */
     void setUVals(const std::vector<std::vector<T>>& uVals);
 
     /**
      * Sets the layer bias.
-     * 
+     *
      * The bias vector must have size weights[4 * out_size]
      */
     void setBVals(const std::vector<T>& bVals);
