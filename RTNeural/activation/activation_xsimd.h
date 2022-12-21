@@ -146,7 +146,8 @@ public:
     {
         xsimd::transform(
             input, &input[Layer<T>::in_size], zeros.begin(), out,
-            [](auto const& a, auto const& b) { return xsimd::max(a, b); });
+            [](auto const& a, auto const& b)
+            { return xsimd::max(a, b); });
     }
 
     std::vector<T, xsimd::aligned_allocator<T>> zeros;

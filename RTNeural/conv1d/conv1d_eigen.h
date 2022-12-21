@@ -99,10 +99,7 @@ private:
     inline void setStatePointers()
     {
         for(int k = 0; k < kernel_size; ++k)
-        {
-            int r = (state_ptr - k * dilation_rate) % state_size;
-            state_ptrs(k) = r < 0 ? r + state_size : r;
-        }
+            state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
 
@@ -206,11 +203,8 @@ private:
     /** Sets pointers to state array columns. */
     inline void setStatePointers()
     {
-        for(int k = 0; k < kernel_length; ++k)
-        {
-            int r = (state_ptr - k * dilation) % state_size;
-            state_ptrs(k) = r < 0 ? r + state_size : r;
-        }
+        for(int k = 0; k < kernel_size; ++k)
+            state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
 

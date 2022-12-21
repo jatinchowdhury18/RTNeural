@@ -144,7 +144,7 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::reset()
 
     state_ptr = 0;
     for(int i = 0; i < kernel_size; ++i)
-            state_ptrs[i] = 0;
+        state_ptrs[i] = 0;
 }
 
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>

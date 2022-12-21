@@ -358,7 +358,8 @@ namespace json_parser
 
             const auto weights = l.at("weights");
 
-            auto add_activation = [=](std::unique_ptr<Model<T>>& _model, const nlohmann::json& _l) {
+            auto add_activation = [=](std::unique_ptr<Model<T>>& _model, const nlohmann::json& _l)
+            {
                 if(_l.contains("activation"))
                 {
                     const auto activationType = _l["activation"].get<std::string>();

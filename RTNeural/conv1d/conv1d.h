@@ -121,10 +121,7 @@ private:
     inline void setStatePointers()
     {
         for(int k = 0; k < kernel_size; ++k)
-        {
-            int r = (state_ptr - k * dilation_rate) % state_size;
-            state_ptrs[k] = r < 0 ? r + state_size : r;
-        }
+            state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
 
@@ -234,15 +231,9 @@ private:
     inline void setStatePointers()
     {
         for(int k = 0; k < kernel_size; ++k)
-        {
-            int r = (state_ptr - k * dilation_rate) % state_size;
-            state_ptrs[k] = r < 0 ? r + state_size : r;
-        }
+            state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
-
 } // namespace RTNeural
-
 #endif
-
 #endif // CONV1D_H_INCLUDED
