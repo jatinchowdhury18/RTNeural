@@ -47,7 +47,7 @@ public:
     inline void forward(const T* input, T* h) noexcept override
     {
         // insert input into a circular buffer
-        vCopy (input, state[state_ptr].data(), Layer<T>::in_size);
+        vCopy(input, state[state_ptr].data(), Layer<T>::in_size);
 
         // set state pointers to particular columns of the buffer
         setStatePointers();
@@ -56,11 +56,11 @@ public:
         for(int k = 0; k < kernel_size; ++k)
         {
             const auto& col = state[state_ptrs[k]];
-            vCopy (col.data(), state_cols[k].data(), Layer<T>::in_size);
+            vCopy(col.data(), state_cols[k].data(), Layer<T>::in_size);
         }
 
         // perform multi-channel convolution
-        vCopy (bias.data(), h, Layer<T>::out_size);
+        vCopy(bias.data(), h, Layer<T>::out_size);
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             for(int k = 0; k < kernel_size; ++k)
@@ -114,10 +114,7 @@ private:
     inline void setStatePointers()
     {
         for(int k = 0; k < kernel_size; ++k)
-        {
-            int r = (state_ptr - k * dilation_rate) % state_size;
-            state_ptrs[k] = r < 0 ? r + state_size : r;
-        }
+            state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
 
@@ -162,7 +159,9 @@ public:
     void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const v_type (&ins)[v_in_size]) noexcept
+    template <int DR = dilation_rate>
+    inline typename std::enable_if<(DR > 1), void>::type
+    forward(const v_type (&ins)[v_in_size]) noexcept
     {
         // insert input into a circular buffer
         std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
@@ -191,6 +190,42 @@ public:
                         subWeights[j].begin(),
                         subWeights[j].end(),
                         state_cols[j].begin(),
+                        v_type {});
+                }
+                out_sum[k] = xsimd::reduce_add(accum);
+            }
+
+            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        }
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
+    /** Performs forward propagation for this layer. */
+    template <int DR = dilation_rate>
+    inline typename std::enable_if<DR == 1, void>::type
+    forward(const v_type (&ins)[v_in_size]) noexcept
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // perform multi-channel convolution
+        for(int i = 0; i < v_out_size; ++i)
+        {
+            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+            for(int k = 0; k < v_size; ++k)
+            {
+                const auto& subWeights = weights[i * v_size + k];
+                v_type accum {};
+                for(int j = 0; j < kernel_size; ++j)
+                {
+                    accum += std::inner_product(
+                        subWeights[j].begin(),
+                        subWeights[j].end(),
+                        state[(state_ptr + state_size - j) % state_size].begin(),
                         v_type {});
                 }
                 out_sum[k] = xsimd::reduce_add(accum);
@@ -241,13 +276,9 @@ private:
     inline void setStatePointers()
     {
         for(int k = 0; k < kernel_size; ++k)
-        {
-            int r = (state_ptr - k * dilation_rate) % state_size;
-            state_ptrs[k] = r < 0 ? r + state_size : r;
-        }
+            state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
-
 } // namespace RTNeural
 
 #endif // CONV1DXSIMD_H_INCLUDED
