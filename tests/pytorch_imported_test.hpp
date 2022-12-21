@@ -140,7 +140,7 @@ int pytorch_imported_test()
 
         std::vector<double> lstm_bias_ih = weights_json["/state_dict/rec.bias_ih_l0"_json_pointer];
         std::vector<double> lstm_bias_hh = weights_json["/state_dict/rec.bias_hh_l0"_json_pointer];
-        for (int i = 0; i < 64; ++i)
+        for (int i = 0; i < 48; ++i)
             lstm_bias_hh[i] += lstm_bias_ih[i];
         lstm.setBVals(lstm_bias_hh);
 
