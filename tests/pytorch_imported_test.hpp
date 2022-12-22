@@ -37,9 +37,20 @@ Vec2d transpose(const Vec2d& x)
     return y;
 }
 
+/* TEST DESCRIPTION:
+ *
+ * Automated-GuitarAmpModelling is using PyTorch to train SimpleRNN models. At the end of
+ * training, Automated-GuitarAmpModelling saves the weights into json files (model.json, model_best.json).
+ * These files can be used in RTNeural either by copying the weights into the RTNeural model object by hand
+ * or by using a python script to convert directly the weights into a json file that is RTNeural-compliant.
+ *
+ * The test wants to clarify the following points:
+ * - difference between PyTorch and RTNeural outputs;
+ * - various techniques to import weights;
+ */
 int pytorch_imported_test()
 {
-    std::cout << "TESTING PYTORCH IMPORTED MODEL..." << std::endl;
+    std::cout << "TESTING MODEL IMPORTED FROM PYTORCH..." << std::endl;
     const std::string pytorch_model = "models/pytorch.json";
     const std::string pytorch_tf_model = "models/pytorch_imported.json";
     const std::string pytorch_x = "test_data/pytorch_x.csv";
@@ -61,13 +72,10 @@ int pytorch_imported_test()
     std::ifstream pytorchY(pytorch_y);
     auto yRefData1 = load_csv::loadFile<TestType>(pytorchY);
 
-    /* Read PyTorch model file generated from Automated-GuitarAmpModelling
-     * and exported to RTNeural format by a python script */
-    std::ifstream jsonStream(pytorch_tf_model, std::ifstream::binary);
-
     std::vector<TestType> yData1(xData.size(), (TestType)0);
     {
         std::cout << "Loading non-templated model " << pytorch_tf_model << std::endl;
+        std::ifstream jsonStream(pytorch_tf_model, std::ifstream::binary);
         auto model = RTNeural::json_parser::parseJson<TestType>(jsonStream, true);
         processModel(*model.get(), xData, yData1);
     }
