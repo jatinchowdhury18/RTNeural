@@ -1,6 +1,7 @@
 #pragma once
 
 #include <RTNeural.h>
+#include <cstring>
 #include "load_csv.hpp"
 
 namespace pytorch_imported_test
@@ -43,9 +44,16 @@ int pytorch_imported_test()
     const std::string pytorch_tf_model = "models/pytorch_imported.json";
     const std::string pytorch_x = "test_data/pytorch_x.csv";
     const std::string pytorch_y = "test_data/pytorch_y.csv";
-    const std::string pytorch_tf_y = "test_data/pytorch_tf_y.csv";
     constexpr double threshold = 1.0e-12;
     size_t n = 0;
+
+    std::string type1;
+    std::string type2;
+    int hidden_size1;
+    int hidden_size2;
+    std::string type;
+    int hidden_size;
+    nlohmann::json modelData;
 
     std::ifstream pytorchX(pytorch_x);
     auto xData = load_csv::loadFile<TestType>(pytorchX);
@@ -53,14 +61,14 @@ int pytorch_imported_test()
     std::ifstream pytorchY(pytorch_y);
     auto yRefData1 = load_csv::loadFile<TestType>(pytorchY);
 
-    std::ifstream pytorchTfY(pytorch_tf_y);
-    auto yRefData2 = load_csv::loadFile<TestType>(pytorchTfY);
+    /* Read PyTorch model file generated from Automated-GuitarAmpModelling
+     * and exported to RTNeural format by a python script */
+    std::ifstream jsonStream(pytorch_tf_model, std::ifstream::binary);
 
     std::vector<TestType> yData1(xData.size(), (TestType)0);
     {
         std::cout << "Loading non-templated model " << pytorch_tf_model << std::endl;
-        std::ifstream jsonStream1(pytorch_tf_model, std::ifstream::binary);
-        auto model = RTNeural::json_parser::parseJson<TestType>(jsonStream1, true);
+        auto model = RTNeural::json_parser::parseJson<TestType>(jsonStream, true);
         processModel(*model.get(), xData, yData1);
     }
 
@@ -89,12 +97,101 @@ int pytorch_imported_test()
         std::cout << "Maximum error: " << max_error1 << std::endl;
     }
 
-    std::cout << "Testing tensorflow vs RTNeural output:" << std::endl;
+    std::ifstream jsonStream1(pytorch_tf_model, std::ifstream::binary);
+    jsonStream1 >> modelData;
+    type1 = modelData["layers"][0]["type"];
+    hidden_size1 = modelData["layers"][0]["shape"].back().get<int>();
+    std::cout << "Using model type=" << type1 << " hidden_size=" << hidden_size1 << std::endl;
+
+    /* Read PyTorch model file generated from Automated-GuitarAmpModelling */
+    std::ifstream jsonStream2(pytorch_model, std::ifstream::binary);
+    nlohmann::json weights_json;
+    jsonStream2 >> weights_json;
+
+    type2 = weights_json["/model_data/unit_type"_json_pointer];
+    for (int i=0; i<type2.size(); i++)
+        type2[i] = tolower(type2[i]);
+    hidden_size2 = weights_json["/model_data/hidden_size"_json_pointer];
+
+    if((type1 != type2) || (hidden_size1 != hidden_size2)) {
+        std::cout << "Sorry, model files don't match" << std::endl;
+        return 1;
+    }
+
+    if(hidden_size1 != 12) {
+        std::cout << "Sorry, only LSTM-12 or GRU-12 models are supported in this tests" << std::endl;
+        return 1;
+    }
+
+    type = type1;
+    hidden_size = hidden_size1;
+
+    /* Weights for recurrent layer */
+    Vec2d rec_weights_ih = weights_json["/state_dict/rec.weight_ih_l0"_json_pointer];
+    Vec2d rec_weights_hh = weights_json["/state_dict/rec.weight_hh_l0"_json_pointer];
+
+    std::vector<double> rec_bias_ih = weights_json["/state_dict/rec.bias_ih_l0"_json_pointer];
+    std::vector<double> rec_bias_hh = weights_json["/state_dict/rec.bias_hh_l0"_json_pointer];
+
+    /* Weights for output dense layer */
+    Vec2d dense_weights = weights_json["/state_dict/lin.weight"_json_pointer];
+    std::vector<double> dense_bias = weights_json["/state_dict/lin.bias"_json_pointer];
+
+    std::vector<TestType> yData2(xData.size(), (TestType)0);
+    {
+        std::cout << "Loading weights from " << pytorch_model << std::endl;
+
+        /* Define a static model to match the one expected @TODO: support multiple models */
+        std::cout << "Loading templated model" << std::endl;
+        if(type == "lstm") {
+            std::cout << "Loading LSTM type" << std::endl;
+            RTNeural::ModelT<TestType, 1, 1,
+                RTNeural::LSTMLayerT<TestType, 1, 12>,
+                RTNeural::DenseT<TestType, 12, 1>
+            > modelT;
+
+            /* Load weights manually */
+            auto& lstm = modelT.get<0>();
+            auto& dense = modelT.get<1>();
+            lstm.setWVals(transpose(rec_weights_ih));
+            lstm.setUVals(transpose(rec_weights_hh));
+            for (int i = 0; i < hidden_size*4; ++i)
+                rec_bias_hh[i] += rec_bias_ih[i];
+            lstm.setBVals(rec_bias_hh);
+            dense.setWeights(dense_weights);
+            dense.setBias(dense_bias.data());
+            processModel(modelT, xData, yData2);
+        } else if(type == "gru") {
+            std::cout << "Loading GRU type" << std::endl;
+            RTNeural::ModelT<TestType, 1, 1,
+                RTNeural::GRULayerT<TestType, 1, 12>,
+                RTNeural::DenseT<TestType, 12, 1>
+            > modelT;
+
+            /* Load weights manually */
+            auto& gru = modelT.get<0>();
+            auto& dense = modelT.get<1>();
+            gru.setWVals(transpose(rec_weights_ih));
+            gru.setUVals(transpose(rec_weights_hh));
+
+            std::vector<std::vector<double>> tmp(2, std::vector<double>(hidden_size*3, 0.0));
+            for (int i = 0; i < hidden_size*3; ++i)
+                tmp[0][i] += rec_bias_ih[i];
+            for (int i = 0; i < hidden_size*3; ++i)
+                tmp[1][i] += rec_bias_hh[i];
+            gru.setBVals(tmp);
+            dense.setWeights(dense_weights);
+            dense.setBias(dense_bias.data());
+            processModel(modelT, xData, yData2);
+        }
+    }
+
+    std::cout << "Testing pytorch vs RTNeural output (manual weights):" << std::endl;
     size_t nErrs2 = 0;
     TestType max_error2 = (TestType)0;
     for(n = 0; n < xData.size(); ++n)
     {
-        auto err2 = std::abs(yData1[n] - yRefData2[n]);
+        auto err2 = std::abs(yData2[n] - yRefData1[n]);
         if(err2 > threshold)
         {
             max_error2 = std::max(err2, max_error2);
@@ -102,8 +199,8 @@ int pytorch_imported_test()
 
             // For debugging purposes
             // std::cout << "ERR: " << err2 << ", idx: " << n << std::endl;
-            // std::cout << yData1[n] << std::endl;
-            // std::cout << yRefData2[n] << std::endl;
+            // std::cout << yData2[n] << std::endl;
+            // std::cout << yRefData1[n] << std::endl;
             // break;
         }
     }
@@ -114,71 +211,7 @@ int pytorch_imported_test()
         std::cout << "Maximum error: " << max_error2 << std::endl;
     }
 
-    std::vector<TestType> yData2(xData.size(), (TestType)0);
-    {
-        std::cout << "Loading weights from " << pytorch_model << std::endl;
-         /* Read PyTorch model file generated from Automated-GuitarAmpModelling */
-        std::ifstream jsonStream2(pytorch_model, std::ifstream::binary);
-        nlohmann::json weights_json;
-        jsonStream2 >> weights_json;
-
-        /* Define a static model to match the one expected @TODO: support multiple models */
-        std::cout << "Loading templated model" << std::endl;
-        RTNeural::ModelT<TestType, 1, 1,
-            RTNeural::LSTMLayerT<TestType, 1, 12>,
-            RTNeural::DenseT<TestType, 12, 1>
-        > modelT;
-
-        /* Load weights manually @TODO: support GRU */
-        auto& lstm = modelT.get<0>();
-        auto& dense = modelT.get<1>();
-        Vec2d lstm_weights_ih = weights_json["/state_dict/rec.weight_ih_l0"_json_pointer];
-        lstm.setWVals(transpose(lstm_weights_ih));
-
-        Vec2d lstm_weights_hh = weights_json["/state_dict/rec.weight_hh_l0"_json_pointer];
-        lstm.setUVals(transpose(lstm_weights_hh));
-
-        std::vector<double> lstm_bias_ih = weights_json["/state_dict/rec.bias_ih_l0"_json_pointer];
-        std::vector<double> lstm_bias_hh = weights_json["/state_dict/rec.bias_hh_l0"_json_pointer];
-        for (int i = 0; i < 48; ++i)
-            lstm_bias_hh[i] += lstm_bias_ih[i];
-        lstm.setBVals(lstm_bias_hh);
-
-        Vec2d dense_weights = weights_json["/state_dict/lin.weight"_json_pointer];
-        dense.setWeights(dense_weights);
-
-        std::vector<double> dense_bias = weights_json["/state_dict/lin.bias"_json_pointer];
-        dense.setBias(dense_bias.data());
-
-        processModel(modelT, xData, yData2);
-    }
-
-    std::cout << "Testing pytorch vs RTNeural output (manual weights):" << std::endl;
-    size_t nErrs3 = 0;
-    TestType max_error3 = (TestType)0;
-    for(n = 0; n < xData.size(); ++n)
-    {
-        auto err3 = std::abs(yData2[n] - yRefData1[n]);
-        if(err3 > threshold)
-        {
-            max_error3 = std::max(err3, max_error3);
-            nErrs3++;
-
-            // For debugging purposes
-            // std::cout << "ERR: " << err3 << ", idx: " << n << std::endl;
-            // std::cout << yData2[n] << std::endl;
-            // std::cout << yRefData1[n] << std::endl;
-            // break;
-        }
-    }
-
-    if(nErrs3 > 0)
-    {
-        std::cout << "FAIL: " << nErrs3 << " errors!" << std::endl;
-        std::cout << "Maximum error: " << max_error3 << std::endl;
-    }
-
-    if(nErrs1 > 0 || nErrs2 > 0 || nErrs3 > 0)
+    if(nErrs1 > 0 || nErrs2 > 0)
         return 1;
 
     std::cout << "SUCCESS" << std::endl;
