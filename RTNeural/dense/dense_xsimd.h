@@ -51,11 +51,11 @@ public:
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)
         {
-            std::transform(input, &input[Layer<T>::in_size], weights[l].data(), prod.data(),
+            xsimd::transform(input, &input[Layer<T>::in_size], weights[l].data(), prod.data(),
                 [](auto const& a, auto const& b)
                 { return a * b; });
 
-            auto sum = std::reduce(prod.begin(), prod.begin() + Layer<T>::in_size, (T)0);
+            auto sum = xsimd::reduce(prod.begin(), prod.begin() + Layer<T>::in_size, (T)0);
             out[l] = sum + bias[l];
         }
     }

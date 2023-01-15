@@ -144,7 +144,7 @@ public:
     /** Performs forward propagation for ReLU activation. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        std::transform(
+        xsimd::transform(
             input, &input[Layer<T>::in_size], zeros.begin(), out,
             [](auto const& a, auto const& b)
             { return xsimd::max(a, b); });

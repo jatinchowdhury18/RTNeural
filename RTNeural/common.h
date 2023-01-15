@@ -85,7 +85,8 @@ static inline auto fast_tanh(const MatType& in) noexcept
 
 #elif RTNEURAL_USE_XSIMD
 #include <xsimd/xsimd.hpp>
-#include <numeric>
+
+#include <xsimd/stl/algorithms.hpp>
 
 namespace RTNeural
 {
@@ -121,18 +122,18 @@ template <typename T>
 static inline T vMult(const T* arg1, const T* arg2, T* prod,
     int dim) noexcept
 {
-    std::transform(arg1, &arg1[dim], arg2, prod,
+    xsimd::transform(arg1, &arg1[dim], arg2, prod,
         [](auto const& a, auto const& b)
         { return a * b; });
 
-    return std::reduce(prod, &prod[dim], (T)0);
+    return xsimd::reduce(prod, &prod[dim], (T)0);
 }
 
 template <typename T>
 static inline void vAdd(const T* in1, const T* in2, T* out,
     int dim) noexcept
 {
-    std::transform(in1, &in1[dim], in2, out,
+    xsimd::transform(in1, &in1[dim], in2, out,
         [](auto const& a, auto const& b)
         { return a + b; });
 }
@@ -141,7 +142,7 @@ template <typename T>
 static inline void vSub(const T* in1, const T* in2, T* out,
     int dim) noexcept
 {
-    std::transform(in1, &in1[dim], in2, out,
+    xsimd::transform(in1, &in1[dim], in2, out,
         [](auto const& a, auto const& b)
         { return a - b; });
 }
@@ -150,7 +151,7 @@ template <typename T>
 static inline void vProd(const T* in1, const T* in2, T* out,
     int dim) noexcept
 {
-    std::transform(in1, &in1[dim], in2, out,
+    xsimd::transform(in1, &in1[dim], in2, out,
         [](auto const& a, auto const& b)
         { return a * b; });
 }
