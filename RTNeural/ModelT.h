@@ -89,7 +89,7 @@ namespace modelt_detail
 
         debug_print("Layer: " + type, debug);
         debug_print("  Dims: " + std::to_string(layerDims), debug);
-        const auto weights = l["weights"];
+        const auto& weights = l["weights"];
 
         if(checkDense<T>(dense, type, layerDims, debug))
             loadDense<T>(dense, weights);
@@ -114,7 +114,7 @@ namespace modelt_detail
 
         debug_print("Layer: " + type, debug);
         debug_print("  Dims: " + std::to_string(layerDims), debug);
-        const auto weights = l["weights"];
+        const auto& weights = l["weights"];
         const auto kernel = l["kernel_size"].back().get<int>();
         const auto dilation = l["dilation"].back().get<int>();
 
@@ -141,7 +141,7 @@ namespace modelt_detail
 
         debug_print("Layer: " + type, debug);
         debug_print("  Dims: " + std::to_string(layerDims), debug);
-        const auto weights = l["weights"];
+        const auto& weights = l["weights"];
 
         if(checkGRU<T>(gru, type, layerDims, debug))
             loadGRU<T>(gru, weights);
@@ -157,7 +157,7 @@ namespace modelt_detail
 
         debug_print("Layer: " + type, debug);
         debug_print("  Dims: " + std::to_string(layerDims), debug);
-        const auto weights = l["weights"];
+        const auto& weights = l["weights"];
 
         if(checkLSTM<T>(lstm, type, layerDims, debug))
             loadLSTM<T>(lstm, weights);
@@ -173,7 +173,7 @@ namespace modelt_detail
 
         debug_print("Layer: " + type, debug);
         debug_print("  Dims: " + std::to_string(layerDims), debug);
-        const auto weights = l["weights"];
+        const auto& weights = l["weights"];
 
         if(checkPReLU<T>(prelu, type, layerDims, debug))
             loadPReLU<T>(prelu, weights);
@@ -181,6 +181,24 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
+    template <typename T, int size>
+    void loadLayer(BatchNormT<T, size>& batch_norm, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto& weights = l["weights"];
+
+        if(checkBatchNorm<T>(batch_norm, type, layerDims, debug))
+        {
+            loadBatchNorm<T>(batch_norm, weights);
+            batch_norm.setEpsilon(l["epsilon"].get<float>());
+        }
+
+        json_stream_idx++;
+    }
 } // namespace modelt_detail
 #endif // DOXYGEN
 

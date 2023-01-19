@@ -326,6 +326,45 @@ namespace json_parser
         return true;
     }
 
+    /** Loads weights for a BatchNormLayer (or BatchNormLayerT) from a json representation of the layer weights. */
+    template <typename T, typename BatchNormType>
+    void loadBatchNorm(BatchNormType& batch_norm, const nlohmann::json& weights)
+    {
+        batch_norm.setGamma(weights.at(0).get<std::vector<T>>());
+        batch_norm.setBeta(weights.at(1).get<std::vector<T>>());
+        batch_norm.setRunningMean(weights.at(2).get<std::vector<T>>());
+        batch_norm.setRunningVariance(weights.at(3).get<std::vector<T>>());
+    }
+
+    /** Creates a BatchNormLayer from a json representation of the layer weights. */
+    template <typename T>
+    std::unique_ptr<BatchNormLayer<T>> createBatchNorm(int size, const nlohmann::json& weights, T epsilon)
+    {
+        auto batch_norm = std::make_unique<BatchNormLayer<T>>(size);
+        loadBatchNorm<T>(*batch_norm.get(), weights);
+        batch_norm->setEpsilon(epsilon);
+        return std::move(batch_norm);
+    }
+
+    /** Checks that a BatchNormLayer (or BatchNormLayerT) has the given dimensions. */
+    template <typename T, typename BatchNormType>
+    bool checkBatchNorm(const BatchNormType& batch_norm, const std::string& type, int layerDims, const bool debug)
+    {
+        if(type != "batchnorm")
+        {
+            debug_print("Wrong layer type! Expected: BatchNorm", debug);
+            return false;
+        }
+
+        if(layerDims != batch_norm.out_size)
+        {
+            debug_print("Wrong layer size! Expected: " + std::to_string(batch_norm.out_size), debug);
+            return false;
+        }
+
+        return true;
+    }
+
     /** Creates an activation layer of a given type. */
     template <typename T>
     std::unique_ptr<Activation<T>>
@@ -437,6 +476,11 @@ namespace json_parser
             {
                 auto prelu = createPReLU<T>(model->getNextInSize(), weights);
                 model->addLayer(prelu.release());
+            }
+            else if(type == "batchnorm")
+            {
+                auto batch_norm = createBatchNorm<T>(model->getNextInSize(), weights, l.at("epsilon").get<T>());
+                model->addLayer(batch_norm.release());
             }
         }
 

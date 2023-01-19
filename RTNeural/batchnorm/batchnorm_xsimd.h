@@ -1,0 +1,8 @@
+//
+// Created by jatin on 1/19/23.
+//
+
+#ifndef RTNEURAL_BATCHNORM_XSIMD_H
+#define RTNEURAL_BATCHNORM_XSIMD_H
+
+#endif // RTNEURAL_BATCHNORM_XSIMD_H

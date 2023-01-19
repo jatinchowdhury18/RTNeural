@@ -85,6 +85,7 @@ int templatedTests(std::string arg)
             TanhActivationT<TestType, 8>,
             Conv1DT<TestType, 8, 4, 3, 1>,
             TanhActivationT<TestType, 4>,
+            BatchNormT<TestType, 4>,
             PReLUActivationT<TestType, 4>,
             Conv1DT<TestType, 4, 4, 3, 2>,
             TanhActivationT<TestType, 4>,
