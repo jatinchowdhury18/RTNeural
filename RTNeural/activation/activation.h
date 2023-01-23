@@ -389,6 +389,86 @@ public:
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
 };
 
+/** Dynamic implementation of a PReLU activation layer. */
+template <typename T>
+class PReLUActivation final : public Activation<T>
+{
+public:
+    explicit PReLUActivation(int size)
+        : Activation<T>(size, {}, "prelu")
+        , alpha(size, {})
+    {
+    }
+
+    /** Performs forward propagation for prelu activation. */
+    inline void forward(const T* input, T* out) noexcept override
+    {
+        for(auto i = 0; i < Layer<T>::in_size; ++i)
+            out[i] = input[i] >= (T)0 ? input[i] : (input[i] * alpha[i]);
+    }
+
+    void setAlphaVals(const std::vector<T>& alphaVals)
+    {
+        if(alphaVals.size() == 1)
+        {
+            std::fill(alpha.begin(), alpha.end(), alphaVals[0]);
+        }
+        else
+        {
+            std::copy(alphaVals.begin(), alphaVals.end(), alpha.begin());
+        }
+    }
+
+    std::vector<T> alpha;
+};
+
+/** Static implementation of a PReLU activation layer. */
+template <typename T, int size>
+class PReLUActivationT
+{
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    PReLUActivationT()
+    {
+        for(int i = 0; i < size; ++i)
+        {
+            outs[i] = (T)0;
+            alpha[i] = (T)0;
+        }
+    }
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "prelu"; }
+
+    /** Returns false since this layer has weights even though it is an activation layer. */
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset() { }
+
+    /** Performs forward propagation for prelu activation. */
+    inline void forward(const T (&ins)[size]) noexcept
+    {
+        for(auto i = 0; i < size; ++i)
+            outs[i] = ins[i] >= (T)0 ? ins[i] : (ins[i] * alpha[i]);
+    }
+
+    void setAlphaVals(const std::vector<T>& alphaVals)
+    {
+        if(alphaVals.size() == 1)
+        {
+            std::fill(std::begin(alpha), std::end(alpha), alphaVals[0]);
+        }
+        else
+        {
+            std::copy(alphaVals.begin(), alphaVals.end(), std::begin(alpha));
+        }
+    }
+
+    T outs[size];
+    T alpha[size];
+};
 } // namespace RTNeural
 
 #endif // RTNEURAL_USE_EIGEN

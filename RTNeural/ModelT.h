@@ -165,6 +165,22 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
+    template <typename T, int size>
+    void loadLayer(PReLUActivationT<T, size>& prelu, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto weights = l["weights"];
+
+        if(checkPReLU<T>(prelu, type, layerDims, debug))
+            loadPReLU<T>(prelu, weights);
+
+        json_stream_idx++;
+    }
+
 } // namespace modelt_detail
 #endif // DOXYGEN
 

@@ -27,6 +27,9 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         if isinstance(layer, keras.layers.Conv1D):
             return 'conv1d'
 
+        if isinstance(layer, keras.layers.PReLU):
+            return 'prelu'
+
         return 'unknown'
 
     def get_layer_activation(layer):

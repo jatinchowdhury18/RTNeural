@@ -32,6 +32,7 @@ Currently supported activations:
   - [x] Sigmoid
   - [x] SoftMax
   - [x] ELu
+  - [x] PReLU
 
 For a complete reference of the available functionality,
 see the [API docs](https://ccrma.stanford.edu/~jatin/chowdsp/RTNeural).
