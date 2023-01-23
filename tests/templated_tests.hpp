@@ -1,8 +1,8 @@
 #pragma once
 
-#include <iostream>
 #include "load_csv.hpp"
 #include "test_configs.hpp"
+#include <iostream>
 
 template <typename T, typename ModelType>
 int runTestTemplated(const TestConfig& test)
@@ -67,65 +67,67 @@ int templatedTests(std::string arg)
     if(arg == "dense")
     {
         using ModelType = ModelT<TestType, 1, 1,
-                            DenseT<TestType, 1, 8>,
-                            TanhActivationT<TestType, 8>,
-                            DenseT<TestType, 8, 8>,
-                            ReLuActivationT<TestType, 8>,
-                            DenseT<TestType, 8, 8>,
-                            ELuActivationT<TestType, 8>,
-                            DenseT<TestType, 8, 8>,
-                            SoftmaxActivationT<TestType, 8>,
-                            DenseT<TestType, 8, 1>>;
+            DenseT<TestType, 1, 8>,
+            TanhActivationT<TestType, 8>,
+            DenseT<TestType, 8, 8>,
+            ReLuActivationT<TestType, 8>,
+            DenseT<TestType, 8, 8>,
+            ELuActivationT<TestType, 8>,
+            DenseT<TestType, 8, 8>,
+            SoftmaxActivationT<TestType, 8>,
+            DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
     else if(arg == "conv1d")
     {
         using ModelType = ModelT<TestType, 1, 1,
-                            DenseT<TestType, 1, 8>,
-                            TanhActivationT<TestType, 8>,
-                            Conv1DT<TestType, 8, 4, 3, 1>,
-                            TanhActivationT<TestType, 4>,
-                            Conv1DT<TestType, 4, 4, 3, 2>,
-                            TanhActivationT<TestType, 4>,
-                            DenseT<TestType, 4, 8>,
-                            SigmoidActivationT<TestType, 8>,
-                            DenseT<TestType, 8, 1>>;
+            DenseT<TestType, 1, 8>,
+            TanhActivationT<TestType, 8>,
+            Conv1DT<TestType, 8, 4, 3, 1>,
+            TanhActivationT<TestType, 4>,
+            PReLUActivationT<TestType, 4>,
+            Conv1DT<TestType, 4, 4, 3, 2>,
+            TanhActivationT<TestType, 4>,
+            PReLUActivationT<TestType, 4>,
+            DenseT<TestType, 4, 8>,
+            SigmoidActivationT<TestType, 8>,
+            DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
     else if(arg == "gru")
     {
         using ModelType = ModelT<TestType, 1, 1,
-                            DenseT<TestType, 1, 8>,
-                            TanhActivationT<TestType, 8>,
-                            GRULayerT<TestType, 8, 8>,
-                            DenseT<TestType, 8, 8>,
-                            SigmoidActivationT<TestType, 8>,
-                            DenseT<TestType, 8, 1>>;
+            DenseT<TestType, 1, 8>,
+            TanhActivationT<TestType, 8>,
+            GRULayerT<TestType, 8, 8>,
+            DenseT<TestType, 8, 8>,
+            SigmoidActivationT<TestType, 8>,
+            DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
     else if(arg == "gru_1d")
     {
         using ModelType = ModelT<TestType, 1, 1,
-                            GRULayerT<TestType, 1, 8>,
-                            DenseT<TestType, 8, 8>,
-                            SigmoidActivationT<TestType, 8>,
-                            DenseT<TestType, 8, 1>>;
+            GRULayerT<TestType, 1, 8>,
+            DenseT<TestType, 8, 8>,
+            SigmoidActivationT<TestType, 8>,
+            DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
     else if(arg == "lstm")
     {
         using ModelType = ModelT<TestType, 1, 1,
-                            DenseT<TestType, 1, 8>,
-                            TanhActivationT<TestType, 8>,
-                            LSTMLayerT<TestType, 8, 8>,
-                            DenseT<TestType, 8, 1>>;
+            DenseT<TestType, 1, 8>,
+            TanhActivationT<TestType, 8>,
+            LSTMLayerT<TestType, 8, 8>,
+            DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
     else if(arg == "lstm_1d")
     {
         using ModelType = ModelT<TestType, 1, 1,
-                            LSTMLayerT<TestType, 1, 8>,
-                            DenseT<TestType, 8, 1>>;
+            LSTMLayerT<TestType, 1, 8>,
+            DenseT<TestType, 8, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
 
