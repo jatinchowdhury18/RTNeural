@@ -489,7 +489,8 @@ public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
 
-    PReLUActivationT() : outs(outs_internal)
+    PReLUActivationT()
+        : outs(outs_internal)
     {
         outs = v_type::Zero();
         alpha = v_type::Zero();
