@@ -322,8 +322,7 @@ class ELuActivation final : public Activation<T>
 public:
     /** Constructs a elu activation layer for a given size. */
     explicit ELuActivation(int size)
-        : Activation<T>(
-            size, {}, "elu")
+        : Activation<T>(size, {}, "elu")
     {
     }
 
@@ -389,6 +388,106 @@ public:
     v_type outs[v_io_size];
 };
 
+/** Dynamic implementation of a PReLU activation layer. */
+template <typename T>
+class PReLUActivation final : public Activation<T>
+{
+public:
+    explicit PReLUActivation(int size)
+        : Activation<T>(size, {}, "prelu")
+        , alpha(size, {})
+    {
+    }
+
+    /** Performs forward propagation for prelu activation. */
+    inline void forward(const T* input, T* out) noexcept override
+    {
+        using b_type = xsimd::simd_type<T>;
+        constexpr auto inc = (int)b_type::size;
+
+        // size for which the vectorization is possible
+        auto vec_size = Layer<T>::in_size - Layer<T>::in_size % inc;
+        for(int i = 0; i < vec_size; i += inc)
+        {
+            b_type x_vec = xsimd::load_aligned(&input[i]);
+            b_type a_vec = xsimd::load_aligned(&alpha[i]);
+            b_type y_vec = xsimd::select(x_vec >= (T)0, x_vec, x_vec * a_vec);
+            xsimd::store_aligned(&out[i], y_vec);
+        }
+
+        // Remaining part that cannot be vectorized
+        for(auto i = vec_size; i < Layer<T>::in_size; ++i)
+            out[i] = input[i] >= (T)0 ? input[i] : (input[i] * alpha[i]);
+    }
+
+    void setAlphaVals(const std::vector<T>& alphaVals)
+    {
+        if(alphaVals.size() == 1)
+        {
+            std::fill(alpha.begin(), alpha.end(), alphaVals[0]);
+        }
+        else
+        {
+            std::copy(alphaVals.begin(), alphaVals.end(), alpha.begin());
+        }
+    }
+
+    std::vector<T, xsimd::aligned_allocator<T>> alpha;
+};
+
+/** Static implementation of a PReLU activation layer. */
+template <typename T, int size>
+class PReLUActivationT
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_io_size = ceil_div(size, v_size);
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    PReLUActivationT()
+    {
+        for(int i = 0; i < v_io_size; ++i)
+        {
+            outs[i] = v_type((T)0);
+            alpha[i] = v_type((T)0);
+        }
+    }
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "prelu"; }
+
+    /** Returns false since this layer has weights even though it is an activation layer. */
+    constexpr bool isActivation() const noexcept { return false; }
+
+    void reset() { }
+
+    /** Performs forward propagation for prelu activation. */
+    inline void forward(const v_type (&ins)[v_io_size]) noexcept
+    {
+        for(int i = 0; i < v_io_size; ++i)
+            outs[i] = xsimd::select(ins[i] >= (T)0, ins[i], ins[i] * alpha[i]);
+    }
+
+    void setAlphaVals(const std::vector<T>& alphaVals)
+    {
+        if(alphaVals.size() == 1)
+        {
+            for(int i = 0; i < v_io_size; ++i)
+                alpha[i] = alphaVals[0];
+        }
+        else
+        {
+            for(int i = 0; i < out_size; ++i)
+                alpha[i / v_size] = set_value(alpha[i / v_size], i % v_size, alphaVals[i]);
+        }
+    }
+
+    v_type outs[v_io_size];
+    v_type alpha[v_io_size];
+};
 } // namespace RTNeural
 
 #endif // ACTIVATIONXSIMD_H_INCLUDED

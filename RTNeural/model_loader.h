@@ -290,6 +290,42 @@ namespace json_parser
         return true;
     }
 
+    /** Loads weights for a PReLUActivation (or PReLUActivationT) from a json representation of the layer weights. */
+    template <typename T, typename PReLUType>
+    void loadPReLU(PReLUType& prelu, const nlohmann::json& weights)
+    {
+        std::vector<T> preluWeights = weights.at(0).at(0).get<std::vector<T>>();
+        prelu.setAlphaVals(preluWeights);
+    }
+
+    /** Creates a PReLUActivation from a json representation of the layer weights. */
+    template <typename T>
+    std::unique_ptr<PReLUActivation<T>> createPReLU(int in_size, const nlohmann::json& weights)
+    {
+        auto prelu = std::make_unique<PReLUActivation<T>>(in_size);
+        loadPReLU<T>(*prelu.get(), weights);
+        return std::move(prelu);
+    }
+
+    /** Checks that a PReLUActivation (or PReLUActivationT) has the given dimensions. */
+    template <typename T, typename PReLUType>
+    bool checkPReLU(const PReLUType& prelu, const std::string& type, int layerDims, const bool debug)
+    {
+        if(type != "prelu")
+        {
+            debug_print("Wrong layer type! Expected: PReLU", debug);
+            return false;
+        }
+
+        if(layerDims != prelu.out_size)
+        {
+            debug_print("Wrong layer size! Expected: " + std::to_string(prelu.out_size), debug);
+            return false;
+        }
+
+        return true;
+    }
+
     /** Creates an activation layer of a given type. */
     template <typename T>
     std::unique_ptr<Activation<T>>
@@ -396,6 +432,11 @@ namespace json_parser
             {
                 auto lstm = createLSTM<T>(model->getNextInSize(), layerDims, weights);
                 model->addLayer(lstm.release());
+            }
+            else if(type == "prelu")
+            {
+                auto prelu = createPReLU<T>(model->getNextInSize(), weights);
+                model->addLayer(prelu.release());
             }
         }
 
