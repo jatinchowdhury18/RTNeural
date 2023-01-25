@@ -181,8 +181,8 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
-    template <typename T, int size>
-    void loadLayer(BatchNormT<T, size>& batch_norm, int& json_stream_idx, const nlohmann::json& l,
+    template <typename T, int size, bool affine>
+    void loadLayer(BatchNorm1DT<T, size, affine>& batch_norm, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
@@ -191,7 +191,7 @@ namespace modelt_detail
         debug_print("  Dims: " + std::to_string(layerDims), debug);
         const auto& weights = l["weights"];
 
-        if(checkBatchNorm<T>(batch_norm, type, layerDims, debug))
+        if(checkBatchNorm<T>(batch_norm, type, layerDims, weights, debug))
         {
             loadBatchNorm<T>(batch_norm, weights);
             batch_norm.setEpsilon(l["epsilon"].get<float>());

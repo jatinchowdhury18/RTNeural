@@ -16,10 +16,10 @@ namespace RTNeural
 {
 /** Dynamic batch normalization layer. */
 template <typename T>
-class BatchNormLayer final : public Layer<T>
+class BatchNorm1DLayer final : public Layer<T>
 {
 public:
-    explicit BatchNormLayer(int size);
+    explicit BatchNorm1DLayer(int size);
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "batchnorm"; }
@@ -61,14 +61,15 @@ private:
 };
 
 /** Static batch normalization layer. */
-template <typename T, int size>
-class BatchNormT
+template <typename T, int size, bool affine = true>
+class BatchNorm1DT
 {
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
+    static constexpr bool is_affine = affine;
 
-    BatchNormT();
+    BatchNorm1DT();
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "batchnorm"; }
@@ -80,17 +81,38 @@ public:
     void reset() { }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T (&ins)[in_size]) noexcept
+    template <bool isAffine = affine>
+    inline typename std::enable_if<isAffine, void>::type
+    forward(const T (&ins)[in_size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = multiplier[i] * (ins[i] - running_mean[i]) + beta[i];
     }
 
+    /** Performs forward propagation for this layer. */
+    template <bool isAffine = affine>
+    inline typename std::enable_if<! isAffine, void>::type
+    forward(const T (&ins)[in_size]) noexcept
+    {
+        for(int i = 0; i < size; ++i)
+            outs[i] = multiplier[i] * (ins[i] - running_mean[i]);
+    }
+
     /** Sets the layer "gamma" values. */
-    void setGamma(const std::vector<T>& gammaVals);
+    template <bool isAffine = affine>
+    typename std::enable_if<isAffine, void>::type setGamma(const std::vector<T>& gammaVals);
+
+    /** Sets the layer "gamma" values. */
+    template <bool isAffine = affine>
+    typename std::enable_if<! isAffine, void>::type setGamma(const std::vector<T>&) {}
 
     /** Sets the layer "beta" values. */
-    void setBeta(const std::vector<T>& betaVals);
+    template <bool isAffine = affine>
+    typename std::enable_if<isAffine, void>::type setBeta(const std::vector<T>& betaVals);
+
+    /** Sets the layer "beta" values. */
+    template <bool isAffine = affine>
+    typename std::enable_if<! isAffine, void>::type setBeta(const std::vector<T>&) {}
 
     /** Sets the layer's trained running mean. */
     void setRunningMean(const std::vector<T>& runningMean);
