@@ -17,6 +17,7 @@ model.add(keras.layers.Conv1D(4, 3, dilation_rate=1, activation='tanh', padding=
 model.add(keras.layers.BatchNormalization(momentum=0.0, epsilon=0.01, beta_initializer='random_normal', gamma_initializer='glorot_uniform', moving_mean_initializer="random_normal", moving_variance_initializer="ones"))
 model.add(keras.layers.PReLU(alpha_initializer='glorot_uniform', shared_axes=[1]))
 model.add(keras.layers.Conv1D(4, 3, dilation_rate=2, activation='tanh', padding='causal', kernel_initializer='glorot_uniform', bias_initializer='random_normal'))
+model.add(keras.layers.BatchNormalization(center=False, scale=False, momentum=0.0, epsilon=5.0, moving_mean_initializer="random_normal", moving_variance_initializer="random_uniform")) # similar to PyTorch "affine" layer
 model.add(keras.layers.PReLU(alpha_initializer='glorot_uniform', shared_axes=[0,1]))
 model.add(keras.layers.Dense(8, activation='sigmoid', kernel_initializer=tf.keras.initializers.Orthogonal(), bias_initializer='random_normal'))
 model.add(keras.layers.Dense(1, kernel_initializer='orthogonal', bias_initializer='random_normal'))
