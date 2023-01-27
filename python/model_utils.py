@@ -30,6 +30,9 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         if isinstance(layer, keras.layers.PReLU):
             return 'prelu'
 
+        if isinstance(layer, keras.layers.BatchNormalization):
+            return 'batchnorm'
+
         return 'unknown'
 
     def get_layer_activation(layer):
@@ -68,6 +71,9 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         if layer_dict["type"] == "conv1d":
             layer_dict["kernel_size"] = layer.kernel_size
             layer_dict["dilation"] = layer.dilation_rate
+
+        if layer_dict["type"] == "batchnorm":
+            layer_dict["epsilon"] = layer.epsilon
 
         return layer_dict
 
