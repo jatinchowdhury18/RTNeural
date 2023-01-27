@@ -9,7 +9,7 @@ BatchNorm1DLayer<T>::BatchNorm1DLayer(int size)
     , beta(size, (T)0)
     , running_mean(size, (T)0)
     , running_var(size, (T)1)
-    , multiplier(size, (T) 1)
+    , multiplier(size, (T)1)
 {
 }
 
@@ -70,7 +70,7 @@ template <typename T, int size, bool affine>
 template <bool isAffine>
 typename std::enable_if<isAffine, void>::type BatchNorm1DT<T, size, affine>::setGamma(const std::vector<T>& gammaVals)
 {
-    std::copy(gammaVals.begin(), gammaVals.end(), reinterpret_cast<T*> (std::begin(gamma)));
+    std::copy(gammaVals.begin(), gammaVals.end(), reinterpret_cast<T*>(std::begin(gamma)));
     updateMultiplier();
 }
 
@@ -78,19 +78,19 @@ template <typename T, int size, bool affine>
 template <bool isAffine>
 typename std::enable_if<isAffine, void>::type BatchNorm1DT<T, size, affine>::setBeta(const std::vector<T>& betaVals)
 {
-    std::copy(betaVals.begin(), betaVals.end(), reinterpret_cast<T*> (std::begin(beta)));
+    std::copy(betaVals.begin(), betaVals.end(), reinterpret_cast<T*>(std::begin(beta)));
 }
 
 template <typename T, int size, bool affine>
 void BatchNorm1DT<T, size, affine>::setRunningMean(const std::vector<T>& runningMean)
 {
-    std::copy(runningMean.begin(), runningMean.end(), reinterpret_cast<T*> (std::begin(running_mean)));
+    std::copy(runningMean.begin(), runningMean.end(), reinterpret_cast<T*>(std::begin(running_mean)));
 }
 
 template <typename T, int size, bool affine>
 void BatchNorm1DT<T, size, affine>::setRunningVariance(const std::vector<T>& runningVar)
 {
-    std::copy(runningVar.begin(), runningVar.end(), reinterpret_cast<T*> (std::begin(running_var)));
+    std::copy(runningVar.begin(), runningVar.end(), reinterpret_cast<T*>(std::begin(running_var)));
     updateMultiplier();
 }
 

@@ -11,7 +11,7 @@ BatchNorm1DLayer<T>::BatchNorm1DLayer(int size)
     , beta(size, (T)0)
     , running_mean(size, (T)0)
     , running_var(size, (T)1)
-    , multiplier(size, (T) 1)
+    , multiplier(size, (T)1)
 {
 }
 
@@ -51,8 +51,8 @@ void BatchNorm1DLayer<T>::setEpsilon(T newEpsilon)
 template <typename T>
 void BatchNorm1DLayer<T>::updateMultiplier()
 {
-    for (int i = 0; i < Layer<T>::out_size; ++i)
-        multiplier[i] = gamma[i] / std::sqrt (running_var[i] + epsilon);
+    for(int i = 0; i < Layer<T>::out_size; ++i)
+        multiplier[i] = gamma[i] / std::sqrt(running_var[i] + epsilon);
 }
 
 //============================================================
@@ -106,8 +106,8 @@ void BatchNorm1DT<T, size, affine>::setEpsilon(T newEpsilon)
 template <typename T, int size, bool affine>
 void BatchNorm1DT<T, size, affine>::updateMultiplier()
 {
-    for (int i = 0; i < out_size; ++i)
-        multiplier[i] = gamma[i] / std::sqrt (running_var[i] + epsilon);
+    for(int i = 0; i < out_size; ++i)
+        multiplier[i] = gamma[i] / std::sqrt(running_var[i] + epsilon);
 }
 #endif
 }

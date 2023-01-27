@@ -22,10 +22,10 @@ public:
         xsimd::transform(input, input + Layer<T>::in_size, running_mean.begin(), out,
             [](auto const& a, auto const& b)
             { return a - b; });
-        xsimd::transform(out, out +Layer<T>::in_size, multiplier.begin(), out,
+        xsimd::transform(out, out + Layer<T>::in_size, multiplier.begin(), out,
             [](auto const& a, auto const& b)
             { return a * b; });
-        xsimd::transform(out, out +Layer<T>::in_size, beta.begin(), out,
+        xsimd::transform(out, out + Layer<T>::in_size, beta.begin(), out,
             [](auto const& a, auto const& b)
             { return a + b; });
     }
@@ -68,6 +68,7 @@ class BatchNorm1DT
     using v_type = xsimd::simd_type<T>;
     static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_out_size = ceil_div(size, v_size);
+
 public:
     static constexpr auto in_size = size;
     static constexpr auto out_size = size;
@@ -95,7 +96,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
-    inline typename std::enable_if<! isAffine, void>::type
+    inline typename std::enable_if<!isAffine, void>::type
     forward(const v_type (&ins)[v_out_size]) noexcept
     {
         for(int k = 0; k < v_out_size; ++k)
@@ -108,7 +109,7 @@ public:
 
     /** Sets the layer "gamma" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<! isAffine, void>::type setGamma(const std::vector<T>&) {}
+    typename std::enable_if<!isAffine, void>::type setGamma(const std::vector<T>&) { }
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
@@ -116,7 +117,7 @@ public:
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<! isAffine, void>::type setBeta(const std::vector<T>&) {}
+    typename std::enable_if<!isAffine, void>::type setBeta(const std::vector<T>&) { }
 
     /** Sets the layer's trained running mean. */
     void setRunningMean(const std::vector<T>& runningMean);

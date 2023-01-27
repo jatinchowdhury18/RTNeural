@@ -87,7 +87,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
-    inline typename std::enable_if<! isAffine, void>::type
+    inline typename std::enable_if<!isAffine, void>::type
     forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         outs = multiplier.cwiseProduct(ins - running_mean);
@@ -99,7 +99,7 @@ public:
 
     /** Sets the layer "gamma" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<! isAffine, void>::type setGamma(const std::vector<T>&) {}
+    typename std::enable_if<!isAffine, void>::type setGamma(const std::vector<T>&) { }
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
@@ -107,7 +107,7 @@ public:
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<! isAffine, void>::type setBeta(const std::vector<T>&) {}
+    typename std::enable_if<!isAffine, void>::type setBeta(const std::vector<T>&) { }
 
     /** Sets the layer's trained running mean. */
     void setRunningMean(const std::vector<T>& runningMean);

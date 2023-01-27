@@ -91,7 +91,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
-    inline typename std::enable_if<! isAffine, void>::type
+    inline typename std::enable_if<!isAffine, void>::type
     forward(const T (&ins)[in_size]) noexcept
     {
         for(int i = 0; i < size; ++i)
@@ -104,7 +104,7 @@ public:
 
     /** Sets the layer "gamma" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<! isAffine, void>::type setGamma(const std::vector<T>&) {}
+    typename std::enable_if<!isAffine, void>::type setGamma(const std::vector<T>&) { }
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
@@ -112,7 +112,7 @@ public:
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<! isAffine, void>::type setBeta(const std::vector<T>&) {}
+    typename std::enable_if<!isAffine, void>::type setBeta(const std::vector<T>&) { }
 
     /** Sets the layer's trained running mean. */
     void setRunningMean(const std::vector<T>& runningMean);

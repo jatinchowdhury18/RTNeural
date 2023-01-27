@@ -6,6 +6,8 @@
 
 #include "Layer.h"
 #include "activation/activation.h"
+#include "batchnorm/batchnorm.h"
+#include "batchnorm/batchnorm.tpp"
 #include "conv1d/conv1d.h"
 #include "conv1d/conv1d.tpp"
 #include "dense/dense.h"
@@ -13,8 +15,6 @@
 #include "gru/gru.tpp"
 #include "lstm/lstm.h"
 #include "lstm/lstm.tpp"
-#include "batchnorm/batchnorm.h"
-#include "batchnorm/batchnorm.tpp"
 
 namespace RTNeural
 {
