@@ -24,7 +24,7 @@ Currently supported layers:
   - [x] LSTM
   - [x] Conv1D
   - [ ] MaxPooling
-  - [ ] BatchNorm
+  - [x] BatchNorm1D
 
 Currently supported activations:
   - [x] tanh

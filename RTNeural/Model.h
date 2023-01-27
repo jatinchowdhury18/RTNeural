@@ -13,6 +13,8 @@
 #include "gru/gru.tpp"
 #include "lstm/lstm.h"
 #include "lstm/lstm.tpp"
+#include "batchnorm/batchnorm.h"
+#include "batchnorm/batchnorm.tpp"
 
 namespace RTNeural
 {
