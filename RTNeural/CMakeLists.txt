@@ -7,6 +7,8 @@ add_library(RTNeural STATIC
     Layer.h
     conv1d/conv1d.h
     conv1d/conv1d.tpp
+    conv1d_stateless/conv1d_stateless.h
+    conv1d_stateless/conv1d_stateless.tpp
     dense/dense.h
     dense/dense_accelerate.h
     dense/dense_eigen.h
