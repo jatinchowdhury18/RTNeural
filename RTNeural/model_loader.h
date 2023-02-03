@@ -509,6 +509,10 @@ namespace json_parser
                 auto batch_norm = createBatchNorm<T>(model->getNextInSize(), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }
+            else if(type == "activation")
+            {
+                add_activation(model, l);
+            }
         }
 
         return std::move(model);
