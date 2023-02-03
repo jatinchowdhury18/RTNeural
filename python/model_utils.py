@@ -33,6 +33,9 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         if isinstance(layer, keras.layers.BatchNormalization):
             return 'batchnorm'
 
+        if isinstance(layer, keras.layers.Activation):
+            return 'activation'
+
         return 'unknown'
 
     def get_layer_activation(layer):
