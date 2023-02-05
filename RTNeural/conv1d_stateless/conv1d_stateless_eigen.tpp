@@ -9,12 +9,14 @@ Conv1DStateless<T, use_bias>::Conv1DStateless(int in_num_filters_in, int in_num_
     , num_filters_out(in_num_filters_out)
     , kernel_size(in_kernel_size)
     , stride(in_stride)
+    , num_features_out((num_features_in - kernel_size) / stride + 1)
+    , Layer<T>(num_filters_in * num_features_in, num_filters_out * num_features_out)
 {
     kernelWeights.resize(num_filters_out);
     for(int i = 0; i < num_filters_out; ++i)
         kernelWeights[i] = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(num_features_in, kernel_size);
 
-    if (use_bias)
+    if(use_bias)
         bias = Eigen::Vector<T, Eigen::Dynamic>::Zero(num_filters_out);
 }
 

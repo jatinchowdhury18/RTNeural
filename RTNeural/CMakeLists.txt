@@ -9,6 +9,8 @@ add_library(RTNeural STATIC
     conv1d/conv1d.tpp
     conv1d_stateless/conv1d_stateless.h
     conv1d_stateless/conv1d_stateless.tpp
+    conv2d/conv2d.h
+    conv2d/conv2d.tpp
     dense/dense.h
     dense/dense_accelerate.h
     dense/dense_eigen.h

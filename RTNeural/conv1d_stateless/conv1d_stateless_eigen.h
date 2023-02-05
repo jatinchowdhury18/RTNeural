@@ -82,7 +82,7 @@ private:
     const int num_filters_out;
     const int kernel_size;
     const int stride;
-    const int num_features_out = (num_features_in - kernel_size) / stride + 1;
+    const int num_features_out;
 
     std::vector<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> kernelWeights;
     Eigen::Vector<T, Eigen::Dynamic> bias;
