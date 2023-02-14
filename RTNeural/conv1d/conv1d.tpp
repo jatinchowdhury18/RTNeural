@@ -114,8 +114,8 @@ void Conv1D<T>::setBias(const std::vector<T>& biasVals)
 }
 
 //====================================================
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
-Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT()
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, dynamic_state>::Conv1DT()
 {
     for(int i = 0; i < out_size; ++i)
         for(int j = 0; j < kernel_size; ++j)
@@ -128,11 +128,12 @@ Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::Conv1DT()
     for(int i = 0; i < out_size; ++i)
         outs[i] = (T)0.0;
 
+    resize_state();
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
-void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::reset()
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, dynamic_state>::reset()
 {
     for(int i = 0; i < state_size; ++i)
         for(int k = 0; k < in_size; ++k)
@@ -147,8 +148,8 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::reset()
         state_ptrs[i] = 0;
 }
 
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
-void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setWeights(const std::vector<std::vector<std::vector<T>>>& ws)
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, dynamic_state>::setWeights(const std::vector<std::vector<std::vector<T>>>& ws)
 {
     for(int i = 0; i < out_size; ++i)
         for(int k = 0; k < in_size; ++k)
@@ -156,8 +157,8 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setWeights(con
                 weights[i][j][k] = ws[i][k][j];
 }
 
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
-void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate>::setBias(const std::vector<T>& biasVals)
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, dynamic_state>::setBias(const std::vector<T>& biasVals)
 {
     for(int i = 0; i < out_size; ++i)
         bias[i] = biasVals[i];
