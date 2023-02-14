@@ -140,8 +140,9 @@ private:
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
  * @param dilation_rate: the dilation rate to use for dilated convolution
+ * @param dynamic_state: use dynamically allocated layer state
  */
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state = false>
 class Conv1DT
 {
     static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
@@ -215,7 +216,16 @@ public:
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
-    using state_type = std::array<std::array<T, in_size>, state_size>;
+    template <int DS = dynamic_state>
+    typename std::enable_if<DS, void>::type resize_state()
+    {
+        state.resize(state_size, {});
+    }
+
+    template <int DS = dynamic_state>
+    typename std::enable_if<!DS, void>::type resize_state() { }
+
+    using state_type = typename std::conditional<dynamic_state, std::vector<std::array<T, in_size>>, std::array<std::array<T, in_size>, state_size>>::type;
     using weights_type = std::array<std::array<T, in_size>, kernel_size>;
 
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) state_type state;
