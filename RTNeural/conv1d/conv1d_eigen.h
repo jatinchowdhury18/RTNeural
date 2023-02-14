@@ -118,6 +118,7 @@ private:
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
  * @param dilation_rate: the dilation rate to use for dilated convolution
+ * @param dynamic_state: use dynamically allocated layer state
  */
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state = false>
 class Conv1DT
