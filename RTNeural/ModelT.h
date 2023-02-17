@@ -202,6 +202,22 @@ namespace modelt_detail
 } // namespace modelt_detail
 #endif // DOXYGEN
 
+#if RTNEURAL_ABSTRACT_MODELT
+/**
+ *  An abstract class for ModelT, allowing to dynamically create static model types.
+ *
+ *  It provides the needed methods from ModelT for an audio plugin implementation.
+ */
+class AbstractModelT
+{
+public:
+    virtual ~AbstractModel() {}
+    virtual void parseJson(const nlohmann::json& parent, const bool debug = false, std::initializer_list<std::string> custom_layers = {}) = 0;
+    virtual void reset() = 0;
+    virtual float forwardf(const float* input) = 0;
+};
+#endif
+
 /**
  *  A static sequential neural network model.
  *
@@ -216,6 +232,9 @@ namespace modelt_detail
  */
 template <typename T, int in_size, int out_size, typename... Layers>
 class ModelT
+#if RTNEURAL_ABSTRACT_MODELT
+    : public AbstractModelT
+#endif
 {
 public:
     ModelT()
@@ -304,6 +323,14 @@ public:
 #endif
         return outs[0];
     }
+
+#if RTNEURAL_ABSTRACT_MODELT
+    /** Helper forward call for abstract models. */
+    float forwardf(const float* input)
+    {
+        return forward(input);
+    }
+#endif
 
     /** Returns a pointer to the output of the final layer in the network. */
     inline const T* getOutputs() const noexcept
