@@ -218,6 +218,9 @@ template <typename T, int in_size, int out_size, typename... Layers>
 class ModelT
 {
 public:
+    static constexpr auto input_size = in_size;
+    static constexpr auto output_size = out_size;
+
     ModelT()
     {
 #if RTNEURAL_USE_XSIMD
