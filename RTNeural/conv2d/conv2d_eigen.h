@@ -1,11 +1,9 @@
 #ifndef CONV2D_EIGEN_H_INCLUDED
 #define CONV2D_EIGEN_H_INCLUDED
 
-#include "Layer.h"
-
 #include "../Layer.h"
 #include "../common.h"
-#include "conv1d_stateless/conv1d_stateless.h"
+#include "../conv1d_stateless/conv1d_stateless.h"
 #include <Eigen/Dense>
 
 namespace RTNeural
@@ -53,7 +51,7 @@ public:
     };
 
     /** Returns the name of this layer. */
-    std::string getName() const noexcept { return "conv2d"; }
+    std::string getName() const noexcept override { return "conv2d"; }
 
     /** Returns false since convolution is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
@@ -64,16 +62,16 @@ public:
         auto inMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(input, num_filters_in, num_features_in);
 
-        auto outMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
+        auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
 
         for(int i = 0; i < kernel_size_time; i++)
         {
-            conv1dLayers[i].forward(inMatrix);
-            state[(state_index + dilation_rate * i) % receptive_field] += conv1dLayers[i].outs;
+            conv1dLayers[i].forward(inMatrix.data(), state[(state_index + i * dilation_rate) % receptive_field].data());
         }
 
-        outMatrix = state[state_index + dilation_rate * (kernel_size_time - 1)] + bias;
+        outMatrix = state[state_index].colwise() + bias;
+
         state[state_index].setZero();
         state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
     }
@@ -104,7 +102,6 @@ public:
     /** Returns the convolution dilation rate (time axis) */
     int getDilationRate() const noexcept { return dilation_rate; }
 
-private:
     const int num_filters_in;
     const int num_features_in;
     const int num_filters_out;
@@ -115,6 +112,7 @@ private:
     const int num_features_out;
     const int receptive_field;
 
+private:
     std::vector<Conv1DStateless<T, false>> conv1dLayers;
 
     std::vector<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> state;
@@ -130,25 +128,38 @@ private:
  * Static implementation of a 2-dimensional convolution layer with no activation.
  *
  * @tparam T Type of the layer (float, double, int ...)
- * @tparam num_filters_in number of input filters
- * @tparam num_filters_out number of output filters
- * @tparam num_features_in number of input features
- * @tparam kernel_size_time size of the convolution kernel (time axis)
- * @tparam kernel_size_feature size of the convolution kernel (feature axis)
- * @tparam dilation_rate dilation_rate (time axis)
- * @tparam stride convolution stride (feature axis)
+ * @tparam num_filters_in_t number of input filters
+ * @tparam num_filters_out_t number of output filters
+ * @tparam num_features_in_t number of input features
+ * @tparam kernel_size_time_t size of the convolution kernel (time axis)
+ * @tparam kernel_size_feature_t size of the convolution kernel (feature axis)
+ * @tparam dilation_rate_t dilation_rate (time axis)
+ * @tparam stride_t convolution stride (feature axis)
  */
-template <typename T, int num_filters_in, int num_filters_out, int num_features_in, int kernel_size_time,
-    int kernel_size_feature, int dilation_rate, int stride>
+template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
+    int kernel_size_feature_t, int dilation_rate_t, int stride_t>
 class Conv2DT
 {
-    using bias_type = Eigen::Vector<T, num_filters_out>;
-    using input_type = Eigen::Matrix<T, num_filters_in, num_features_in>;
-    static constexpr int num_features_out = (num_features_in - kernel_size_feature) / stride + 1; // TODO: to test
-    using output_type = Eigen::Matrix<T, num_filters_out, num_features_out>;
-    static constexpr int receptive_field = 1 + (kernel_size_time - 1) * dilation_rate;
-
 public:
+    static constexpr int num_features_out = (num_features_in_t - kernel_size_feature_t) / stride_t + 1; // TODO: to test
+    static constexpr auto in_size = num_filters_in_t * num_features_in_t;
+    static constexpr auto out_size = num_filters_out_t * num_features_out;
+
+    using bias_type = Eigen::Vector<T, num_filters_out_t>;
+    using input_type = Eigen::Matrix<T, num_filters_in_t, num_features_in_t>;
+    using input_type_flat = Eigen::Matrix<T, in_size, 1>;
+    using output_type = Eigen::Matrix<T, num_filters_out_t, num_features_out>;
+    using output_type_flat = Eigen::Matrix<T, out_size, 1>;
+
+    static constexpr int receptive_field = 1 + (kernel_size_time_t - 1) * dilation_rate_t;
+    static constexpr int num_filters_in = num_filters_in_t;
+    static constexpr int num_features_in = num_features_in_t;
+    static constexpr int num_filters_out = num_filters_out_t;
+    static constexpr int kernel_size_time = kernel_size_time_t;
+    static constexpr int kernel_size_feature = kernel_size_feature_t;
+    static constexpr int dilation_rate = dilation_rate_t;
+    static constexpr int stride = stride_t;
+
     Conv2DT() = default;
 
     /** Returns the name of this layer. */
@@ -169,15 +180,18 @@ public:
     };
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const input_type& inMatrix) noexcept
+    inline void forward(const input_type_flat& inMatrix) noexcept
     {
-        for(int i = 0; i < kernel_size_time; i++)
+        auto inMatrixReshaped = Eigen::Map<const input_type, RTNeuralEigenAlignment>(inMatrix);
+        auto outMatrixReshaped = Eigen::Map<output_type, RTNeuralEigenAlignment>(outs);
+
+        for(int i = 0; i < kernel_size_time_t; i++)
         {
-            conv1dLayers[i].forward(inMatrix);
-            state[(state_index + dilation_rate * i) % receptive_field] += conv1dLayers[i].outs;
+            conv1dLayers[i].forward(inMatrixReshaped);
+            state[(state_index + dilation_rate_t * i) % receptive_field] += conv1dLayers[i].outs;
         }
 
-        outs = state[state_index + dilation_rate * (kernel_size_time - 1)] + bias;
+        outMatrixReshaped = state[state_index + dilation_rate_t * (kernel_size_time_t - 1)].colwise() + bias;
         state[state_index] = output_type::Zero();
         state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
     }
@@ -197,24 +211,24 @@ public:
     void setBias(const std::vector<T>& inBias);
 
     /** Returns the size of the convolution kernel (time axis). */
-    int getKernelSizeTime() const noexcept { return kernel_size_time; }
+    int getKernelSizeTime() const noexcept { return kernel_size_time_t; }
 
     /** Returns the size of the convolution kernel (feature axis). */
-    int getKernelSizeFeature() const noexcept { return kernel_size_feature; }
+    int getKernelSizeFeature() const noexcept { return kernel_size_feature_t; }
 
     /** Returns the convolution stride */
-    int getStride() const noexcept { return stride; }
+    int getStride() const noexcept { return stride_t; }
 
     /** Returns the convolution dilation rate */
-    int getDilationRate() const noexcept { return dilation_rate; }
+    int getDilationRate() const noexcept { return dilation_rate_t; }
 
-    Eigen::Map<output_type, RTNeuralEigenAlignment> outs;
+    Eigen::Map<output_type_flat, RTNeuralEigenAlignment> outs;
 
 private:
-    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out * num_features_out];
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out_t * num_features_out];
 
-    std::array<Conv1DStatelessT<T, num_filters_in, num_features_in, num_filters_out, kernel_size_feature, stride, false>,
-        kernel_size_time>
+    std::array<Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t, kernel_size_feature_t, stride_t, false>,
+        kernel_size_time_t>
         conv1dLayers;
 
     std::array<output_type, receptive_field> state;

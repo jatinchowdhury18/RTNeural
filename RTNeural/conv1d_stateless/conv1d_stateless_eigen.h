@@ -29,7 +29,7 @@ public:
     void reset() override {};
 
     /** Returns the name of this layer. */
-    std::string getName() const noexcept { return "conv1d_stateless"; }
+    std::string getName() const noexcept override { return "conv1d_stateless"; }
 
     /** Returns false since convolution is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
@@ -40,7 +40,7 @@ public:
         auto inMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(input, num_filters_in, num_features_in);
 
-        auto outMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
+        auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
 
         // perform a multichannel convolution
@@ -49,9 +49,9 @@ public:
             for(int j = 0; j < num_features_out; j++)
             {
                 if (use_bias)
-                    outMatrix(i, j) = kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum() + bias(i);
+                    outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum() + bias(i);
                 else
-                    outMatrix(i, j) = kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum();
+                    outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum();
             }
         }
     }

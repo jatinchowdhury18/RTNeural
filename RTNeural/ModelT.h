@@ -145,11 +145,14 @@ namespace modelt_detail
         debug_print("Layer: " + type, debug);
         debug_print("  Dims: " + std::to_string(layerDims), debug);
         const auto& weights = l["weights"];
-        const auto kernel = l["kernel_size"].back().get<int>();
-        const auto dilation = l["dilation"].back().get<int>();
+        const auto kernel_time = l["kernel_size_time"].back().get<int>();
+        const auto kernel_feature = l["kernel_size_time"].back().get<int>();
 
-        if(checkConv2D<T>(conv, type, layerDims, kernel, dilation, debug))
-            loadConv2D<T>(conv, kernel, dilation, weights);
+        const auto dilation = l["dilation"].back().get<int>();
+        const auto strides = l["strides"].back().get<int>();
+
+        if(checkConv2D<T>(conv, type, layerDims, kernel_time, kernel_feature, dilation, strides, debug))
+            loadConv2D<T>(conv, weights);
 
         if(!l.contains("activation"))
         {

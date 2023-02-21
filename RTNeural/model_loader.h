@@ -122,7 +122,7 @@ namespace json_parser
             }
         }
 
-        // In Tensorflow (JSON file): [ks_time, ks_feature, num_filters_in, num_filters_out]
+        // In Tensorflow (JSON file): [kernel_size_time, kernel_size_feature, num_filters_in, num_filters_out]
         // In RTNeural conv2d::setWeights: [kernel_size_time, num_filters_out, num_filters_in, kernel_size_feature]
         auto layerWeights = weights.at(0);
         // Kernel Size Time
@@ -206,11 +206,11 @@ namespace json_parser
     template <typename T, typename Conv2DType>
     // TODO: implement for conv2d, change params
     bool checkConv2D(const Conv2DType& conv, const std::string& type, int layerDims,
-        int kernel_size, int dilation_rate, const bool debug)
+        int kernel_size_time, int kernel_size_feature, int dilation_rate, int stride, const bool debug)
     {
-        if(type != "conv1d")
+        if(type != "conv2d")
         {
-            debug_print("Wrong layer type! Expected: Conv1D", debug);
+            debug_print("Wrong layer type! Expected: Conv2D", debug);
             return false;
         }
 
@@ -220,9 +220,21 @@ namespace json_parser
             return false;
         }
 
-        if(kernel_size != conv.getKernelSize())
+        if(kernel_size_time != conv.getKernelSizeTime())
         {
-            debug_print("Wrong kernel size! Expected: " + std::to_string(conv.getKernelSize()), debug);
+            debug_print("Wrong kernel size time! Expected: " + std::to_string(conv.getKernelSizeTime()), debug);
+            return false;
+        }
+
+        if(kernel_size_feature != conv.getKernelSizeFeature())
+        {
+            debug_print("Wrong kernel size feature! Expected: " + std::to_string(conv.getKernelSizeFeature()), debug);
+            return false;
+        }
+
+        if(stride != conv.getStride())
+        {
+            debug_print("Wrong stride! Expected: " + std::to_string(conv.getStride()), debug);
             return false;
         }
 
@@ -585,13 +597,15 @@ namespace json_parser
                 const auto dilation = l.at("dilation").back().get<int>();
                 const auto stride = l.at("strides").back().get<int>();
                 const auto num_filters_in = l.at("num_filters_in").back().get<int>();
-                const auto num_features_in = l.at("num_filters_in").back().get<int>();
+                const auto num_features_in = l.at("num_features_in").back().get<int>();
                 const auto num_filters_out = l.at("num_filters_out").back().get<int>();
 
                 model->getNextInSize();
 
                 auto conv = createConv2D<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_time,
                     kernel_size_feature, dilation, stride, weights);
+                model->addLayer(conv.release());
+                add_activation(model, l);
             }
             else if(type == "gru")
             {
