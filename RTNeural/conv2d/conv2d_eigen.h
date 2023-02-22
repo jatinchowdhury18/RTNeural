@@ -65,37 +65,33 @@ public:
         auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
 
-        std::cout << "State index: " << state_index << std::endl;
+//        std::cout << "State index: " << state_index << std::endl;
         for(int i = 0; i < kernel_size_time; i++)
         {
-//            int state_idx_to_use = (state_index + i * dilation_rate) % receptive_field;
             int state_idx_to_use = (state_index + (receptive_field - 1) - i * dilation_rate) % receptive_field;
 
-            std::cout << "Iteration (kernel_time_idx): " << i << "  State idx used now to add: " << state_idx_to_use << std::endl;
-            std::cout << "State before: " << state[state_idx_to_use] << std::endl;
-            std::cout << "inFrame: " << inMatrix << std::endl;
-            std::cout << "Kernel weights:";
-            conv1dLayers[i].printWeights();
+//            std::cout << "Iteration (kernel_time_idx): " << i << "  State idx used now to add: " << state_idx_to_use << std::endl;
+//            std::cout << "State before: " << state[state_idx_to_use] << std::endl;
+//            std::cout << "inFrame: " << inMatrix << std::endl;
+//            std::cout << "Kernel weights:";
+//            conv1dLayers[i].printWeights();
             conv1dLayers[i].forward(inMatrix.data(), state[state_idx_to_use].data());
-            std::cout << "State after: " << state[state_idx_to_use] << std::endl
-                      << std::endl;
+//            std::cout << "State after: " << state[state_idx_to_use] << std::endl
+//                      << std::endl;
         }
 
-//        int out_state_index = (state_index + (kernel_size_time - 1) * dilation_rate) % receptive_field;
-        int out_state_index = state_index;
-        std::cout << "Current out state is: " << out_state_index << std::endl;
-        outMatrix = state[out_state_index].colwise() + bias;
+//        std::cout << "Current out state is: " << state_index << std::endl;
+        outMatrix = state[state_index].colwise() + bias;
 
-        std::cout << "outMatrix after bias " << outMatrix << std::endl;
+//        std::cout << "outMatrix after bias " << outMatrix << std::endl;
+//
+//        std::cout << std::endl
+//                  << std::endl
+//                  << std::endl
+//                  << std::flush;
 
-        std::cout << std::endl
-                  << std::endl
-                  << std::endl
-                  << std::flush;
-
-        state[out_state_index].setZero();
+        state[state_index].setZero();
         state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
-//        state_index = (state_index + dilation_rate) % receptive_field;
     }
 
     /**
@@ -182,7 +178,7 @@ public:
     static constexpr int dilation_rate = dilation_rate_t;
     static constexpr int stride = stride_t;
 
-    Conv2DT() = default;
+    Conv2DT();
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept { return "conv2d"; }
@@ -204,17 +200,21 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const input_type_flat& inMatrix) noexcept
     {
-        auto inMatrixReshaped = Eigen::Map<const input_type, RTNeuralEigenAlignment>(inMatrix);
-        auto outMatrixReshaped = Eigen::Map<output_type, RTNeuralEigenAlignment>(outs);
+        const auto inMatrixReshaped = Eigen::Map<const input_type, RTNeuralEigenAlignment>(inMatrix.data());
+        auto outMatrix = Eigen::Map<output_type, RTNeuralEigenAlignment>(outs_internal);
 
         for(int i = 0; i < kernel_size_time_t; i++)
         {
+            int state_idx_to_use = (state_index + (receptive_field - 1) - i * dilation_rate) % receptive_field;
+
             conv1dLayers[i].forward(inMatrixReshaped);
-            state[(state_index + dilation_rate_t * i) % receptive_field] += conv1dLayers[i].outs;
+
+            state[state_idx_to_use] += Eigen::Map<output_type, RTNeuralEigenAlignment> (conv1dLayers[i].outs);
         }
 
-        outMatrixReshaped = state[state_index + dilation_rate_t * (kernel_size_time_t - 1)].colwise() + bias;
-        state[state_index] = output_type::Zero();
+        outMatrix = state[state_index].colwise() + bias;
+
+        state[state_index].setZero();
         state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
     }
 

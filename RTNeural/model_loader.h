@@ -204,7 +204,6 @@ namespace json_parser
 
     /** Checks that a Conv2D (or Conv2DT) layer has the given dimensions. */
     template <typename T, typename Conv2DType>
-    // TODO: implement for conv2d, change params
     bool checkConv2D(const Conv2DType& conv, const std::string& type, int layerDims,
         int kernel_size_time, int kernel_size_feature, int dilation_rate, int stride, const bool debug)
     {

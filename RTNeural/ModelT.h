@@ -146,7 +146,7 @@ namespace modelt_detail
         debug_print("  Dims: " + std::to_string(layerDims), debug);
         const auto& weights = l["weights"];
         const auto kernel_time = l["kernel_size_time"].back().get<int>();
-        const auto kernel_feature = l["kernel_size_time"].back().get<int>();
+        const auto kernel_feature = l["kernel_size_feature"].back().get<int>();
 
         const auto dilation = l["dilation"].back().get<int>();
         const auto strides = l["strides"].back().get<int>();
@@ -355,7 +355,16 @@ public:
         if(!shape.is_array() || !json_layers.is_array())
             return;
 
-        const auto nDims = shape.back().get<int>();
+        int nDims;
+        if(shape.size() == 4)
+        {
+            nDims = shape[2].get<int>() * shape[3].get<int>();
+        }
+        else
+        {
+            nDims = shape.back().get<int>();
+        }
+
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         if(nDims != in_size)
@@ -376,7 +385,13 @@ public:
             const auto l = json_layers.at(json_stream_idx);
             const auto type = l["type"].get<std::string>();
             const auto layerShape = l["shape"];
-            const auto layerDims = layerShape.back().get<int>();
+            int layerDims;
+
+            if (layerShape.size() == 4) {
+                layerDims = layerShape[2].get<int>() * layerShape[3].get<int>();
+            } else {
+                layerDims = layerShape.back().get<int>();
+            }
 
             if(layer.isActivation()) // activation layers don't need initialisation
             {

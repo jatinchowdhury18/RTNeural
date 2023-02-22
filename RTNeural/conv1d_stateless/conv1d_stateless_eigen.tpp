@@ -41,13 +41,9 @@ template <typename T, bool use_bias>
 void Conv1DStateless<T, use_bias>::setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights)
 {
     for(int i = 0; i < num_filters_out; ++i)
-    {
         for(int k = 0; k < num_filters_in; ++k)
             for(int j = 0; j < kernel_size; ++j)
                 kernelWeights[i](k, j) = inWeights.at(i).at(k).at(j);
-
-        std::cout << i << "th out filter: " << kernelWeights[i] << std::endl;
-    }
 }
 
 template <typename T, bool use_bias>
@@ -76,10 +72,10 @@ Conv1DStatelessT<T, num_filters_in, num_features_in, num_filters_out, kernel_siz
 template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int kernel_size, int stride, bool use_bias>
 void Conv1DStatelessT<T, num_filters_in, num_features_in, num_filters_out, kernel_size, stride, use_bias>::setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights)
 {
-    for(int i = 0; i < num_features_out; ++i)
-        for(int k = 0; k < num_features_in; ++k)
+    for(int i = 0; i < num_filters_out; ++i)
+        for(int k = 0; k < num_filters_in; ++k)
             for(int j = 0; j < kernel_size; ++j)
-                weights[i](k, j) = inWeights[i][k][j];
+                weights[i](k, j) = inWeights.at(i).at(k).at(j);
 }
 
 template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int kernel_size, int stride, bool use_bias>

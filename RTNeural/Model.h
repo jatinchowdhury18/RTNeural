@@ -47,6 +47,12 @@ public:
         outs.clear();
     }
 
+    /** Returns the model's input size */
+    int getInSize() const { return layers.front()->in_size; }
+
+    /** Returns the model's output size */
+    int getOutSize() const { return layers.back()->out_size; }
+
     /** Returns the required input size for the next layer being added to the network. */
     int getNextInSize() const
     {
