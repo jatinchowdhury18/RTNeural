@@ -12,10 +12,8 @@ Conv1DStateless<T, use_bias>::Conv1DStateless(int in_num_filters_in, int in_num_
     , num_features_out((in_num_features_in - in_kernel_size) / in_stride + 1)
     , Layer<T>(in_num_filters_in * in_num_features_in, in_num_filters_out * ((in_num_features_in - in_kernel_size) / in_stride + 1))
 {
-    kernelWeights.resize(num_filters_out);
-
     for(int i = 0; i < num_filters_out; ++i)
-        kernelWeights[i] = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(num_filters_in, kernel_size);
+        kernelWeights.push_back(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(num_filters_in, kernel_size));
 
     if(use_bias)
         bias = Eigen::Vector<T, Eigen::Dynamic>::Zero(num_filters_out);
@@ -43,9 +41,13 @@ template <typename T, bool use_bias>
 void Conv1DStateless<T, use_bias>::setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights)
 {
     for(int i = 0; i < num_filters_out; ++i)
+    {
         for(int k = 0; k < num_filters_in; ++k)
             for(int j = 0; j < kernel_size; ++j)
-                kernelWeights[i](k, j) = inWeights[i][k][j];
+                kernelWeights[i](k, j) = inWeights.at(i).at(k).at(j);
+
+        std::cout << i << "th out filter: " << kernelWeights[i] << std::endl;
+    }
 }
 
 template <typename T, bool use_bias>

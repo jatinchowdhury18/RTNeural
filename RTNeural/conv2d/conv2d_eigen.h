@@ -65,15 +65,37 @@ public:
         auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
 
+        std::cout << "State index: " << state_index << std::endl;
         for(int i = 0; i < kernel_size_time; i++)
         {
-            conv1dLayers[i].forward(inMatrix.data(), state[(state_index + i * dilation_rate) % receptive_field].data());
+//            int state_idx_to_use = (state_index + i * dilation_rate) % receptive_field;
+            int state_idx_to_use = (state_index + (receptive_field - 1) - i * dilation_rate) % receptive_field;
+
+            std::cout << "Iteration (kernel_time_idx): " << i << "  State idx used now to add: " << state_idx_to_use << std::endl;
+            std::cout << "State before: " << state[state_idx_to_use] << std::endl;
+            std::cout << "inFrame: " << inMatrix << std::endl;
+            std::cout << "Kernel weights:";
+            conv1dLayers[i].printWeights();
+            conv1dLayers[i].forward(inMatrix.data(), state[state_idx_to_use].data());
+            std::cout << "State after: " << state[state_idx_to_use] << std::endl
+                      << std::endl;
         }
 
-        outMatrix = state[state_index].colwise() + bias;
+//        int out_state_index = (state_index + (kernel_size_time - 1) * dilation_rate) % receptive_field;
+        int out_state_index = state_index;
+        std::cout << "Current out state is: " << out_state_index << std::endl;
+        outMatrix = state[out_state_index].colwise() + bias;
 
-        state[state_index].setZero();
+        std::cout << "outMatrix after bias " << outMatrix << std::endl;
+
+        std::cout << std::endl
+                  << std::endl
+                  << std::endl
+                  << std::flush;
+
+        state[out_state_index].setZero();
         state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
+//        state_index = (state_index + dilation_rate) % receptive_field;
     }
 
     /**

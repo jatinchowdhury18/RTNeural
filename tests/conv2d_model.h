@@ -45,8 +45,8 @@ int conv2d_test()
 
     constexpr double threshold = 1.0e-5;
 
-    const int num_features_in = 5;
-    const int num_features_out = 1;
+    const int num_features_in = 50;
+    const int num_features_out = 10;
 
     std::ifstream pythonX(data_file);
     auto xData = load_csv::loadFile<TestType>(pythonX);
@@ -61,6 +61,7 @@ int conv2d_test()
         std::cout << "Loading non-templated model" << std::endl;
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         auto modelRef = RTNeural::json_parser::parseJson<TestType>(jsonStream, true);
+
         processModelNonT(*modelRef, xData, yRefData, num_features_in, num_features_out);
     }
 

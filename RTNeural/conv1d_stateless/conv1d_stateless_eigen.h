@@ -48,7 +48,7 @@ public:
         {
             for(int j = 0; j < num_features_out; j++)
             {
-                if (use_bias)
+                if(use_bias)
                     outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum() + bias(i);
                 else
                     outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum();
@@ -75,6 +75,12 @@ public:
 
     /** Returns the stride. */
     int getStride() const noexcept { return stride; }
+
+    void printWeights() const noexcept
+    {
+        for(int i = 0; i < num_filters_out; i++)
+            std::cout << kernelWeights[i] << std::endl;
+    }
 
 private:
     const int num_filters_in;
@@ -133,7 +139,7 @@ public:
             for(int j = 0; j < num_features_out; j++)
             {
                 // TODO: manage to use middleCols<kernel_size>(j*stride)
-                if (use_bias)
+                if(use_bias)
                     outs(i, j) = weights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum() + bias(i);
                 else
                     outs(i, j) = weights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum();

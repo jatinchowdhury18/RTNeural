@@ -42,12 +42,15 @@ Conv2D<T>& Conv2D<T>::operator=(const Conv2D& other)
 template <typename T>
 void Conv2D<T>::setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights)
 {
-    conv1dLayers.clear();
+    conv1dLayers.resize(kernel_size_time, Conv1DStateless<T, false>(num_filters_in, num_features_in, num_filters_out, kernel_size_feature, stride));
+
     for(int i = 0; i < kernel_size_time; i++)
     {
-        conv1dLayers.push_back(Conv1DStateless<T, false>(num_filters_in, num_features_in, num_filters_out, kernel_size_feature, stride));
+//        std::cout << "Weights kernel_size " << i << std::endl;
         conv1dLayers[i].setWeights(inWeights[i]);
+//        std::cout << std::endl << std::endl;
     }
+
 }
 
 template <typename T>
@@ -57,6 +60,8 @@ void Conv2D<T>::setBias(const std::vector<T>& inBias)
     {
         bias(i) = inBias[i];
     }
+
+    std::cout << "Bias: " << bias << std::endl << std::endl;
 }
 
 template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
