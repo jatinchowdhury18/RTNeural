@@ -102,6 +102,7 @@ int conv2d_test()
             RTNeural::Conv2DT<TestType, 1, 8, 50, 5, 3, 1, 3>,
             RTNeural::Conv2DT<TestType, 8, 1, 16, 5, 7, 5, 1>>
             modelT;
+//        RTNeural::ModelT<TestType, 1, 1, RTNeural::Conv2DT<TestType, 1, 1, 1, 1, 1, 1, 1>> modelT;
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream, true);

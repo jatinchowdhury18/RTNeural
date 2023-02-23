@@ -13,6 +13,8 @@ n_features = 50
 # construct TensorFlow model
 model = keras.Sequential()
 model.add(keras.layers.InputLayer(input_shape=(n_frames, n_features, 1)))
+# model.add(keras.layers.Conv2D(1, (1, 1), dilation_rate=(1, 1), strides=(1, 1), padding='valid', kernel_initializer='random_normal', bias_initializer='random_normal'))
+
 model.add(keras.layers.Conv2D(8, (5, 3), dilation_rate=(1, 1), strides=(1, 3), padding='valid', kernel_initializer='random_normal', bias_initializer='random_normal'))
 # model.add(keras.layers.BatchNormalization(beta_initializer='random_normal', gamma_initializer='glorot_uniform', moving_mean_initializer="random_normal", moving_variance_initializer="ones"))
 # model.add(keras.layers.ReLU())
