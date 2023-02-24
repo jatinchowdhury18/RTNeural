@@ -355,15 +355,8 @@ public:
         if(!shape.is_array() || !json_layers.is_array())
             return;
 
-        int nDims;
-        if(shape.size() == 4)
-        {
-            nDims = shape[2].get<int>() * shape[3].get<int>();
-        }
-        else
-        {
-            nDims = shape.back().get<int>();
-        }
+        // If 4D: nDims is num_features * num_channels
+        const int nDims = shape.size() == 4 ? shape[2].get<int>() * shape[3].get<int>() : shape.back().get<int>();
 
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
@@ -385,13 +378,9 @@ public:
             const auto l = json_layers.at(json_stream_idx);
             const auto type = l["type"].get<std::string>();
             const auto layerShape = l["shape"];
-            int layerDims;
 
-            if (layerShape.size() == 4) {
-                layerDims = layerShape[2].get<int>() * layerShape[3].get<int>();
-            } else {
-                layerDims = layerShape.back().get<int>();
-            }
+            // If 4D: layerDims is num_features * num_channels
+            const int layerDims = layerShape.size() == 4 ? layerShape[2].get<int>() * layerShape[3].get<int>() : layerShape.back().get<int>();
 
             if(layer.isActivation()) // activation layers don't need initialisation
             {

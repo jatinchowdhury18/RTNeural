@@ -17,21 +17,21 @@ void processModelNonT(RTNeural::Model<TestType>& model, const std::vector<TestTy
     }
 }
 
- template <int numFeaturesIn, typename ModelType>
- void processModelT(ModelType& model, const std::vector<TestType>& xData, std::vector<TestType>& yData, int num_frames, int num_features_out)
+template <int numFeaturesIn, typename ModelType>
+void processModelT(ModelType& model, const std::vector<TestType>& xData, std::vector<TestType>& yData, int num_frames, int num_features_out)
 {
-     model.reset();
+    model.reset();
 
-     TestType input alignas(RTNEURAL_DEFAULT_ALIGNMENT)[numFeaturesIn];
+    TestType input alignas(RTNEURAL_DEFAULT_ALIGNMENT)[numFeaturesIn];
 
-     for(size_t n = 0; n < num_frames; n++)
-     {
-         std::copy(xData.begin() + n * numFeaturesIn, xData.begin() + (n + 1) * numFeaturesIn, input);
-         auto input_mat = Eigen::Map<Eigen::Matrix<TestType, numFeaturesIn, 1>, RTNEURAL_DEFAULT_ALIGNMENT>(input);
-         model.forward(input);
-         std::copy(model.getOutputs(), model.getOutputs() + num_features_out, yData.data() + n * num_features_out);
-     }
- }
+    for(size_t n = 0; n < num_frames; n++)
+    {
+        std::copy(xData.begin() + n * numFeaturesIn, xData.begin() + (n + 1) * numFeaturesIn, input);
+        auto input_mat = Eigen::Map<Eigen::Matrix<TestType, numFeaturesIn, 1>, RTNEURAL_DEFAULT_ALIGNMENT>(input);
+        model.forward(input);
+        std::copy(model.getOutputs(), model.getOutputs() + num_features_out, yData.data() + n * num_features_out);
+    }
+}
 
 int conv2d_test()
 {
@@ -91,18 +91,21 @@ int conv2d_test()
         return 1;
     }
 
-    std::cout << "SUCCESS NON TEMPLATED!" << std::endl << std::endl;
+    std::cout << "SUCCESS NON TEMPLATED!" << std::endl
+              << std::endl;
 
 #if MODELT_AVAILABLE
-    //    // templated model
+    // templated model
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
         std::cout << "Loading templated model" << std::endl;
         RTNeural::ModelT<TestType, 50, 10,
             RTNeural::Conv2DT<TestType, 1, 8, 50, 5, 3, 1, 3>,
-            RTNeural::Conv2DT<TestType, 8, 1, 16, 5, 7, 5, 1>>
+            RTNeural::ReLuActivationT<TestType, 16 * 8>,
+            RTNeural::Conv2DT<TestType, 8, 1, 16, 5, 7, 5, 1>,
+            RTNeural::ReLuActivationT<TestType, 10>>
             modelT;
-//        RTNeural::ModelT<TestType, 1, 1, RTNeural::Conv2DT<TestType, 1, 1, 1, 1, 1, 1, 1>> modelT;
+        //        RTNeural::ModelT<TestType, 1, 1, RTNeural::Conv2DT<TestType, 1, 1, 1, 1, 1, 1, 1>> modelT;
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream, true);

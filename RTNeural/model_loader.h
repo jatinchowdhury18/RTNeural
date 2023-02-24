@@ -489,7 +489,6 @@ namespace json_parser
             debug_print("Wrong layer size! Expected: " + std::to_string(batch_norm.out_size), debug);
             return false;
         }
-
         return true;
     }
 
@@ -545,7 +544,8 @@ namespace json_parser
         if(!shape.is_array() || !layers.is_array())
             return {};
 
-        const auto nDims = shape.back().get<int>();
+        const int nDims = shape.size() == 4 ? shape[2].get<int>() * shape[3].get<int>() : shape.back().get<int>();
+
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         auto model = std::make_unique<Model<T>>(nDims);
@@ -556,7 +556,10 @@ namespace json_parser
             debug_print("Layer: " + type, debug);
 
             const auto layerShape = l.at("shape");
-            const auto layerDims = layerShape.back().get<int>();
+
+            // In case of 4 dimensional input (conv2d): multiply channel axis and feature axis to get layer dim
+            const int layerDims = layerShape.size() == 4 ? layerShape[2].get<int>() * layerShape[3].get<int>() : layerShape.back().get<int>();
+
             debug_print("  Dims: " + std::to_string(layerDims), debug);
 
             const auto weights = l.at("weights");
@@ -590,7 +593,8 @@ namespace json_parser
                 model->addLayer(conv.release());
                 add_activation(model, l);
             }
-            else if (type == "conv2d") {
+            else if(type == "conv2d")
+            {
                 const auto kernel_size_time = l.at("kernel_size_time").back().get<int>();
                 const auto kernel_size_feature = l.at("kernel_size_feature").back().get<int>();
                 const auto dilation = l.at("dilation").back().get<int>();
@@ -625,6 +629,22 @@ namespace json_parser
             {
                 auto batch_norm = createBatchNorm<T>(model->getNextInSize(), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
+            }
+            else
+            {
+                // Might be an activation (standalone layer)
+                std::unique_ptr<Activation<T>> activation = createActivation<T>(type, layerDims);
+
+                // Check if returned pointer is null, if not, add activation to model
+                if(activation)
+                {
+                    model->getNextInSize();
+                    model->addLayer(activation.release());
+                }
+                else
+                {
+                    debug_print("Unknown layer of type: " + type, debug);
+                }
             }
         }
 
