@@ -3,7 +3,8 @@
 namespace RTNeural
 {
 template <typename T>
-Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_features_in, int in_kernel_size_time, int in_kernel_size_feature, int in_dilation_rate, int in_stride)
+Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_features_in, int in_kernel_size_time, int in_kernel_size_feature,
+    int in_dilation_rate, int in_stride, bool in_valid_pad)
     : num_filters_in(in_num_filters_in)
     , num_filters_out(in_num_filters_out)
     , num_features_in(in_num_features_in)
@@ -11,9 +12,10 @@ Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_feat
     , kernel_size_feature(in_kernel_size_feature)
     , dilation_rate(in_dilation_rate)
     , stride(in_stride)
-    , num_features_out((in_num_features_in - in_kernel_size_feature) / in_stride + 1)
+    , num_features_out(Conv1DStateless<T>::computeNumFeaturesOut(in_num_features_in, in_kernel_size_feature, in_stride, in_valid_pad))
     , receptive_field(1 + (in_kernel_size_time - 1) * in_dilation_rate)
-    , Layer<T>(in_num_features_in * in_num_filters_in, ((in_num_features_in - in_kernel_size_feature) / in_stride + 1) * in_num_filters_out)
+    , valid_pad(in_valid_pad)
+    , Layer<T>(in_num_features_in * in_num_filters_in, Conv1DStateless<T>::computeNumFeaturesOut(in_num_features_in, in_kernel_size_feature, in_stride, in_valid_pad) * in_num_filters_out)
 {
     bias = Eigen::Vector<T, Eigen::Dynamic>::Zero(num_filters_out);
 
@@ -23,13 +25,15 @@ Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_feat
 
 template <typename T>
 Conv2D<T>::Conv2D(std::initializer_list<int> sizes)
-    : Conv2D<T>(*sizes.begin(), *(sizes.begin() + 1), *(sizes.begin() + 2), *(sizes.begin() + 3), *(sizes.begin() + 4), *(sizes.begin() + 5), *(sizes.begin() + 6))
+    : Conv2D<T>(*sizes.begin(), *(sizes.begin() + 1), *(sizes.begin() + 2), *(sizes.begin() + 3), *(sizes.begin() + 4),
+        *(sizes.begin() + 5), *(sizes.begin() + 6), *(sizes.begin() + 7))
 {
 }
 
 template <typename T>
 Conv2D<T>::Conv2D(const Conv2D& other)
-    : Conv2D<T>(other.num_filters_in, other.num_filters_out, other.num_features_in, other.kernel_size_time, other.kernel_size_feature, other.dilation_rate, other.stride)
+    : Conv2D<T>(other.num_filters_in, other.num_filters_out, other.num_features_in, other.kernel_size_time, other.kernel_size_feature,
+        other.dilation_rate, other.stride, other.valid_pad)
 {
 }
 
@@ -42,7 +46,7 @@ Conv2D<T>& Conv2D<T>::operator=(const Conv2D& other)
 template <typename T>
 void Conv2D<T>::setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights)
 {
-    conv1dLayers.resize(kernel_size_time, Conv1DStateless<T, false>(num_filters_in, num_features_in, num_filters_out, kernel_size_feature, stride));
+    conv1dLayers.resize(kernel_size_time, Conv1DStateless<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_feature, stride, valid_pad));
 
     for(int i = 0; i < kernel_size_time; i++)
     {

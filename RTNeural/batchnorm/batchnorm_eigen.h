@@ -21,6 +21,8 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
+
+        // TODO: Why not make outVec a map of out? Would avoid the copy
         outVec = multiplier.cwiseProduct(inVec - running_mean) + beta;
         std::copy(outVec.data(), outVec.data() + Layer<T>::out_size, out);
     }

@@ -150,8 +150,9 @@ namespace modelt_detail
 
         const auto dilation = l["dilation"].back().get<int>();
         const auto strides = l["strides"].back().get<int>();
+        const bool valid_pad = l["padding"].get<std::string>() == "valid";
 
-        if(checkConv2D<T>(conv, type, layerDims, kernel_time, kernel_feature, dilation, strides, debug))
+        if(checkConv2D<T>(conv, type, layerDims, kernel_time, kernel_feature, dilation, strides, valid_pad, debug))
             loadConv2D<T>(conv, weights);
 
         if(!l.contains("activation"))

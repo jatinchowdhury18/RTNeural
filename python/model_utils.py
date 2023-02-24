@@ -85,6 +85,7 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
             layer_dict["num_filters_in"] = layer.input_shape[3]
             layer_dict["num_features_in"] = layer.input_shape[2]
             layer_dict["num_filters_out"] = layer.output_shape[3]
+            layer_dict["padding"] = str(layer.padding).lower()
 
         if layer_dict["type"] == "batchnorm":
             layer_dict["epsilon"] = layer.epsilon

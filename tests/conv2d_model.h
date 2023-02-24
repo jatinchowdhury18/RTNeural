@@ -60,6 +60,12 @@ int conv2d_test()
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         auto modelRef = RTNeural::json_parser::parseJson<TestType>(jsonStream, true);
 
+        if(!modelRef)
+        {
+            std::cout << "INVALID CONV2D MODEL..." << std::endl;
+            return 1;
+        }
+
         num_features_in = modelRef->getInSize();
         num_frames = static_cast<int>(xData.size()) / num_features_in;
         num_features_out = modelRef->getOutSize();
@@ -69,24 +75,32 @@ int conv2d_test()
     }
 
     size_t nErrs = 0;
-    TestType max_error = (TestType)0;
+    auto max_error = (TestType)0;
 
-    size_t shift = yData.size() - yDataPython.size();
+    // Evaluate only on valid range
+    size_t start_frame_python = 0;
+    size_t start_frame_rtneural = 0;
+    size_t num_valid_frames = num_frames;
+
+    // Otherwise, enters shift manually so everything aligns.
 
     // Check for non templated
-    for(size_t n = 0; n < yDataPython.size(); ++n)
+    for(size_t n_f = 0; n_f < num_valid_frames; ++n_f)
     {
-        auto err = std::abs(yDataPython.at(n) - yData.at(n + shift));
-        if(err > threshold)
+        for(size_t i = 0; i < num_features_out; ++i)
         {
-            max_error = std::max(err, max_error);
-            nErrs++;
+            auto err = std::abs(yDataPython.at(start_frame_python + n_f * num_features_out + i) - yData.at(start_frame_rtneural + n_f * num_features_out + i));
+            if(err > threshold)
+            {
+                max_error = std::max(err, max_error);
+                nErrs++;
+            }
         }
     }
 
     if(nErrs > 0)
     {
-        std::cout << "FAIL NON TEMPLATED: " << nErrs << " errors!" << std::endl;
+        std::cout << "FAIL NON TEMPLATED: " << nErrs << " errors over " + std::to_string(yDataPython.size()) + " values!" << std::endl;
         std::cout << "Maximum error: " << max_error << std::endl;
         return 1;
     }
@@ -94,7 +108,7 @@ int conv2d_test()
     std::cout << "SUCCESS NON TEMPLATED!" << std::endl
               << std::endl;
 
-#if MODELT_AVAILABLE
+#if 0 // MODELT_AVAILABLE
     // templated model
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {

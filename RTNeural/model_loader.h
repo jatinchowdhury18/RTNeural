@@ -195,9 +195,9 @@ namespace json_parser
 
     template <typename T>
     std::unique_ptr<Conv2D<T>> createConv2D(int num_filters_in, int num_features_in, int num_filters_out,
-        int kernel_size_time, int kernel_size_feature, int dilation, int stride, const nlohmann::json& weights)
+        int kernel_size_time, int kernel_size_feature, int dilation, int stride, bool valid_pad, const nlohmann::json& weights)
     {
-        auto conv = std::make_unique<Conv2D<T>>(num_filters_in, num_filters_out, num_features_in, kernel_size_time, kernel_size_feature, dilation, stride);
+        auto conv = std::make_unique<Conv2D<T>>(num_filters_in, num_filters_out, num_features_in, kernel_size_time, kernel_size_feature, dilation, stride, valid_pad);
         loadConv2D<T>(*conv.get(), weights);
         return std::move(conv);
     }
@@ -205,7 +205,7 @@ namespace json_parser
     /** Checks that a Conv2D (or Conv2DT) layer has the given dimensions. */
     template <typename T, typename Conv2DType>
     bool checkConv2D(const Conv2DType& conv, const std::string& type, int layerDims,
-        int kernel_size_time, int kernel_size_feature, int dilation_rate, int stride, const bool debug)
+        int kernel_size_time, int kernel_size_feature, int dilation_rate, int stride, bool valid_pad, const bool debug)
     {
         if(type != "conv2d")
         {
@@ -602,11 +602,16 @@ namespace json_parser
                 const auto num_filters_in = l.at("num_filters_in").back().get<int>();
                 const auto num_features_in = l.at("num_features_in").back().get<int>();
                 const auto num_filters_out = l.at("num_filters_out").back().get<int>();
+                const bool valid_pad = l.at("padding").get<std::string>() == "valid";
 
                 model->getNextInSize();
 
-                auto conv = createConv2D<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_time,
-                    kernel_size_feature, dilation, stride, weights);
+                auto conv = createConv2D<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_time, kernel_size_feature, dilation, stride, valid_pad, weights);
+
+                // Check the layer
+                if(!checkConv2D<T>(*conv, "conv2d", layerDims, kernel_size_time, kernel_size_feature, dilation, stride, valid_pad, debug))
+                    return {};
+
                 model->addLayer(conv.release());
                 add_activation(model, l);
             }
