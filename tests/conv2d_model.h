@@ -3,6 +3,46 @@
 #include "load_csv.hpp"
 #include <RTNeural.h>
 
+/**
+ * Computes the receptive field of the model (always 1 if there's no Conv2D layer in the model)
+ * Also corresponds to the number of run after a reset before getting a valid/meaningful output
+ */
+int computeReceptiveField(const RTNeural::Model<TestType>& model)
+{
+    int receptive_field = 1;
+
+    for(auto* l : model.layers)
+    {
+        if(l->getName() == "conv2d")
+        {
+            auto conv = dynamic_cast<RTNeural::Conv2D<TestType>*>(l);
+            receptive_field += conv->receptive_field - 1;
+        }
+    }
+    return receptive_field;
+}
+
+int computeTotalPaddedLeftFramesTensorflow(const RTNeural::Model<TestType>& model)
+{
+    int total_pad_left = 0;
+
+    for(auto* l : model.layers)
+    {
+        if(l->getName() == "conv2d")
+        {
+            // Following tensorflow padding documentation: https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2
+            // And using the fact that in the time dimension, only stride = 1 is supported:
+
+            auto conv = dynamic_cast<RTNeural::Conv2D<TestType>*>(l);
+
+            if(!conv->valid_pad)
+                total_pad_left += (conv->receptive_field - 1) / 2;
+        }
+    }
+
+    return total_pad_left;
+}
+
 void processModelNonT(RTNeural::Model<TestType>& model, const std::vector<TestType>& xData, std::vector<TestType>& yData, int num_frames, int num_features_in, int num_features_out)
 {
     model.reset();
@@ -41,7 +81,7 @@ int conv2d_test()
     const std::string data_file = "test_data/conv2d_x_python.csv";
     const std::string data_file_y = "test_data/conv2d_y_python.csv";
 
-    constexpr double threshold = 1.0e-5;
+    constexpr double threshold = 1.0e-6;
 
     std::ifstream pythonX(data_file);
     auto xData = load_csv::loadFile<TestType>(pythonX);
@@ -52,6 +92,9 @@ int conv2d_test()
     int num_features_in;
     int num_frames;
     int num_features_out;
+
+    int model_receptive_field;
+    int tensorflow_pad_left;
 
     // non-templated model
     std::vector<TestType> yData;
@@ -66,6 +109,9 @@ int conv2d_test()
             return 1;
         }
 
+        model_receptive_field = computeReceptiveField(*modelRef);
+        tensorflow_pad_left = computeTotalPaddedLeftFramesTensorflow(*modelRef);
+
         num_features_in = modelRef->getInSize();
         num_frames = static_cast<int>(xData.size()) / num_features_in;
         num_features_out = modelRef->getOutSize();
@@ -78,9 +124,9 @@ int conv2d_test()
     auto max_error = (TestType)0;
 
     // Evaluate only on valid range
-    size_t start_frame_python = 0;
-    size_t start_frame_rtneural = 0;
-    size_t num_valid_frames = num_frames;
+    size_t start_frame_python = tensorflow_pad_left;
+    size_t start_frame_rtneural = model_receptive_field - 1;
+    size_t num_valid_frames = num_frames - start_frame_rtneural;
 
     // Otherwise, enters shift manually so everything aligns.
 
@@ -89,7 +135,7 @@ int conv2d_test()
     {
         for(size_t i = 0; i < num_features_out; ++i)
         {
-            auto err = std::abs(yDataPython.at(start_frame_python + n_f * num_features_out + i) - yData.at(start_frame_rtneural + n_f * num_features_out + i));
+            auto err = std::abs(yDataPython.at(start_frame_python * num_features_out + n_f * num_features_out + i) - yData.at(start_frame_rtneural * num_features_out + n_f * num_features_out + i));
             if(err > threshold)
             {
                 max_error = std::max(err, max_error);
@@ -100,7 +146,7 @@ int conv2d_test()
 
     if(nErrs > 0)
     {
-        std::cout << "FAIL NON TEMPLATED: " << nErrs << " errors over " + std::to_string(yDataPython.size()) + " values!" << std::endl;
+        std::cout << "FAIL NON TEMPLATED: " << nErrs << " errors over " + std::to_string(num_valid_frames * num_features_out) + " values!" << std::endl;
         std::cout << "Maximum error: " << max_error << std::endl;
         return 1;
     }
