@@ -139,13 +139,14 @@ private:
  * @tparam kernel_size_feature_t size of the convolution kernel (feature axis)
  * @tparam dilation_rate_t dilation_rate (time axis)
  * @tparam stride_t convolution stride (feature axis)
+ * @tparam valid_pad_t if true: pad is "valid". if false: pad is "same"
  */
 template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
-    int kernel_size_feature_t, int dilation_rate_t, int stride_t>
+    int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
 class Conv2DT
 {
 public:
-    static constexpr int num_features_out = (num_features_in_t - kernel_size_feature_t) / stride_t + 1; // TODO: to test
+    static constexpr int num_features_out = Conv1DStateless<T>::computeNumFeaturesOut(num_features_in_t, kernel_size_feature_t, stride_t, valid_pad_t);
     static constexpr auto in_size = num_filters_in_t * num_features_in_t;
     static constexpr auto out_size = num_filters_out_t * num_features_out;
 
@@ -163,6 +164,7 @@ public:
     static constexpr int kernel_size_feature = kernel_size_feature_t;
     static constexpr int dilation_rate = dilation_rate_t;
     static constexpr int stride = stride_t;
+    static constexpr bool valid_pad = valid_pad_t;
 
     Conv2DT();
 
@@ -235,7 +237,7 @@ public:
 private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out_t * num_features_out];
 
-    std::array<Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t, kernel_size_feature_t, stride_t>,
+    std::array<Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t, kernel_size_feature_t, stride_t, valid_pad_t>,
         kernel_size_time_t>
         conv1dLayers;
 

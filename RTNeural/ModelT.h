@@ -133,10 +133,10 @@ namespace modelt_detail
         }
     }
 
-    template <typename T, int num_filters_in, int num_filters_out, int num_features_in, int kernel_size_time,
-        int kernel_size_feature, int dilation_rate, int stride>
-    void loadLayer(Conv2DT<T, num_filters_in, num_filters_out, num_features_in, kernel_size_time,
-                       kernel_size_feature, dilation_rate, stride>& conv,
+    template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
+        int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
+    void loadLayer(Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t,
+                       kernel_size_feature_t, dilation_rate_t, stride_t, valid_pad_t>& conv,
         int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {

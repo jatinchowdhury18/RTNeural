@@ -63,16 +63,16 @@ void Conv2D<T>::setBias(const std::vector<T>& inBias)
     }
 }
 
-template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t, int kernel_size_feature_t, int dilation_rate_t, int stride_t>
-Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t, kernel_size_feature_t, dilation_rate_t, stride_t>::Conv2DT()
+template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t, int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
+Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t, kernel_size_feature_t, dilation_rate_t, stride_t, valid_pad_t>::Conv2DT()
     : outs(outs_internal)
 {
 }
 
 template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
-    int kernel_size_feature_t, int dilation_rate_t, int stride_t>
+    int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
 void Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t, kernel_size_feature_t,
-    dilation_rate_t, stride_t>::setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights)
+    dilation_rate_t, stride_t, valid_pad_t>::setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights)
 {
     for(int i = 0; i < kernel_size_time_t; i++)
     {
@@ -81,9 +81,9 @@ void Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_s
 }
 
 template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
-    int kernel_size_feature_t, int dilation_rate_t, int stride_t>
+    int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
 void Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t,
-    kernel_size_feature_t, dilation_rate_t, stride_t>::setBias(const std::vector<T>& inBias)
+    kernel_size_feature_t, dilation_rate_t, stride_t, valid_pad_t>::setBias(const std::vector<T>& inBias)
 {
     for(int i = 0; i < num_filters_out_t; i++)
     {

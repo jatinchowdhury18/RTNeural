@@ -24,13 +24,39 @@ public:
     Conv1DStateless& operator=(const Conv1DStateless& other);
     virtual ~Conv1DStateless() = default;
 
-    static int computeNumFeaturesOut(int num_features_in, int kernel_size, int stride, int valid_pad)
+    static constexpr int computeNumFeaturesOut(int num_features_in, int kernel_size, int stride, int valid_pad)
     {
         // Based on tensorflow docs: https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2
-        if(valid_pad)
-            return std::ceil(static_cast<float>(num_features_in - kernel_size + 1) / static_cast<float>(stride));
+        // Custom implementation of ceil since std::ceil is not constexpr.
 
-        return std::ceil(static_cast<float>(num_features_in) / static_cast<float>(stride));
+        if(valid_pad)
+        {
+             float f = static_cast<float>(num_features_in - kernel_size + 1) / static_cast<float>(stride);
+             int i = static_cast<int>(f);
+             return f > static_cast<float>(i) ? i + 1 : i;
+        }
+
+        float f = static_cast<float>(num_features_in) / static_cast<float>(stride);
+        int i = static_cast<int>(f);
+        return f > static_cast<float>(i) ? i + 1 : i;
+    }
+
+    static constexpr int computePadLeft(int num_features_in, int kernel_size, int stride, bool valid_pad)
+    {
+        // Based on tensorflow: Based on tensorflow: https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2ow: https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2
+        return valid_pad ? 0 : std::max(num_features_in % stride == 0 ? kernel_size - stride : kernel_size - num_features_in % stride, 0) / 2;
+    }
+
+    static constexpr int computePadRight(int num_features_in, int kernel_size, int stride, bool valid_pad)
+    {
+        // Based on tensorflow: https://www.tensorflow.org/api_docs/python/tf/nn#notes_on_padding_2
+        if(!valid_pad)
+        {
+            int total_pad = std::max(num_features_in % stride == 0 ? kernel_size - stride : kernel_size - num_features_in % stride, 0);
+            return total_pad - total_pad / 2;
+        }
+
+        return 0;
     }
 
     /** Resets the layer state. */
@@ -108,8 +134,8 @@ private:
     const int stride;
     const int num_features_out;
     const bool valid_pad;
-    int pad_left = 0;
-    int pad_right = 0;
+    const int pad_left;
+    const int pad_right;
 
     std::vector<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> kernelWeights;
     Eigen::Vector<T, Eigen::Dynamic> bias;
@@ -123,20 +149,24 @@ private:
  * So the layer has a NO internal "state"
  *
  * @tparam T Type of the layer (float, double, int ...)
- * @tparam num_filters_in number of input filters
- * @tparam num_features_in number of input features
- * @tparam num_filters_out number of output filters
- * @tparam kernel_size size of the convolution kernel
- * @tparam stride convolution stride
+ * @tparam num_filters_in_t number of input filters
+ * @tparam num_features_in_t number of input features
+ * @tparam num_filters_out_t number of output filters
+ * @tparam kernel_size_t size of the convolution kernel
+ * @tparam stride_t convolution stride
+ * @tparam valid_pad_t if true: pad is "valid", if false: pad is "same"
  */
-template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int kernel_size,
-    int stride>
+template <typename T, int num_filters_in_t, int num_features_in_t, int num_filters_out_t, int kernel_size_t,
+    int stride_t, bool valid_pad_t>
 class Conv1DStatelessT
 {
-    using weights_type = Eigen::Matrix<T, num_filters_in, kernel_size>;
-    using input_type = Eigen::Matrix<T, num_filters_in, num_features_in>;
-    static constexpr int num_features_out = (num_features_in - kernel_size) / stride + 1; // TODO: to test
-    using output_type = Eigen::Matrix<T, num_filters_out, num_features_out>;
+    static constexpr int num_features_out = Conv1DStateless<T>::computeNumFeaturesOut(num_features_in_t, kernel_size_t, stride_t, valid_pad_t);
+    static constexpr int pad_left = Conv1DStateless<T>::computePadLeft(num_features_in_t, kernel_size_t, stride_t, valid_pad_t);
+    static constexpr int pad_right = Conv1DStateless<T>::computePadRight(num_features_in_t, kernel_size_t, stride_t, valid_pad_t);
+
+    using weights_type = Eigen::Matrix<T, num_filters_in_t, kernel_size_t>;
+    using input_type = Eigen::Matrix<T, num_filters_in_t, num_features_in_t>;
+    using output_type = Eigen::Matrix<T, num_filters_out_t, num_features_out>;
 
 public:
     Conv1DStatelessT();
@@ -150,16 +180,45 @@ public:
     /** Empty function, this layer has no state */
     void reset() {};
 
-    /** Performs forward propagation for this layer. */
-    inline void forward(const input_type& inMatrix) noexcept
+    /** Performs forward propagation for this layer if pad is "valid". */
+    template <bool isValid = valid_pad_t>
+    inline typename std::enable_if<isValid, void>::type
+    forward(const input_type& inMatrix) noexcept
     {
         // perform a multichannel convolution
-        for(int i = 0; i < num_filters_out; i++)
+        for(int i = 0; i < num_filters_out_t; i++)
         {
             for(int j = 0; j < num_features_out; j++)
             {
                 // TODO: manage to use middleCols<kernel_size>(j*stride)
-                outs(i, j) = weights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum();
+                outs(i, j) = kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride_t, kernel_size_t)).sum();
+            }
+        }
+    }
+
+    /** Performs forward propagation for this layer if pad is "same" */
+    template <bool isValid = valid_pad_t>
+    inline typename std::enable_if<!isValid, void>::type
+    forward(const input_type& inMatrix) noexcept
+    {
+        // perform a multichannel convolution
+        for(int i = 0; i < num_filters_out_t; i++)
+        {
+            int j = 0;
+
+            for(; j * stride_t < pad_left; j++)
+            {
+                const int eff_kernel_size = kernel_size_t - pad_left + j * stride_t;
+                outs(i, j) = kernelWeights[i].rightCols(eff_kernel_size).cwiseProduct(inMatrix.leftCols(eff_kernel_size)).sum();
+            }
+
+            for(; j * stride_t - pad_left + kernel_size_t < num_features_in_t; j++)
+                outs(i, j) = kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride_t - pad_left, kernel_size_t)).sum();
+
+            for(; j * stride_t - pad_left + kernel_size_t <= num_features_in_t + pad_right; j++)
+            {
+                const int eff_kernel_size = num_features_in_t - (j * stride_t - pad_left);
+                outs(i, j) = kernelWeights[i].leftCols(eff_kernel_size).cwiseProduct(inMatrix.rightCols(eff_kernel_size)).sum();
             }
         }
     }
@@ -172,20 +231,17 @@ public:
     void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size; }
+    int getKernelSize() const noexcept { return kernel_size_t; }
 
     /** Returns the convolution dilation rate. */
-    int getStride() const noexcept { return stride; }
+    int getStride() const noexcept { return stride_t; }
 
     Eigen::Map<output_type, RTNeuralEigenAlignment> outs;
 
 private:
-    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out * num_features_out];
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out_t * num_features_out];
 
-    int pad_left;
-    int pad_right;
-
-    weights_type weights[num_filters_out];
+    weights_type kernelWeights[num_filters_out_t];
 };
 
 } // RTNEURAL

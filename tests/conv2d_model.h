@@ -128,14 +128,12 @@ int conv2d_test()
     size_t start_frame_rtneural = model_receptive_field - 1;
     size_t num_valid_frames = num_frames - start_frame_rtneural;
 
-    // Otherwise, enters shift manually so everything aligns.
-
     // Check for non templated
     for(size_t n_f = 0; n_f < num_valid_frames; ++n_f)
     {
         for(size_t i = 0; i < num_features_out; ++i)
         {
-            auto err = std::abs(yDataPython.at(start_frame_python * num_features_out + n_f * num_features_out + i) - yData.at(start_frame_rtneural * num_features_out + n_f * num_features_out + i));
+            auto err = std::abs(yDataPython.at((start_frame_python + n_f) * num_features_out + i) - yData.at((start_frame_rtneural + n_f) * num_features_out + i));
             if(err > threshold)
             {
                 max_error = std::max(err, max_error);
@@ -154,31 +152,34 @@ int conv2d_test()
     std::cout << "SUCCESS NON TEMPLATED!" << std::endl
               << std::endl;
 
-#if 0 // MODELT_AVAILABLE
+#if MODELT_AVAILABLE
     // templated model
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
         std::cout << "Loading templated model" << std::endl;
-        RTNeural::ModelT<TestType, 50, 10,
-            RTNeural::Conv2DT<TestType, 1, 8, 50, 5, 3, 1, 3>,
-            RTNeural::ReLuActivationT<TestType, 16 * 8>,
-            RTNeural::Conv2DT<TestType, 8, 1, 16, 5, 7, 5, 1>,
-            RTNeural::ReLuActivationT<TestType, 10>>
+        RTNeural::ModelT<TestType, 23, 8,
+            RTNeural::Conv2DT<TestType, 1, 2, 23, 5, 5, 2, 1, true>,
+            RTNeural::ReLuActivationT<TestType, 19 * 2>,
+            RTNeural::Conv2DT<TestType, 2, 3, 19, 4, 3, 1, 2, false>,
+            RTNeural::Conv2DT<TestType, 3, 1, 10, 2, 3, 3, 1, true>>
             modelT;
-        //        RTNeural::ModelT<TestType, 1, 1, RTNeural::Conv2DT<TestType, 1, 1, 1, 1, 1, 1, 1>> modelT;
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream, true);
-        processModelT<50>(modelT, xData, yDataT, num_frames, num_features_out);
+        processModelT<23>(modelT, xData, yDataT, num_frames, num_features_out);
     }
 
-    for(size_t n = 0; n < yDataPython.size(); ++n)
+    // Check for non templated
+    for(size_t n_f = 0; n_f < num_valid_frames; ++n_f)
     {
-        auto err = std::abs(yDataPython.at(n) - yDataT.at(n + shift));
-        if(err > threshold)
+        for(size_t i = 0; i < num_features_out; ++i)
         {
-            max_error = std::max(err, max_error);
-            nErrs++;
+            auto err = std::abs(yDataPython.at((start_frame_python + n_f) * num_features_out + i) - yDataT.at((start_frame_rtneural + n_f) * num_features_out + i));
+            if(err > threshold)
+            {
+                max_error = std::max(err, max_error);
+                nErrs++;
+            }
         }
     }
 
