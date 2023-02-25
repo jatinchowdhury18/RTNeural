@@ -107,6 +107,7 @@ int main(int argc, char* argv[])
         result |= model_test::model_test();
         result |= approximationTests();
         result |= sampleRateRNNTest();
+        result |= conv2d_test();
 
         for(auto& testConfig : tests)
         {
