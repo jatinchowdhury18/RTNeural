@@ -29,6 +29,8 @@ add_library(RTNeural STATIC
     lstm/lstm_eigen.tpp
     lstm/lstm_xsimd.h
     lstm/lstm_xsimd.tpp
+    batchnorm/batchnorm2d.h
+    batchnorm/batchnorm2d.tpp
     model_loader.h
     RTNeural.h
     RTNeural.cpp

@@ -427,7 +427,7 @@ namespace json_parser
         return true;
     }
 
-    /** Loads weights for a BatchNorm1DLayer (or BatchNorm1DT) from a json representation of the layer weights. */
+    /** Loads weights for a BatchNorm1DLayer (or BatchNorm1DT) or BatchNorm2DLayer (or BatchNorm2DT) from a json representation of the layer weights. */
     template <typename T, typename BatchNormType>
     void loadBatchNorm(BatchNormType& batch_norm, const nlohmann::json& weights, bool affine)
     {
@@ -462,6 +462,15 @@ namespace json_parser
         return std::move(batch_norm);
     }
 
+    template <typename T>
+    std::unique_ptr<BatchNorm2DLayer<T>> createBatchNorm2D(int num_filters_in, int num_features_in, const nlohmann::json& weights, T epsilon)
+    {
+        auto batch_norm = std::make_unique<BatchNorm2DLayer<T>>(num_filters_in, num_features_in);
+        loadBatchNorm<T>(*batch_norm.get(), weights, weights.size() == 4);
+        batch_norm->setEpsilon(epsilon);
+        return std::move(batch_norm);
+    }
+
     /** Checks that a BatchNorm1DLayer (or BatchNorm1DT) has the given dimensions. */
     template <typename T, typename BatchNormType>
     bool checkBatchNorm(const BatchNormType& batch_norm, const std::string& type, int layerDims, const nlohmann::json& weights, const bool debug)
@@ -489,6 +498,42 @@ namespace json_parser
             debug_print("Wrong layer size! Expected: " + std::to_string(batch_norm.out_size), debug);
             return false;
         }
+        return true;
+    }
+
+    /** Checks that a BatchNorm2DLayer (or BatchNorm2DT) has the given dimensions. */
+    template <typename T, typename BatchNormType>
+    bool checkBatchNorm2D(const BatchNormType& batch_norm, const std::string& type, int layerDims, const nlohmann::json& weights, const bool debug)
+    {
+        if(type != "batchnorm2d")
+        {
+            debug_print("Wrong layer type! Expected: BatchNorm", debug);
+            return false;
+        }
+
+        if(BatchNormType::is_affine && weights.size() != 4)
+        {
+            debug_print("Wrong layer type! Expected: \"affine\" BatchNorm", debug);
+            return false;
+        }
+
+        if(!BatchNormType::is_affine && weights.size() != 2)
+        {
+            debug_print("Wrong layer type! Expected: non-\"affine\" BatchNorm", debug);
+            return false;
+        }
+
+        if(layerDims != batch_norm.out_size)
+        {
+            debug_print("Wrong layer size! Expected: " + std::to_string(batch_norm.out_size), debug);
+            return false;
+        }
+
+        if (weights[0].size() != batch_norm.num_filters) {
+            debug_print("Wrong weight dimension! Expected: " + std::to_string(batch_norm.num_features), debug);
+            return false;
+        }
+
         return true;
     }
 
@@ -633,6 +678,12 @@ namespace json_parser
             else if(type == "batchnorm")
             {
                 auto batch_norm = createBatchNorm<T>(model->getNextInSize(), weights, l.at("epsilon").get<T>());
+                model->addLayer(batch_norm.release());
+            }
+            else if(type == "batchnorm2d")
+            {
+                model->getNextInSize();
+                auto batch_norm = createBatchNorm2D<T>(l.at("num_filters_in"), l.at("num_features_in"), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }
             else

@@ -233,6 +233,26 @@ namespace modelt_detail
 
         json_stream_idx++;
     }
+
+    template <typename T, int num_filters, int num_features, bool affine>
+    void loadLayer(BatchNorm2DT<T, num_filters, num_features, affine>& batch_norm, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto& weights = l["weights"];
+
+        if(checkBatchNorm2D<T>(batch_norm, type, layerDims, weights, debug))
+        {
+            loadBatchNorm<T>(batch_norm, weights);
+            batch_norm.setEpsilon(l["epsilon"].get<float>());
+        }
+
+        json_stream_idx++;
+    }
+
 } // namespace modelt_detail
 #endif // DOXYGEN
 

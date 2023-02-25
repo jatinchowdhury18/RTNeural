@@ -34,7 +34,12 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
             return 'relu'
 
         if isinstance(layer, keras.layers.BatchNormalization):
-            return 'batchnorm'
+            if len(layer.input_shape) == 3:
+                return 'batchnorm'
+            elif len(layer.input_shape) == 4:
+                return 'batchnorm2d'
+            else :
+                raise ValueError("Incorrect input_shape when saving batchnorm layer")
         
         if isinstance(layer, keras.layers.Conv2D):
             return 'conv2d'
@@ -89,6 +94,11 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
 
         if layer_dict["type"] == "batchnorm":
             layer_dict["epsilon"] = layer.epsilon
+
+        if layer_dict["type"] == "batchnorm2d":
+            layer_dict["epsilon"] = layer.epsilon
+            layer_dict["num_filters_in"] = layer.input_shape[3]
+            layer_dict["num_features_in"] = layer.input_shape[2]
 
         layer_dict["weights"] = layer.get_weights()
 

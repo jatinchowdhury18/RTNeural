@@ -213,6 +213,7 @@ public:
             }
 
             for(; j * stride_t - pad_left + kernel_size_t < num_features_in_t; j++)
+                // TODO: manage to use middleCols<kernel_size>(j*stride)
                 outs(i, j) = kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride_t - pad_left, kernel_size_t)).sum();
 
             for(; j * stride_t - pad_left + kernel_size_t <= num_features_in_t + pad_right; j++)

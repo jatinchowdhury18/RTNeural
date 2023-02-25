@@ -161,6 +161,7 @@ int conv2d_test()
             RTNeural::Conv2DT<TestType, 1, 2, 23, 5, 5, 2, 1, true>,
             RTNeural::ReLuActivationT<TestType, 19 * 2>,
             RTNeural::Conv2DT<TestType, 2, 3, 19, 4, 3, 1, 2, false>,
+            RTNeural::BatchNorm2DT<TestType, 3, 10, true>,
             RTNeural::Conv2DT<TestType, 3, 1, 10, 2, 3, 3, 1, true>>
             modelT;
 
