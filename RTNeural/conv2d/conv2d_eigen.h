@@ -12,27 +12,20 @@ namespace RTNeural
  * Dynamic implementation of a 2-dimensional convolution layer with no activation.
  *
  * @tparam T Type of the layer (float, double, int ...)
- * @tparam num_filters_in number of input filters
- * @tparam num_filters_out number of output filters
- * @tparam num_features_in number of input features
- * @tparam kernel_size_time size of the convolution kernel (time axis)
- * @tparam kernel_size_feature size of the convolution kernel (feature axis)
- * @tparam dilation_rate dilation_rate (time axis)
- * @tparam stride convolution stride (feature axis)
  */
 template <typename T>
 class Conv2D : public Layer<T>
 {
 public:
     /**
-     * @param in_num_filters_in number of input filters
-     * @param in_num_filters_out number of output filters
+     * @param in_num_filters_in number of input filters (channels)
+     * @param in_num_filters_out number of output filters (channels)
      * @param in_num_features_in number of input features
      * @param in_kernel_size_time size of the convolution kernel (time axis)
      * @param in_kernel_size_feature size of the convolution kernel (feature axis)
      * @param in_dilation_rate dilation_rate (time axis)
      * @param in_stride convolution stride (feature axis)
-     * @param in_valid_pad whether the padding is valid or not (same otherwise)
+     * @param in_valid_pad whether the padding is "valid" or not ("same" otherwise)
      */
     Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_features_in, int in_kernel_size_time, int in_kernel_size_feature, int in_dilation_rate, int in_stride, bool in_valid_pad);
     Conv2D(std::initializer_list<int> sizes);
@@ -132,8 +125,8 @@ private:
  * Static implementation of a 2-dimensional convolution layer with no activation.
  *
  * @tparam T Type of the layer (float, double, int ...)
- * @tparam num_filters_in_t number of input filters
- * @tparam num_filters_out_t number of output filters
+ * @tparam num_filters_in_t number of input filters (channels)
+ * @tparam num_filters_out_t number of output filters (channels)
  * @tparam num_features_in_t number of input features
  * @tparam kernel_size_time_t size of the convolution kernel (time axis)
  * @tparam kernel_size_feature_t size of the convolution kernel (feature axis)
