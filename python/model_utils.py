@@ -30,9 +30,6 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         if isinstance(layer, keras.layers.PReLU):
             return 'prelu'
 
-        if isinstance(layer, keras.layers.ReLU):
-            return 'relu'
-
         if isinstance(layer, keras.layers.BatchNormalization):
             if len(layer.input_shape) == 3:
                 return 'batchnorm'
@@ -43,6 +40,9 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         
         if isinstance(layer, keras.layers.Conv2D):
             return 'conv2d'
+
+        if isinstance(layer, keras.layers.Activation):
+            return 'activation'
 
         return 'unknown'
 

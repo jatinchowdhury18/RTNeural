@@ -106,8 +106,8 @@ namespace modelt_detail
         }
     }
 
-    template <typename T, int in_size, int out_size, int kernel_size, int dilation_rate>
-    void loadLayer(Conv1DT<T, in_size, out_size, kernel_size, dilation_rate>& conv, int& json_stream_idx, const nlohmann::json& l,
+    template <typename T, int in_size, int out_size, int kernel_size, int dilation_rate, bool dynamic_state>
+    void loadLayer(Conv1DT<T, in_size, out_size, kernel_size, dilation_rate, dynamic_state>& conv, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
@@ -272,6 +272,9 @@ template <typename T, int in_size, int out_size, typename... Layers>
 class ModelT
 {
 public:
+    static constexpr auto input_size = in_size;
+    static constexpr auto output_size = out_size;
+
     ModelT()
     {
 #if RTNEURAL_USE_XSIMD

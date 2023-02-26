@@ -133,8 +133,9 @@ private:
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
  * @param dilation_rate: the dilation rate to use for dilated convolution
+ * @param dynamic_state: use dynamically allocated layer state
  */
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state = false>
 class Conv1DT
 {
     using v_type = xsimd::simd_type<T>;
@@ -260,7 +261,17 @@ public:
     v_type outs[v_out_size];
 
 private:
-    using state_type = std::array<std::array<v_type, v_in_size>, state_size>;
+    template <int DS = dynamic_state>
+    typename std::enable_if<DS, void>::type resize_state()
+    {
+        state.resize(state_size, {});
+    }
+
+    template <int DS = dynamic_state>
+    typename std::enable_if<!DS, void>::type resize_state() { }
+
+    using state_col_type = std::array<v_type, v_in_size>;
+    using state_type = typename std::conditional<dynamic_state, std::vector<state_col_type, xsimd::aligned_allocator<state_col_type>>, std::array<state_col_type, state_size>>::type;
     using weights_type = std::array<std::array<v_type, v_in_size>, kernel_size>;
 
     state_type state;

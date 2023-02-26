@@ -686,21 +686,9 @@ namespace json_parser
                 auto batch_norm = createBatchNorm2D<T>(l.at("num_filters_in"), l.at("num_features_in"), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }
-            else
+            else if(type == "activation")
             {
-                // Might be an activation (standalone layer)
-                std::unique_ptr<Activation<T>> activation = createActivation<T>(type, layerDims);
-
-                // Check if returned pointer is null, if not, add activation to model
-                if(activation)
-                {
-                    model->getNextInSize();
-                    model->addLayer(activation.release());
-                }
-                else
-                {
-                    debug_print("Unknown layer of type: " + type, debug);
-                }
+                add_activation(model, l);
             }
         }
 

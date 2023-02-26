@@ -118,14 +118,15 @@ private:
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
  * @param dilation_rate: the dilation rate to use for dilated convolution
+ * @param dynamic_state: use dynamically allocated layer state
  */
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate>
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state = false>
 class Conv1DT
 {
     using vec_type = Eigen::Vector<T, out_sizet>;
 
     static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
-    using state_type = Eigen::Matrix<T, in_sizet, state_size>;
+    using state_type = Eigen::Matrix<T, in_sizet, dynamic_state ? Eigen::Dynamic : state_size>;
     using weights_type = Eigen::Matrix<T, in_sizet, kernel_size>;
     using state_ptrs_type = Eigen::Vector<int, kernel_size>;
 
@@ -189,6 +190,11 @@ public:
     Eigen::Map<vec_type, RTNeuralEigenAlignment> outs;
 
 private:
+    void resize_state()
+    {
+        state.resize(in_sizet, state_size);
+    }
+
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
     state_type state;

@@ -83,7 +83,7 @@ int templatedTests(std::string arg)
         using ModelType = ModelT<TestType, 1, 1,
             DenseT<TestType, 1, 8>,
             TanhActivationT<TestType, 8>,
-            Conv1DT<TestType, 8, 4, 3, 1>,
+            Conv1DT<TestType, 8, 4, 3, 1, true>,
             TanhActivationT<TestType, 4>,
             BatchNorm1DT<TestType, 4>,
             PReLUActivationT<TestType, 4>,
