@@ -6,6 +6,7 @@
 #include "templated_tests.hpp"
 #include "test_configs.hpp"
 #include "util_tests.hpp"
+#include "conv2d_model.h"
 
 // @TODO: make tests for both float and double precision
 void help()
@@ -106,6 +107,7 @@ int main(int argc, char* argv[])
         result |= model_test::model_test();
         result |= approximationTests();
         result |= sampleRateRNNTest();
+        result |= conv2d_test();
 
         for(auto& testConfig : tests)
         {
@@ -140,6 +142,10 @@ int main(int argc, char* argv[])
     if(arg == "bad_model")
     {
         return badModelTest();
+    }
+
+    if (arg == "conv2d_model") {
+        return conv2d_test();
     }
 
     if(tests.find(arg) != tests.end())
