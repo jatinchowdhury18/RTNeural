@@ -1,6 +1,9 @@
+#if RTNEURAL_USE_EIGEN
+
 #pragma once
 
 #include "load_csv.hpp"
+#include "util_tests.hpp"
 #include <RTNeural.h>
 
 /**
@@ -197,3 +200,5 @@ int conv2d_test()
 
     return 0;
 }
+
+#endif // RTNEURAL_USE_EIGEN

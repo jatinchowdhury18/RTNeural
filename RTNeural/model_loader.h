@@ -193,6 +193,7 @@ namespace json_parser
         return true;
     }
 
+#if RTNEURAL_USE_EIGEN
     template <typename T>
     std::unique_ptr<Conv2D<T>> createConv2D(int num_filters_in, int num_features_in, int num_filters_out,
         int kernel_size_time, int kernel_size_feature, int dilation, int stride, bool valid_pad, const nlohmann::json& weights)
@@ -245,6 +246,7 @@ namespace json_parser
 
         return true;
     }
+#endif // RTNEURAL_USE_EIGEN
 
     /** Loads weights for a GRULayer (or GRULayerT) from a json representation of the layer weights. */
     template <typename T, typename GRUType>
@@ -462,6 +464,7 @@ namespace json_parser
         return std::move(batch_norm);
     }
 
+#if RTNEURAL_USE_EIGEN
     template <typename T>
     std::unique_ptr<BatchNorm2DLayer<T>> createBatchNorm2D(int num_filters_in, int num_features_in, const nlohmann::json& weights, T epsilon)
     {
@@ -470,6 +473,8 @@ namespace json_parser
         batch_norm->setEpsilon(epsilon);
         return std::move(batch_norm);
     }
+
+#endif // RTNEURAL_USE_EIGEN
 
     /** Checks that a BatchNorm1DLayer (or BatchNorm1DT) has the given dimensions. */
     template <typename T, typename BatchNormType>
@@ -529,7 +534,8 @@ namespace json_parser
             return false;
         }
 
-        if (weights[0].size() != batch_norm.num_filters) {
+        if(weights[0].size() != batch_norm.num_filters)
+        {
             debug_print("Wrong weight dimension! Expected: " + std::to_string(batch_norm.num_features), debug);
             return false;
         }
@@ -638,6 +644,7 @@ namespace json_parser
                 model->addLayer(conv.release());
                 add_activation(model, l);
             }
+#if RTNEURAL_USE_EIGEN
             else if(type == "conv2d")
             {
                 const auto kernel_size_time = l.at("kernel_size_time").back().get<int>();
@@ -660,6 +667,7 @@ namespace json_parser
                 model->addLayer(conv.release());
                 add_activation(model, l);
             }
+#endif // RTNEURAL_USE_EIGEN
             else if(type == "gru")
             {
                 auto gru = createGRU<T>(model->getNextInSize(), layerDims, weights);
@@ -680,12 +688,14 @@ namespace json_parser
                 auto batch_norm = createBatchNorm<T>(model->getNextInSize(), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }
+#if RTNEURAL_USE_EIGEN
             else if(type == "batchnorm2d")
             {
                 model->getNextInSize();
                 auto batch_norm = createBatchNorm2D<T>(l.at("num_filters_in"), l.at("num_features_in"), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }
+#endif // RTNEURAL_USE_EIGEN
             else if(type == "activation")
             {
                 add_activation(model, l);
