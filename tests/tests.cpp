@@ -1,5 +1,6 @@
 #include "approx_tests.hpp"
 #include "bad_model_test.hpp"
+#include "conv2d_model.h"
 #include "load_csv.hpp"
 #include "model_test.hpp"
 #include "sample_rate_rnn_test.hpp"
@@ -76,8 +77,6 @@ int runTest(const TestConfig& test)
     return 0;
 }
 
-using TestType = double;
-
 int main(int argc, char* argv[])
 {
 #if RTNEURAL_USE_XSIMD
@@ -106,6 +105,10 @@ int main(int argc, char* argv[])
         result |= model_test::model_test();
         result |= approximationTests();
         result |= sampleRateRNNTest();
+
+#if RTNEURAL_USE_EIGEN
+        result |= conv2d_test();
+#endif // RTNEURAL_USE_EIGEN
 
         for(auto& testConfig : tests)
         {
@@ -141,6 +144,13 @@ int main(int argc, char* argv[])
     {
         return badModelTest();
     }
+
+#if RTNEURAL_USE_EIGEN
+    if(arg == "conv2d_model")
+    {
+        return conv2d_test();
+    }
+#endif // RTNEURAL_USE_EIGEN
 
     if(tests.find(arg) != tests.end())
     {

@@ -1,5 +1,5 @@
-#ifndef BATCHNORMEIGEN_H_INCLUDED
-#define BATCHNORMEIGEN_H_INCLUDED
+#ifndef BATCHNORM2DEIGEN_H_INCLUDED
+#define BATCHNORM2DEIGEN_H_INCLUDED
 
 #include "../Layer.h"
 #include <Eigen/Dense>
@@ -8,24 +8,28 @@ namespace RTNeural
 {
 /** Dynamic batch normalization layer. */
 template <typename T>
-class BatchNorm1DLayer final : public Layer<T>
+class BatchNorm2DLayer final : public Layer<T>
 {
 public:
-    explicit BatchNorm1DLayer(int size);
+    BatchNorm2DLayer(int num_filters, int num_features);
 
     /** Returns the name of this layer. */
-    std::string getName() const noexcept override { return "batchnorm"; }
+    std::string getName() const noexcept override { return "batchnorm2d"; }
 
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        auto inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            input, Layer<T>::in_size, 1);
+        auto inMat = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>, RTNeuralEigenAlignment>(
+            input, num_filters, num_features);
 
-        auto outVec = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            out, Layer<T>::in_size, 1);
+        auto outMat = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>, RTNeuralEigenAlignment>(
+            out, num_filters, num_features);
 
-        outVec = multiplier.cwiseProduct(inVec - running_mean) + beta;
+        // TODO: Should be possible to do it in one line with .colwise() but did not manage to do it yet.
+        for(int i = 0; i < num_features; i++)
+        {
+            outMat.col(i) = (inMat.col(i) - running_mean).cwiseProduct(multiplier) + beta;
+        }
     }
 
     /** Sets the layer "gamma" values. */
@@ -46,6 +50,9 @@ public:
 private:
     void updateMultiplier();
 
+    const int num_filters;
+    const int num_features;
+
     Eigen::Vector<T, Eigen::Dynamic> gamma;
     Eigen::Vector<T, Eigen::Dynamic> beta;
 
@@ -58,18 +65,20 @@ private:
 };
 
 /** Static batch normalization layer. */
-template <typename T, int size, bool affine = true>
-class BatchNorm1DT
+template <typename T, int num_filters_t, int num_features_t, bool affine = true>
+class BatchNorm2DT
 {
 public:
-    static constexpr auto in_size = size;
-    static constexpr auto out_size = size;
+    static constexpr auto in_size = num_filters_t * num_features_t;
+    static constexpr auto out_size = num_filters_t * num_features_t;
+    static constexpr auto num_filters = num_filters_t;
+    static constexpr auto num_features = num_features_t;
     static constexpr bool is_affine = affine;
 
-    BatchNorm1DT();
+    BatchNorm2DT();
 
     /** Returns the name of this layer. */
-    std::string getName() const noexcept { return "batchnorm"; }
+    std::string getName() const noexcept { return "batchnorm2d"; }
 
     /** Returns false since batch-norm is not an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
@@ -80,17 +89,29 @@ public:
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
     inline typename std::enable_if<isAffine, void>::type
-    forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
+    forward(const Eigen::Vector<T, in_size>& ins) noexcept
     {
-        outs = multiplier.cwiseProduct(ins - running_mean) + beta;
+        auto inMat = Eigen::Map<const Eigen::Matrix<T, num_filters_t, num_features_t>, RTNeuralEigenAlignment>(ins.data());
+        auto outMat = Eigen::Map<Eigen::Matrix<T, num_filters_t, num_features_t>, RTNeuralEigenAlignment>(outs.data());
+
+        for(int i = 0; i < num_features; i++)
+        {
+            outMat.col(i) = (inMat.col(i) - running_mean).cwiseProduct(multiplier) + beta;
+        }
     }
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
     inline typename std::enable_if<!isAffine, void>::type
-    forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
+    forward(const Eigen::Vector<T, in_size>& ins) noexcept
     {
-        outs = multiplier.cwiseProduct(ins - running_mean);
+        auto inMat = Eigen::Map<const Eigen::Matrix<T, num_filters_t, num_features_t>, RTNeuralEigenAlignment>(ins.data());
+        auto outMat = Eigen::Map<Eigen::Matrix<T, num_filters_t, num_features_t>, RTNeuralEigenAlignment>(outs.data());
+
+        for(int i = 0; i < num_features; i++)
+        {
+            outMat.col(i) = (inMat.col(i) - running_mean).cwiseProduct(multiplier);
+        }
     }
 
     /** Sets the layer "gamma" values. */
@@ -125,16 +146,16 @@ private:
 
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
-    Eigen::Vector<T, out_size> gamma;
-    Eigen::Vector<T, out_size> beta;
+    Eigen::Vector<T, num_filters_t> gamma;
+    Eigen::Vector<T, num_filters_t> beta;
 
-    Eigen::Vector<T, out_size> running_mean;
-    Eigen::Vector<T, out_size> running_var;
+    Eigen::Vector<T, num_filters_t> running_mean;
+    Eigen::Vector<T, num_filters_t> running_var;
 
-    Eigen::Vector<T, out_size> multiplier;
+    Eigen::Vector<T, num_filters_t> multiplier;
 
     T epsilon = (T)0;
 };
 }
 
-#endif // BATCHNORMEIGEN_H_INCLUDED
+#endif // BATCHNORM2DEIGEN_H_INCLUDED

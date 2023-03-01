@@ -103,6 +103,54 @@ namespace json_parser
         conv.setBias(convBias);
     }
 
+    /** Loads weights for a Conv2D (or Conv2DT) layer from a json representation of the layer weights. */
+    template <typename T, typename Conv2DType>
+    void loadConv2D(Conv2DType& conv2d, const nlohmann::json& weights)
+    {
+        // load weights
+        std::vector<std::vector<std::vector<std::vector<T>>>> convWeights(conv2d.kernel_size_time);
+        for(auto& wOut : convWeights)
+        {
+            wOut.resize(conv2d.num_filters_out);
+
+            for(auto& wIn : wOut)
+            {
+                wIn.resize(conv2d.num_filters_in);
+
+                for(auto& w : wIn)
+                    w.resize(conv2d.kernel_size_feature, (T)0);
+            }
+        }
+
+        // In Tensorflow (JSON file): [kernel_size_time, kernel_size_feature, num_filters_in, num_filters_out]
+        // In RTNeural conv2d::setWeights: [kernel_size_time, num_filters_out, num_filters_in, kernel_size_feature]
+        auto layerWeights = weights.at(0);
+        // Kernel Size Time
+        for(size_t i = 0; i < layerWeights.size(); ++i)
+        {
+            auto l1 = layerWeights.at(i);
+            // Kernel Size feature
+            for(size_t j = 0; j < l1.size(); ++j)
+            {
+                auto l2 = l1.at(j);
+                // Num filters in
+                for(size_t k = 0; k < l2.size(); ++k)
+                {
+                    auto l3 = l2.at(k);
+                    // Num filters out
+                    for(size_t p = 0; p < l3.size(); ++p)
+                        convWeights.at(i).at(p).at(k).at(j) = l3.at(p).get<T>();
+                }
+            }
+        }
+
+        conv2d.setWeights(convWeights);
+
+        // load biases
+        std::vector<T> convBias = weights.at(1).get<std::vector<T>>();
+        conv2d.setBias(convBias);
+    }
+
     /** Creates a Conv1D layer from a json representation of the layer weights. */
     template <typename T>
     std::unique_ptr<Conv1D<T>> createConv1D(int in_size, int out_size,
@@ -144,6 +192,61 @@ namespace json_parser
 
         return true;
     }
+
+#if RTNEURAL_USE_EIGEN
+    template <typename T>
+    std::unique_ptr<Conv2D<T>> createConv2D(int num_filters_in, int num_features_in, int num_filters_out,
+        int kernel_size_time, int kernel_size_feature, int dilation, int stride, bool valid_pad, const nlohmann::json& weights)
+    {
+        auto conv = std::make_unique<Conv2D<T>>(num_filters_in, num_filters_out, num_features_in, kernel_size_time, kernel_size_feature, dilation, stride, valid_pad);
+        loadConv2D<T>(*conv.get(), weights);
+        return std::move(conv);
+    }
+
+    /** Checks that a Conv2D (or Conv2DT) layer has the given dimensions. */
+    template <typename T, typename Conv2DType>
+    bool checkConv2D(const Conv2DType& conv, const std::string& type, int layerDims,
+        int kernel_size_time, int kernel_size_feature, int dilation_rate, int stride, bool valid_pad, const bool debug)
+    {
+        if(type != "conv2d")
+        {
+            debug_print("Wrong layer type! Expected: Conv2D", debug);
+            return false;
+        }
+
+        if(layerDims != conv.out_size)
+        {
+            debug_print("Wrong layer size! Expected: " + std::to_string(conv.out_size), debug);
+            return false;
+        }
+
+        if(kernel_size_time != conv.getKernelSizeTime())
+        {
+            debug_print("Wrong kernel size time! Expected: " + std::to_string(conv.getKernelSizeTime()), debug);
+            return false;
+        }
+
+        if(kernel_size_feature != conv.getKernelSizeFeature())
+        {
+            debug_print("Wrong kernel size feature! Expected: " + std::to_string(conv.getKernelSizeFeature()), debug);
+            return false;
+        }
+
+        if(stride != conv.getStride())
+        {
+            debug_print("Wrong stride! Expected: " + std::to_string(conv.getStride()), debug);
+            return false;
+        }
+
+        if(dilation_rate != conv.getDilationRate())
+        {
+            debug_print("Wrong dilation_rate! Expected: " + std::to_string(conv.getDilationRate()), debug);
+            return false;
+        }
+
+        return true;
+    }
+#endif // RTNEURAL_USE_EIGEN
 
     /** Loads weights for a GRULayer (or GRULayerT) from a json representation of the layer weights. */
     template <typename T, typename GRUType>
@@ -326,7 +429,7 @@ namespace json_parser
         return true;
     }
 
-    /** Loads weights for a BatchNorm1DLayer (or BatchNorm1DT) from a json representation of the layer weights. */
+    /** Loads weights for a BatchNorm1DLayer (or BatchNorm1DT) or BatchNorm2DLayer (or BatchNorm2DT) from a json representation of the layer weights. */
     template <typename T, typename BatchNormType>
     void loadBatchNorm(BatchNormType& batch_norm, const nlohmann::json& weights, bool affine)
     {
@@ -361,6 +464,18 @@ namespace json_parser
         return std::move(batch_norm);
     }
 
+#if RTNEURAL_USE_EIGEN
+    template <typename T>
+    std::unique_ptr<BatchNorm2DLayer<T>> createBatchNorm2D(int num_filters_in, int num_features_in, const nlohmann::json& weights, T epsilon)
+    {
+        auto batch_norm = std::make_unique<BatchNorm2DLayer<T>>(num_filters_in, num_features_in);
+        loadBatchNorm<T>(*batch_norm.get(), weights, weights.size() == 4);
+        batch_norm->setEpsilon(epsilon);
+        return std::move(batch_norm);
+    }
+
+#endif // RTNEURAL_USE_EIGEN
+
     /** Checks that a BatchNorm1DLayer (or BatchNorm1DT) has the given dimensions. */
     template <typename T, typename BatchNormType>
     bool checkBatchNorm(const BatchNormType& batch_norm, const std::string& type, int layerDims, const nlohmann::json& weights, const bool debug)
@@ -386,6 +501,42 @@ namespace json_parser
         if(layerDims != batch_norm.out_size)
         {
             debug_print("Wrong layer size! Expected: " + std::to_string(batch_norm.out_size), debug);
+            return false;
+        }
+        return true;
+    }
+
+    /** Checks that a BatchNorm2DLayer (or BatchNorm2DT) has the given dimensions. */
+    template <typename T, typename BatchNormType>
+    bool checkBatchNorm2D(const BatchNormType& batch_norm, const std::string& type, int layerDims, const nlohmann::json& weights, const bool debug)
+    {
+        if(type != "batchnorm2d")
+        {
+            debug_print("Wrong layer type! Expected: BatchNorm2D", debug);
+            return false;
+        }
+
+        if(BatchNormType::is_affine && weights.size() != 4)
+        {
+            debug_print("Wrong layer type! Expected: \"affine\" BatchNorm2D", debug);
+            return false;
+        }
+
+        if(!BatchNormType::is_affine && weights.size() != 2)
+        {
+            debug_print("Wrong layer type! Expected: non-\"affine\" BatchNorm2D", debug);
+            return false;
+        }
+
+        if(layerDims != batch_norm.out_size)
+        {
+            debug_print("Wrong layer size! Expected: " + std::to_string(batch_norm.out_size), debug);
+            return false;
+        }
+
+        if(weights[0].size() != batch_norm.num_filters)
+        {
+            debug_print("Wrong weight dimension! Expected: " + std::to_string(batch_norm.num_features), debug);
             return false;
         }
 
@@ -444,7 +595,8 @@ namespace json_parser
         if(!shape.is_array() || !layers.is_array())
             return {};
 
-        const auto nDims = shape.back().get<int>();
+        const int nDims = shape.size() == 4 ? shape[2].get<int>() * shape[3].get<int>() : shape.back().get<int>();
+
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         auto model = std::make_unique<Model<T>>(nDims);
@@ -455,7 +607,10 @@ namespace json_parser
             debug_print("Layer: " + type, debug);
 
             const auto layerShape = l.at("shape");
-            const auto layerDims = layerShape.back().get<int>();
+
+            // In case of 4 dimensional input (conv2d): multiply channel axis and feature axis to get layer dim
+            const int layerDims = layerShape.size() == 4 ? layerShape[2].get<int>() * layerShape[3].get<int>() : layerShape.back().get<int>();
+
             debug_print("  Dims: " + std::to_string(layerDims), debug);
 
             const auto weights = l.at("weights");
@@ -489,6 +644,28 @@ namespace json_parser
                 model->addLayer(conv.release());
                 add_activation(model, l);
             }
+#if RTNEURAL_USE_EIGEN
+            else if(type == "conv2d")
+            {
+                const auto kernel_size_time = l.at("kernel_size_time").back().get<int>();
+                const auto kernel_size_feature = l.at("kernel_size_feature").back().get<int>();
+                const auto dilation = l.at("dilation").back().get<int>();
+                const auto stride = l.at("strides").back().get<int>();
+                const auto num_filters_in = l.at("num_filters_in").back().get<int>();
+                const auto num_features_in = l.at("num_features_in").back().get<int>();
+                const auto num_filters_out = l.at("num_filters_out").back().get<int>();
+                const bool valid_pad = l.at("padding").get<std::string>() == "valid";
+
+                auto conv = createConv2D<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_time, kernel_size_feature, dilation, stride, valid_pad, weights);
+
+                // Check the layer
+                if(!checkConv2D<T>(*conv, "conv2d", layerDims, kernel_size_time, kernel_size_feature, dilation, stride, valid_pad, debug))
+                    return {};
+
+                model->addLayer(conv.release());
+                add_activation(model, l);
+            }
+#endif // RTNEURAL_USE_EIGEN
             else if(type == "gru")
             {
                 auto gru = createGRU<T>(model->getNextInSize(), layerDims, weights);
@@ -509,6 +686,13 @@ namespace json_parser
                 auto batch_norm = createBatchNorm<T>(model->getNextInSize(), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }
+#if RTNEURAL_USE_EIGEN
+            else if(type == "batchnorm2d")
+            {
+                auto batch_norm = createBatchNorm2D<T>(l.at("num_filters_in"), l.at("num_features_in"), weights, l.at("epsilon").get<T>());
+                model->addLayer(batch_norm.release());
+            }
+#endif // RTNEURAL_USE_EIGEN
             else if(type == "activation")
             {
                 add_activation(model, l);

@@ -132,6 +132,41 @@ namespace modelt_detail
                 json_stream_idx++;
         }
     }
+#if RTNEURAL_USE_EIGEN
+    template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
+        int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
+    void loadLayer(Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t,
+                       kernel_size_feature_t, dilation_rate_t, stride_t, valid_pad_t>& conv,
+        int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto& weights = l["weights"];
+        const auto kernel_time = l["kernel_size_time"].back().get<int>();
+        const auto kernel_feature = l["kernel_size_feature"].back().get<int>();
+
+        const auto dilation = l["dilation"].back().get<int>();
+        const auto strides = l["strides"].back().get<int>();
+        const bool valid_pad = l["padding"].get<std::string>() == "valid";
+
+        if(checkConv2D<T>(conv, type, layerDims, kernel_time, kernel_feature, dilation, strides, valid_pad, debug))
+            loadConv2D<T>(conv, weights);
+
+        if(!l.contains("activation"))
+        {
+            json_stream_idx++;
+        }
+        else
+        {
+            const auto activationType = l["activation"].get<std::string>();
+            if(activationType.empty())
+                json_stream_idx++;
+        }
+    }
+#endif // RTNEURAL_USE_EIGEN
 
     template <typename T, int in_size, int out_size, SampleRateCorrectionMode mode>
     void loadLayer(GRULayerT<T, in_size, out_size, mode>& gru, int& json_stream_idx, const nlohmann::json& l,
@@ -199,6 +234,29 @@ namespace modelt_detail
 
         json_stream_idx++;
     }
+
+#if RTNEURAL_USE_EIGEN
+    template <typename T, int num_filters, int num_features, bool affine>
+    void loadLayer(BatchNorm2DT<T, num_filters, num_features, affine>& batch_norm, int& json_stream_idx, const nlohmann::json& l,
+        const std::string& type, int layerDims, bool debug)
+    {
+        using namespace json_parser;
+
+        debug_print("Layer: " + type, debug);
+        debug_print("  Dims: " + std::to_string(layerDims), debug);
+        const auto& weights = l["weights"];
+
+        if(checkBatchNorm2D<T>(batch_norm, type, layerDims, weights, debug))
+        {
+            loadBatchNorm<T>(batch_norm, weights);
+            batch_norm.setEpsilon(l["epsilon"].get<float>());
+        }
+
+        json_stream_idx++;
+    }
+
+#endif // RTNEURAL_USE_EIGEN
+
 } // namespace modelt_detail
 #endif // DOXYGEN
 
@@ -325,7 +383,9 @@ public:
         if(!shape.is_array() || !json_layers.is_array())
             return;
 
-        const auto nDims = shape.back().get<int>();
+        // If 4D: nDims is num_features * num_channels
+        const int nDims = shape.size() == 4 ? shape[2].get<int>() * shape[3].get<int>() : shape.back().get<int>();
+
         debug_print("# dimensions: " + std::to_string(nDims), debug);
 
         if(nDims != in_size)
@@ -346,7 +406,9 @@ public:
             const auto l = json_layers.at(json_stream_idx);
             const auto type = l["type"].get<std::string>();
             const auto layerShape = l["shape"];
-            const auto layerDims = layerShape.back().get<int>();
+
+            // If 4D: layerDims is num_features * num_channels
+            const int layerDims = layerShape.size() == 4 ? layerShape[2].get<int>() * layerShape[3].get<int>() : layerShape.back().get<int>();
 
             if(layer.isActivation()) // activation layers don't need initialisation
             {

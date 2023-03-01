@@ -8,8 +8,12 @@
 #include "activation/activation.h"
 #include "batchnorm/batchnorm.h"
 #include "batchnorm/batchnorm.tpp"
+#include "batchnorm/batchnorm2d.h"
+#include "batchnorm/batchnorm2d.tpp"
 #include "conv1d/conv1d.h"
 #include "conv1d/conv1d.tpp"
+#include "conv2d/conv2d.h"
+#include "conv2d/conv2d.tpp"
 #include "dense/dense.h"
 #include "gru/gru.h"
 #include "gru/gru.tpp"
@@ -44,6 +48,12 @@ public:
 
         outs.clear();
     }
+
+    /** Returns the model's input size */
+    int getInSize() const { return layers.front()->in_size; }
+
+    /** Returns the model's output size */
+    int getOutSize() const { return layers.back()->out_size; }
 
     /** Returns the required input size for the next layer being added to the network. */
     int getNextInSize() const

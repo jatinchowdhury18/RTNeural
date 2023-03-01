@@ -7,6 +7,14 @@ add_library(RTNeural STATIC
     Layer.h
     conv1d/conv1d.h
     conv1d/conv1d.tpp
+    conv1d_stateless/conv1d_stateless.h
+    conv1d_stateless/conv1d_stateless.tpp
+    conv1d_stateless/conv1d_stateless_eigen.h
+    conv1d_stateless/conv1d_stateless_eigen.h
+    conv2d/conv2d.h
+    conv2d/conv2d.tpp
+    conv2d/conv2d_eigen.h
+    conv2d/conv2d_eigen.tpp
     dense/dense.h
     dense/dense_accelerate.h
     dense/dense_eigen.h
@@ -25,6 +33,10 @@ add_library(RTNeural STATIC
     lstm/lstm_eigen.tpp
     lstm/lstm_xsimd.h
     lstm/lstm_xsimd.tpp
+    batchnorm/batchnorm2d.h
+    batchnorm/batchnorm2d.tpp
+    batchnorm/batchnorm2d_eigen.h
+    batchnorm/batchnorm2d_eigen.tpp
     model_loader.h
     RTNeural.h
     RTNeural.cpp
