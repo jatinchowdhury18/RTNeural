@@ -512,19 +512,19 @@ namespace json_parser
     {
         if(type != "batchnorm2d")
         {
-            debug_print("Wrong layer type! Expected: BatchNorm", debug);
+            debug_print("Wrong layer type! Expected: BatchNorm2D", debug);
             return false;
         }
 
         if(BatchNormType::is_affine && weights.size() != 4)
         {
-            debug_print("Wrong layer type! Expected: \"affine\" BatchNorm", debug);
+            debug_print("Wrong layer type! Expected: \"affine\" BatchNorm2D", debug);
             return false;
         }
 
         if(!BatchNormType::is_affine && weights.size() != 2)
         {
-            debug_print("Wrong layer type! Expected: non-\"affine\" BatchNorm", debug);
+            debug_print("Wrong layer type! Expected: non-\"affine\" BatchNorm2D", debug);
             return false;
         }
 
@@ -656,8 +656,6 @@ namespace json_parser
                 const auto num_filters_out = l.at("num_filters_out").back().get<int>();
                 const bool valid_pad = l.at("padding").get<std::string>() == "valid";
 
-                model->getNextInSize();
-
                 auto conv = createConv2D<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_time, kernel_size_feature, dilation, stride, valid_pad, weights);
 
                 // Check the layer
@@ -691,7 +689,6 @@ namespace json_parser
 #if RTNEURAL_USE_EIGEN
             else if(type == "batchnorm2d")
             {
-                model->getNextInSize();
                 auto batch_norm = createBatchNorm2D<T>(l.at("num_filters_in"), l.at("num_features_in"), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }

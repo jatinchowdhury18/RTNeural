@@ -19,12 +19,13 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+        auto inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
 
-        // TODO: Why not make outVec a map of out? Would avoid the copy
+        auto outVec = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            out, Layer<T>::in_size, 1);
+
         outVec = multiplier.cwiseProduct(inVec - running_mean) + beta;
-        std::copy(outVec.data(), outVec.data() + Layer<T>::out_size, out);
     }
 
     /** Sets the layer "gamma" values. */
@@ -52,9 +53,6 @@ private:
     Eigen::Vector<T, Eigen::Dynamic> running_var;
 
     Eigen::Vector<T, Eigen::Dynamic> multiplier;
-
-    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 
     T epsilon = (T)0;
 };

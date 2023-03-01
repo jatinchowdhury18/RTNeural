@@ -46,22 +46,8 @@ int computeTotalPaddedLeftFramesTensorflow(const RTNeural::Model<TestType>& mode
     return total_pad_left;
 }
 
-void processModelNonT(RTNeural::Model<TestType>& model, const std::vector<TestType>& xData, std::vector<TestType>& yData, int num_frames, int num_features_in, int num_features_out)
-{
-    model.reset();
-
-    TestType input alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_features_in];
-
-    for(size_t n = 0; n < num_frames; ++n)
-    {
-        std::copy(xData.data() + n * num_features_in, xData.data() + (n + 1) * num_features_in, input);
-        model.forward(input);
-        std::copy(model.getOutputs(), model.getOutputs() + num_features_out, yData.data() + n * num_features_out);
-    }
-}
-
 template <int numFeaturesIn, typename ModelType>
-void processModelT(ModelType& model, const std::vector<TestType>& xData, std::vector<TestType>& yData, int num_frames, int num_features_out)
+void processModel(ModelType& model, const std::vector<TestType>& xData, std::vector<TestType>& yData, int num_frames, int num_features_out)
 {
     model.reset();
 
@@ -70,7 +56,6 @@ void processModelT(ModelType& model, const std::vector<TestType>& xData, std::ve
     for(size_t n = 0; n < num_frames; n++)
     {
         std::copy(xData.begin() + n * numFeaturesIn, xData.begin() + (n + 1) * numFeaturesIn, input);
-        auto input_mat = Eigen::Map<Eigen::Matrix<TestType, numFeaturesIn, 1>, RTNEURAL_DEFAULT_ALIGNMENT>(input);
         model.forward(input);
         std::copy(model.getOutputs(), model.getOutputs() + num_features_out, yData.data() + n * num_features_out);
     }
@@ -120,7 +105,7 @@ int conv2d_test()
         num_features_out = modelRef->getOutSize();
 
         yData.resize(num_frames * num_features_out, (TestType)0);
-        processModelNonT(*modelRef, xData, yData, num_frames, num_features_in, num_features_out);
+        processModel<23>(*modelRef, xData, yData, num_frames, num_features_out);
     }
 
     size_t nErrs = 0;
@@ -170,7 +155,7 @@ int conv2d_test()
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream, true);
-        processModelT<23>(modelT, xData, yDataT, num_frames, num_features_out);
+        processModel<23>(modelT, xData, yDataT, num_frames, num_features_out);
     }
 
     // Check for non templated

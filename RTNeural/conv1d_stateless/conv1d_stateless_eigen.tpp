@@ -15,8 +15,7 @@ Conv1DStateless<T>::Conv1DStateless(int in_num_filters_in, int in_num_features_i
     , pad_right(computePadRight(in_num_features_in, in_kernel_size, in_stride, in_valid_pad))
     , Layer<T>(in_num_filters_in * in_num_features_in, in_num_filters_out * computeNumFeaturesOut(in_num_features_in, in_kernel_size, in_stride, in_valid_pad))
 {
-    for(int i = 0; i < num_filters_out; ++i)
-        kernelWeights.push_back(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(num_filters_in, kernel_size));
+    kernelWeights.resize(num_filters_out, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(num_filters_in, kernel_size));
 }
 
 template <typename T>

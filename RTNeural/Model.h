@@ -9,6 +9,7 @@
 #include "batchnorm/batchnorm.h"
 #include "batchnorm/batchnorm.tpp"
 #include "batchnorm/batchnorm2d.h"
+#include "batchnorm/batchnorm2d.tpp"
 #include "conv1d/conv1d.h"
 #include "conv1d/conv1d.tpp"
 #include "conv2d/conv2d.h"

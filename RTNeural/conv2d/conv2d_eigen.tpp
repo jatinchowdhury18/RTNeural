@@ -13,14 +13,14 @@ Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_feat
     , dilation_rate(in_dilation_rate)
     , stride(in_stride)
     , num_features_out(Conv1DStateless<T>::computeNumFeaturesOut(in_num_features_in, in_kernel_size_feature, in_stride, in_valid_pad))
-    , receptive_field(1 + (in_kernel_size_time - 1) * in_dilation_rate)
+    , receptive_field(1 + (in_kernel_size_time - 1) * in_dilation_rate) // See "Dilated (atrous) convolution" note here: https://distill.pub/2019/computing-receptive-fields/
     , valid_pad(in_valid_pad)
     , Layer<T>(in_num_features_in * in_num_filters_in, Conv1DStateless<T>::computeNumFeaturesOut(in_num_features_in, in_kernel_size_feature, in_stride, in_valid_pad) * in_num_filters_out)
 {
+    conv1dLayers.resize(kernel_size_time, Conv1DStateless<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_feature, stride, valid_pad));
     bias = Eigen::Vector<T, Eigen::Dynamic>::Zero(num_filters_out);
 
-    for(int i = 0; i < receptive_field; i++)
-        state.push_back(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(num_filters_out, num_features_out));
+    state.resize(receptive_field, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(num_filters_out, num_features_out));
 }
 
 template <typename T>
@@ -46,8 +46,6 @@ Conv2D<T>& Conv2D<T>::operator=(const Conv2D& other)
 template <typename T>
 void Conv2D<T>::setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights)
 {
-    conv1dLayers.resize(kernel_size_time, Conv1DStateless<T>(num_filters_in, num_features_in, num_filters_out, kernel_size_feature, stride, valid_pad));
-
     for(int i = 0; i < kernel_size_time; i++)
     {
         conv1dLayers[i].setWeights(inWeights[i]);

@@ -11,9 +11,6 @@ BatchNorm1DLayer<T>::BatchNorm1DLayer(int size)
     running_mean = Eigen::Vector<T, Eigen::Dynamic>::Zero(size);
     running_var = Eigen::Vector<T, Eigen::Dynamic>::Ones(size);
     multiplier = Eigen::Vector<T, Eigen::Dynamic>::Ones(size);
-
-    inVec = Eigen::Vector<T, Eigen::Dynamic>::Zero(size);
-    outVec = Eigen::Vector<T, Eigen::Dynamic>::Zero(size);
 }
 
 template <typename T>
