@@ -77,7 +77,7 @@ int conv2d_test()
     std::ifstream pythonY(data_file_y);
     auto yDataPython = load_csv::loadFile<TestType>(pythonY);
 
-    int num_features_in;
+    static constexpr int num_features_in = 23;
     int num_frames;
     int num_features_out;
 
@@ -100,12 +100,11 @@ int conv2d_test()
         model_receptive_field = computeReceptiveField(*modelRef);
         tensorflow_pad_left = computeTotalPaddedLeftFramesTensorflow(*modelRef);
 
-        num_features_in = modelRef->getInSize();
         num_frames = static_cast<int>(xData.size()) / num_features_in;
         num_features_out = modelRef->getOutSize();
 
         yData.resize(num_frames * num_features_out, (TestType)0);
-        processModel<23>(*modelRef, xData, yData, num_frames, num_features_out);
+        processModel<num_features_in>(*modelRef, xData, yData, num_frames, num_features_out);
     }
 
     size_t nErrs = 0;
@@ -145,8 +144,8 @@ int conv2d_test()
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
         std::cout << "Loading templated model" << std::endl;
-        RTNeural::ModelT<TestType, 23, 8,
-            RTNeural::Conv2DT<TestType, 1, 2, 23, 5, 5, 2, 1, true>,
+        RTNeural::ModelT<TestType, num_features_in, 8,
+            RTNeural::Conv2DT<TestType, 1, 2, num_features_in, 5, 5, 2, 1, true>,
             RTNeural::BatchNorm2DT<TestType, 2, 19, false>,
             RTNeural::ReLuActivationT<TestType, 2 * 19>,
             RTNeural::Conv2DT<TestType, 2, 3, 19, 4, 3, 1, 2, false>,
@@ -156,7 +155,7 @@ int conv2d_test()
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream, true);
-        processModel<23>(modelT, xData, yDataT, num_frames, num_features_out);
+        processModel<num_features_in>(modelT, xData, yDataT, num_frames, num_features_out);
     }
 
     // Check for non templated
