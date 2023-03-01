@@ -105,7 +105,7 @@ public:
     inline typename std::enable_if<!isAffine, void>::type
     forward(const Eigen::Vector<T, in_size>& ins) noexcept
     {
-        auto inMat = Eigen::Map<Eigen::Matrix<T, num_filters_t, num_features_t>, RTNeuralEigenAlignment>(ins.data());
+        auto inMat = Eigen::Map<const Eigen::Matrix<T, num_filters_t, num_features_t>, RTNeuralEigenAlignment>(ins.data());
         auto outMat = Eigen::Map<Eigen::Matrix<T, num_filters_t, num_features_t>, RTNeuralEigenAlignment>(outs.data());
 
         for(int i = 0; i < num_features; i++)

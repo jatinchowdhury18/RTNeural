@@ -147,7 +147,8 @@ int conv2d_test()
         std::cout << "Loading templated model" << std::endl;
         RTNeural::ModelT<TestType, 23, 8,
             RTNeural::Conv2DT<TestType, 1, 2, 23, 5, 5, 2, 1, true>,
-            RTNeural::ReLuActivationT<TestType, 19 * 2>,
+            RTNeural::BatchNorm2DT<TestType, 2, 19, false>,
+            RTNeural::ReLuActivationT<TestType, 2 * 19>,
             RTNeural::Conv2DT<TestType, 2, 3, 19, 4, 3, 1, 2, false>,
             RTNeural::BatchNorm2DT<TestType, 3, 10, true>,
             RTNeural::Conv2DT<TestType, 3, 1, 10, 2, 3, 3, 1, true>>
