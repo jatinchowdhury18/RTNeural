@@ -9,7 +9,7 @@ std::string getRootDir(fs::path path)
 {
     while((--path.end())->string() != "RTNeural")
         path = path.parent_path();
-    return path;
+    return path.string();
 }
 
 std::string getModelFile(fs::path path)
