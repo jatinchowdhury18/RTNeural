@@ -31,9 +31,9 @@ public:
 
         if(valid_pad)
         {
-             float f = static_cast<float>(num_features_in - kernel_size + 1) / static_cast<float>(stride);
-             int i = static_cast<int>(f);
-             return f > static_cast<float>(i) ? i + 1 : i;
+            float f = static_cast<float>(num_features_in - kernel_size + 1) / static_cast<float>(stride);
+            int i = static_cast<int>(f);
+            return f > static_cast<float>(i) ? i + 1 : i;
         }
 
         float f = static_cast<float>(num_features_in) / static_cast<float>(stride);
