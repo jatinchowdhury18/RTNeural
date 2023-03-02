@@ -61,6 +61,10 @@ jobs:
       shell: bash
       run: ./build/examples_out/custom_layer_model
 
+    - name: RTNeural Conv1D Torch
+      shell: bash
+      run: ./build/examples_out/torch_conv1d
+
     - name: Hello RTNeural with Makefile
       if: runner.os == 'Linux'
       shell: bash
