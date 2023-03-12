@@ -132,7 +132,7 @@ namespace modelt_detail
                 json_stream_idx++;
         }
     }
-#if RTNEURAL_USE_EIGEN
+#if !RTNEURAL_USE_XSIMD
     template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
         int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
     void loadLayer(Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t,
@@ -235,7 +235,7 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
-#if RTNEURAL_USE_EIGEN
+#if !RTNEURAL_USE_XSIMD
     template <typename T, int num_filters, int num_features, bool affine>
     void loadLayer(BatchNorm2DT<T, num_filters, num_features, affine>& batch_norm, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
