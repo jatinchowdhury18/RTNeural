@@ -5,8 +5,6 @@
 #include "batchnorm2d_eigen.h"
 #include "batchnorm2d_eigen.tpp"
 #elif RTNEURAL_USE_XSIMD
-#include "batchnorm_xsimd.h"
-#include "batchnorm_xsimd.tpp"
 #else
 #include "../Layer.h"
 
