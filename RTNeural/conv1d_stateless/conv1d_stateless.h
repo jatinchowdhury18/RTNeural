@@ -93,21 +93,12 @@ public:
         }
         else
         {
-            //        auto inMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
-            //            RTNeuralEigenAlignment>(input, num_filters_in, num_features_in);
-            //
-            //        auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
-            //            RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
-
             for(int out_row_idx = 0; out_row_idx < num_filters_out; ++out_row_idx)
             {
                 int out_col_idx = 0;
 
                 for(; out_col_idx * stride < pad_left; ++out_col_idx)
                 {
-                    //                    const int eff_kernel_size = kernel_size - pad_left + j * stride;
-                    //                    outMatrix(i, j) += kernelWeights[i].rightCols(eff_kernel_size).cwiseProduct(inMatrix.leftCols(eff_kernel_size)).sum();
-
                     T sum {};
                     const int eff_kernel_size = kernel_size - pad_left + out_col_idx * stride;
                     for(int in_col_idx = 0; in_col_idx < eff_kernel_size; ++in_col_idx)
@@ -121,8 +112,6 @@ public:
 
                 for(; out_col_idx * stride - pad_left + kernel_size < num_features_in; ++out_col_idx)
                 {
-                    //                    outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride - pad_left, kernel_size)).sum();
-
                     T sum {};
                     for(int in_col_idx = out_col_idx * stride - pad_left; in_col_idx < out_col_idx * stride - pad_left + kernel_size; ++in_col_idx)
                     {
@@ -135,8 +124,6 @@ public:
 
                 for(; out_col_idx * stride - pad_left + kernel_size <= num_features_in + pad_right; ++out_col_idx)
                 {
-                    //                    outMatrix(i, j) += kernelWeights[i].leftCols(eff_kernel_size).cwiseProduct(inMatrix.rightCols(eff_kernel_size)).sum();
-
                     T sum {};
                     const int eff_kernel_size = num_features_in - (out_col_idx * stride - pad_left);
                     for(int in_col_idx = (num_features_in - eff_kernel_size); in_col_idx < num_features_in; ++in_col_idx)
@@ -248,9 +235,6 @@ public:
 
             for(; out_col_idx * stride_t < pad_left; ++out_col_idx)
             {
-                //                    const int eff_kernel_size = kernel_size - pad_left + j * stride;
-                //                    outMatrix(i, j) += kernelWeights[i].rightCols(eff_kernel_size).cwiseProduct(inMatrix.leftCols(eff_kernel_size)).sum();
-
                 T sum {};
                 const int eff_kernel_size = kernel_size_t - pad_left + out_col_idx * stride_t;
                 for(int in_col_idx = 0; in_col_idx < eff_kernel_size; ++in_col_idx)
@@ -264,8 +248,6 @@ public:
 
             for(; out_col_idx * stride_t - pad_left + kernel_size_t < num_features_in_t; ++out_col_idx)
             {
-                //                    outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride - pad_left, kernel_size)).sum();
-
                 T sum {};
                 for(int in_col_idx = out_col_idx * stride_t - pad_left; in_col_idx < out_col_idx * stride_t - pad_left + kernel_size_t; ++in_col_idx)
                 {
@@ -278,8 +260,6 @@ public:
 
             for(; out_col_idx * stride_t - pad_left + kernel_size_t <= num_features_in_t + pad_right; ++out_col_idx)
             {
-                //                    outMatrix(i, j) += kernelWeights[i].leftCols(eff_kernel_size).cwiseProduct(inMatrix.rightCols(eff_kernel_size)).sum();
-
                 T sum {};
                 const int eff_kernel_size = num_features_in_t - (out_col_idx * stride_t - pad_left);
                 for(int in_col_idx = (num_features_in_t - eff_kernel_size); in_col_idx < num_features_in_t; ++in_col_idx)

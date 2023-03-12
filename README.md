@@ -19,12 +19,14 @@ real-time systems, specifically real-time audio processing.
 
 Currently supported layers:
   
-  - [x] dense
+  - [x] Dense
   - [x] GRU
   - [x] LSTM
   - [x] Conv1D
+  - [x] Conv2D (Eigen and STL only)
   - [ ] MaxPooling
   - [x] BatchNorm1D
+  - [x] BatchNorm2D (Eigen and STL only)
 
 Currently supported activations:
   - [x] tanh
@@ -268,11 +270,12 @@ backend.
 
 ## Contributors
 
-Shout out to the following individuals for their important contributions:
+Pleas thank the following individuals for their important contributions:
 
 - [wayne-chen](https://github.com/wayne-chen): Softmax activation layer and general API improvements
 - [hollance](https://github.com/hollance): RTNeural logo
 - [stepanmk](https://github.com/stepanmk): Eigen Conv1D layer optimization
+- [DamRsn](https://github.com/DamRsn): Eigen implementations for Conv2D and BatchNorm2D layers
 
 ## Powered by RTNeural
 
