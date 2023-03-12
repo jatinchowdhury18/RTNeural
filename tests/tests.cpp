@@ -24,6 +24,7 @@ void help()
     std::cout << "    bad_model" << std::endl;
     for(auto& testConfig : tests)
         std::cout << "    " << testConfig.first << std::endl;
+    std::cout << "    conv2d" << std::endl;
 }
 
 template <typename T>
@@ -106,9 +107,9 @@ int main(int argc, char* argv[])
         result |= approximationTests();
         result |= sampleRateRNNTest();
 
-#if RTNEURAL_USE_EIGEN
+#if ! RTNEURAL_USE_XSIMD
         result |= conv2d_test();
-#endif // RTNEURAL_USE_EIGEN
+#endif // ! RTNEURAL_USE_XSIMD
 
         for(auto& testConfig : tests)
         {
@@ -118,6 +119,13 @@ int main(int argc, char* argv[])
 
         return result;
     }
+
+#if ! RTNEURAL_USE_XSIMD
+    if (arg == "conv2d")
+    {
+        return conv2d_test();
+    }
+#endif // ! RTNEURAL_USE_XSIMD
 
     if(arg == "util")
     {

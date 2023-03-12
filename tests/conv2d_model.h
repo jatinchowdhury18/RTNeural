@@ -1,4 +1,4 @@
-#if RTNEURAL_USE_EIGEN
+#if !RTNEURAL_USE_XSIMD
 
 #pragma once
 

@@ -138,7 +138,6 @@ private:
     const int pad_right;
 
     std::vector<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> kernelWeights;
-    Eigen::Vector<T, Eigen::Dynamic> bias;
 };
 
 //====================================================
