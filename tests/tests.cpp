@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
         result |= approximationTests();
         result |= sampleRateRNNTest();
 
-#if ! RTNEURAL_USE_XSIMD
+#if !RTNEURAL_USE_XSIMD
         result |= conv2d_test();
 #endif // ! RTNEURAL_USE_XSIMD
 
@@ -120,8 +120,8 @@ int main(int argc, char* argv[])
         return result;
     }
 
-#if ! RTNEURAL_USE_XSIMD
-    if (arg == "conv2d")
+#if !RTNEURAL_USE_XSIMD
+    if(arg == "conv2d")
     {
         return conv2d_test();
     }

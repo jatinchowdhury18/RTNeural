@@ -12,7 +12,7 @@ BatchNorm2DLayer<T>::BatchNorm2DLayer(int in_num_filters, int in_num_features)
     , gamma(num_filters, (T)1)
     , beta(num_filters, (T)0)
     , running_mean(num_filters, (T)0)
-    , running_var(num_filters, (T) 1)
+    , running_var(num_filters, (T)1)
     , multiplier(num_filters, (T)1)
 {
 }

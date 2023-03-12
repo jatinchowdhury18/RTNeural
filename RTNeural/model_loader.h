@@ -193,7 +193,7 @@ namespace json_parser
         return true;
     }
 
-#if ! RTNEURAL_USE_XSIMD
+#if !RTNEURAL_USE_XSIMD
     template <typename T>
     std::unique_ptr<Conv2D<T>> createConv2D(int num_filters_in, int num_features_in, int num_filters_out,
         int kernel_size_time, int kernel_size_feature, int dilation, int stride, bool valid_pad, const nlohmann::json& weights)
@@ -464,7 +464,7 @@ namespace json_parser
         return std::move(batch_norm);
     }
 
-#if ! RTNEURAL_USE_XSIMD
+#if !RTNEURAL_USE_XSIMD
     template <typename T>
     std::unique_ptr<BatchNorm2DLayer<T>> createBatchNorm2D(int num_filters_in, int num_features_in, const nlohmann::json& weights, T epsilon)
     {
@@ -644,7 +644,7 @@ namespace json_parser
                 model->addLayer(conv.release());
                 add_activation(model, l);
             }
-#if ! RTNEURAL_USE_XSIMD
+#if !RTNEURAL_USE_XSIMD
             else if(type == "conv2d")
             {
                 const auto kernel_size_time = l.at("kernel_size_time").back().get<int>();
@@ -686,7 +686,7 @@ namespace json_parser
                 auto batch_norm = createBatchNorm<T>(model->getNextInSize(), weights, l.at("epsilon").get<T>());
                 model->addLayer(batch_norm.release());
             }
-#if ! RTNEURAL_USE_XSIMD
+#if !RTNEURAL_USE_XSIMD
             else if(type == "batchnorm2d")
             {
                 auto batch_norm = createBatchNorm2D<T>(l.at("num_filters_in"), l.at("num_features_in"), weights, l.at("epsilon").get<T>());

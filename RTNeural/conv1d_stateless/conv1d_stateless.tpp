@@ -16,10 +16,10 @@ Conv1DStateless<T>::Conv1DStateless(int in_num_filters_in, int in_num_features_i
     , Layer<T>(in_num_filters_in * in_num_features_in, in_num_filters_out * computeNumFeaturesOut(in_num_features_in, in_kernel_size, in_stride, in_valid_pad))
 {
     kernelWeights.resize(num_filters_out);
-    for (auto& kw : kernelWeights)
+    for(auto& kw : kernelWeights)
     {
         kw.resize(num_filters_in);
-        for (auto& col : kw)
+        for(auto& col : kw)
             col.resize(kernel_size, (T)0);
     }
 }

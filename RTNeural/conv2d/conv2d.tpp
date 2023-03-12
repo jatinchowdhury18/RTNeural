@@ -23,9 +23,9 @@ Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_feat
     bias.resize(num_filters_out, (T)0);
 
     state.resize(receptive_field);
-    for (auto& stateMat : state)
+    for(auto& stateMat : state)
     {
-        stateMat.resize(num_filters_out * num_features_out, (T) 0);
+        stateMat.resize(num_filters_out * num_features_out, (T)0);
     }
 }
 
@@ -61,7 +61,7 @@ void Conv2D<T>::setWeights(const std::vector<std::vector<std::vector<std::vector
 template <typename T>
 void Conv2D<T>::setBias(const std::vector<T>& inBias)
 {
-    std::copy (inBias.begin(), inBias.end(), bias.begin());
+    std::copy(inBias.begin(), inBias.end(), bias.begin());
 }
 
 template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t, int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
@@ -85,7 +85,7 @@ template <typename T, int num_filters_in_t, int num_filters_out_t, int num_featu
 void Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t,
     kernel_size_feature_t, dilation_rate_t, stride_t, valid_pad_t>::setBias(const std::vector<T>& inBias)
 {
-    std::copy (inBias.begin(), inBias.end(), bias.begin());
+    std::copy(inBias.begin(), inBias.end(), bias.begin());
 }
 } // RTNeural
 

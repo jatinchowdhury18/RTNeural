@@ -186,7 +186,7 @@ public:
         {
             int state_idx_to_use = (state_index + (receptive_field - 1) - i * dilation_rate) % receptive_field;
 
-            std::fill (std::begin(conv1dLayers[i].outs), std::end(conv1dLayers[i].outs), (T)0);
+            std::fill(std::begin(conv1dLayers[i].outs), std::end(conv1dLayers[i].outs), (T)0);
             conv1dLayers[i].forward(ins);
 
             for(int j = 0; j < state[state_idx_to_use].size(); ++j)
