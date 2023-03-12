@@ -1,4 +1,4 @@
-#if ! RTNEURAL_USE_XSIMD
+#if !RTNEURAL_USE_XSIMD
 
 #pragma once
 
@@ -139,7 +139,7 @@ int conv2d_test()
     std::cout << "SUCCESS NON TEMPLATED!" << std::endl
               << std::endl;
 
-#if 0 // MODELT_AVAILABLE
+#if MODELT_AVAILABLE
     // templated model
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
@@ -155,7 +155,7 @@ int conv2d_test()
 
         std::ifstream jsonStream(model_file, std::ifstream::binary);
         modelT.parseJson(jsonStream, true);
-//        processModel<num_features_in>(modelT, xData, yDataT, num_frames, num_features_out);
+        processModel<num_features_in>(modelT, xData, yDataT, num_frames, num_features_out);
     }
 
     // Check for non templated

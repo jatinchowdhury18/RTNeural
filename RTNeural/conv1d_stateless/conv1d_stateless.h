@@ -74,76 +74,78 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* output) noexcept override
     {
-        //        auto inMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
-        //            RTNeuralEigenAlignment>(input, num_filters_in, num_features_in);
-        //
-        //        auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
-        //            RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
-
         if(valid_pad)
         {
-            for(int i = 0; i < num_filters_out; i++)
+            for(int out_row_idx = 0; out_row_idx < num_filters_out; ++out_row_idx)
             {
-                for(int j = 0; j < num_features_out; j++)
+                for(int out_col_idx = 0; out_col_idx < num_features_out; ++out_col_idx)
                 {
-                    //                    outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride, kernel_size)).sum();
-
                     T sum {};
-                    for(int ii = j * stride; ii < j * stride + kernel_size; ++ii)
+                    for(int in_col_idx = out_col_idx * stride; in_col_idx < out_col_idx * stride + kernel_size; ++in_col_idx)
                     {
-                        for(int jj = 0; jj < num_filters_in; ++jj)
-                            sum += kernelWeights[i][jj][ii] * (input[ii + jj * num_filters_in]);
+                        const auto kernel_col_idx = in_col_idx - out_col_idx * stride;
+                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
                     }
-                    output[j + i * num_filters_out] += sum;
+                    output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
             }
         }
         else
         {
-            for(int i = 0; i < num_filters_out; i++)
-            {
-                int j = 0;
+            //        auto inMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
+            //            RTNeuralEigenAlignment>(input, num_filters_in, num_features_in);
+            //
+            //        auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
+            //            RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
 
-                for(; j * stride < pad_left; j++)
+            for(int out_row_idx = 0; out_row_idx < num_filters_out; ++out_row_idx)
+            {
+                int out_col_idx = 0;
+
+                for(; out_col_idx * stride < pad_left; ++out_col_idx)
                 {
                     //                    const int eff_kernel_size = kernel_size - pad_left + j * stride;
                     //                    outMatrix(i, j) += kernelWeights[i].rightCols(eff_kernel_size).cwiseProduct(inMatrix.leftCols(eff_kernel_size)).sum();
 
                     T sum {};
-                    const int eff_kernel_size = kernel_size - pad_left + j * stride;
-                    for(int ii = 0; ii < eff_kernel_size; ++ii)
+                    const int eff_kernel_size = kernel_size - pad_left + out_col_idx * stride;
+                    for(int in_col_idx = 0; in_col_idx < eff_kernel_size; ++in_col_idx)
                     {
-                        for(int jj = 0; jj < num_filters_in; ++jj)
-                            sum += kernelWeights[i][jj][ii + (kernel_size - eff_kernel_size)] * (input[ii + jj * num_filters_in]);
+                        const auto kernel_col_idx = in_col_idx + (kernel_size - eff_kernel_size);
+                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
                     }
-                    output[j + i * num_filters_out] += sum;
+                    output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
 
-                for(; j * stride - pad_left + kernel_size < num_features_in; j++)
+                for(; out_col_idx * stride - pad_left + kernel_size < num_features_in; ++out_col_idx)
                 {
                     //                    outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride - pad_left, kernel_size)).sum();
 
                     T sum {};
-                    for(int ii = j * stride - pad_left; ii < j * stride - pad_left + kernel_size; ++ii)
+                    for(int in_col_idx = out_col_idx * stride - pad_left; in_col_idx < out_col_idx * stride - pad_left + kernel_size; ++in_col_idx)
                     {
-                        for(int jj = 0; jj < num_filters_in; ++jj)
-                            sum += kernelWeights[i][jj][ii] * (input[ii + jj * num_filters_in]);
+                        const auto kernel_col_idx = in_col_idx - (out_col_idx * stride - pad_left);
+                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
                     }
-                    output[j + i * num_filters_out] += sum;
+                    output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
 
-                for(; j * stride - pad_left + kernel_size <= num_features_in + pad_right; j++)
+                for(; out_col_idx * stride - pad_left + kernel_size <= num_features_in + pad_right; ++out_col_idx)
                 {
                     //                    outMatrix(i, j) += kernelWeights[i].leftCols(eff_kernel_size).cwiseProduct(inMatrix.rightCols(eff_kernel_size)).sum();
 
                     T sum {};
-                    const int eff_kernel_size = num_features_in - (j * stride - pad_left);
-                    for(int ii = 0; ii < eff_kernel_size; ++ii)
+                    const int eff_kernel_size = num_features_in - (out_col_idx * stride - pad_left);
+                    for(int in_col_idx = (num_features_in - eff_kernel_size); in_col_idx < num_features_in; ++in_col_idx)
                     {
-                        for(int jj = 0; jj < num_filters_in; ++jj)
-                            sum += kernelWeights[i][jj][ii] * (input[ii + (kernel_size - eff_kernel_size) + jj * num_filters_in]);
+                        const auto kernel_col_idx = in_col_idx - (num_features_in - eff_kernel_size);
+                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
                     }
-                    output[j + i * num_filters_out] += sum;
+                    output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
             }
         }
@@ -200,9 +202,7 @@ class Conv1DStatelessT
     static constexpr int pad_left = Conv1DStateless<T>::computePadLeft(num_features_in_t, kernel_size_t, stride_t, valid_pad_t);
     static constexpr int pad_right = Conv1DStateless<T>::computePadRight(num_features_in_t, kernel_size_t, stride_t, valid_pad_t);
 
-    using weights_type = std::array<std::array<T, num_filters_in_t>, kernel_size_t>;
-    using input_type = std::array<std::array<T, num_filters_in_t>, num_features_in_t>;
-    using output_type = std::array<std::array<T, num_filters_out_t>, num_features_out>;
+    using weights_type = std::array<std::array<T, kernel_size_t>, num_filters_in_t>;
 
 public:
     Conv1DStatelessT();
@@ -219,15 +219,20 @@ public:
     /** Performs forward propagation for this layer if pad is "valid". */
     template <bool isValid = valid_pad_t>
     inline typename std::enable_if<isValid, void>::type
-    forward(const input_type& inMatrix) noexcept
+    forward(const T (&inMatrix)[num_features_in_t * num_filters_in_t]) noexcept
     {
-        // perform a multichannel convolution
-        for(int i = 0; i < num_filters_out_t; i++)
+        for(int out_row_idx = 0; out_row_idx < num_filters_out_t; ++out_row_idx)
         {
-            for(int j = 0; j < num_features_out; j++)
+            for(int out_col_idx = 0; out_col_idx < num_features_out; ++out_col_idx)
             {
-                // TODO: manage to use middleCols<kernel_size>(j*stride)
-                //                outs(i, j) = kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride_t, kernel_size_t)).sum();
+                T sum {};
+                for(int in_col_idx = out_col_idx * stride_t; in_col_idx < out_col_idx * stride_t + kernel_size_t; ++in_col_idx)
+                {
+                    const auto kernel_col_idx = in_col_idx - out_col_idx * stride_t;
+                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
+                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
+                }
+                outs[out_col_idx * num_filters_out_t + out_row_idx] += sum;
             }
         }
     }
@@ -235,28 +240,56 @@ public:
     /** Performs forward propagation for this layer if pad is "same" */
     template <bool isValid = valid_pad_t>
     inline typename std::enable_if<!isValid, void>::type
-    forward(const input_type& inMatrix) noexcept
+    forward(const T (&inMatrix)[num_features_in_t * num_filters_in_t]) noexcept
     {
-        // perform a multichannel convolution
-        for(int i = 0; i < num_filters_out_t; i++)
+        for(int out_row_idx = 0; out_row_idx < num_filters_out_t; ++out_row_idx)
         {
-            int j = 0;
+            int out_col_idx = 0;
 
-            for(; j * stride_t < pad_left; j++)
+            for(; out_col_idx * stride_t < pad_left; ++out_col_idx)
             {
-                //                const int eff_kernel_size = kernel_size_t - pad_left + j * stride_t;
-                //                outs(i, j) = kernelWeights[i].rightCols(eff_kernel_size).cwiseProduct(inMatrix.leftCols(eff_kernel_size)).sum();
+                //                    const int eff_kernel_size = kernel_size - pad_left + j * stride;
+                //                    outMatrix(i, j) += kernelWeights[i].rightCols(eff_kernel_size).cwiseProduct(inMatrix.leftCols(eff_kernel_size)).sum();
+
+                T sum {};
+                const int eff_kernel_size = kernel_size_t - pad_left + out_col_idx * stride_t;
+                for(int in_col_idx = 0; in_col_idx < eff_kernel_size; ++in_col_idx)
+                {
+                    const auto kernel_col_idx = in_col_idx + (kernel_size_t - eff_kernel_size);
+                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
+                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
+                }
+                outs[out_col_idx * num_filters_out_t + out_row_idx] = sum;
             }
 
-            for(; j * stride_t - pad_left + kernel_size_t < num_features_in_t; j++)
-                // TODO: manage to use middleCols<kernel_size>(j*stride)
-                //                outs(i, j) = kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride_t - pad_left, kernel_size_t)).sum();
+            for(; out_col_idx * stride_t - pad_left + kernel_size_t < num_features_in_t; ++out_col_idx)
+            {
+                //                    outMatrix(i, j) += kernelWeights[i].cwiseProduct(inMatrix.middleCols(j * stride - pad_left, kernel_size)).sum();
 
-                for(; j * stride_t - pad_left + kernel_size_t <= num_features_in_t + pad_right; j++)
+                T sum {};
+                for(int in_col_idx = out_col_idx * stride_t - pad_left; in_col_idx < out_col_idx * stride_t - pad_left + kernel_size_t; ++in_col_idx)
                 {
-                    //                const int eff_kernel_size = num_features_in_t - (j * stride_t - pad_left);
-                    //                outs(i, j) = kernelWeights[i].leftCols(eff_kernel_size).cwiseProduct(inMatrix.rightCols(eff_kernel_size)).sum();
+                    const auto kernel_col_idx = in_col_idx - (out_col_idx * stride_t - pad_left);
+                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
+                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
                 }
+                outs[out_col_idx * num_filters_out_t + out_row_idx] = sum;
+            }
+
+            for(; out_col_idx * stride_t - pad_left + kernel_size_t <= num_features_in_t + pad_right; ++out_col_idx)
+            {
+                //                    outMatrix(i, j) += kernelWeights[i].leftCols(eff_kernel_size).cwiseProduct(inMatrix.rightCols(eff_kernel_size)).sum();
+
+                T sum {};
+                const int eff_kernel_size = num_features_in_t - (out_col_idx * stride_t - pad_left);
+                for(int in_col_idx = (num_features_in_t - eff_kernel_size); in_col_idx < num_features_in_t; ++in_col_idx)
+                {
+                    const auto kernel_col_idx = in_col_idx - (num_features_in_t - eff_kernel_size);
+                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
+                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
+                }
+                outs[out_col_idx * num_filters_out_t + out_row_idx] = sum;
+            }
         }
     }
 

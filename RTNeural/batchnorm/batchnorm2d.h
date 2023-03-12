@@ -29,7 +29,7 @@ public:
         {
             for (int j = 0; j < num_filters; ++j)
             {
-                out[i + j * num_filters] = (input[i + j * num_filters] - running_mean[j]) * multiplier[j] + beta[j];
+                out[i * num_filters + j] = (input[i * num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
             }
         }
     }
@@ -97,7 +97,7 @@ public:
         {
             for (int j = 0; j < num_filters; ++j)
             {
-                outs[i + j * num_filters] = (ins[i + j * num_filters] - running_mean[j]) * multiplier[j] + beta[j];
+                outs[i * num_filters + j] = (ins[i * num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
             }
         }
     }
@@ -111,7 +111,7 @@ public:
         {
             for (int j = 0; j < num_filters; ++j)
             {
-                outs[i + j * num_filters] = (ins[i + j * num_filters] - running_mean[j]) * multiplier[j];
+                outs[i * num_filters + j] = (ins[i * num_filters + j] - running_mean[j]) * multiplier[j];
             }
         }
     }

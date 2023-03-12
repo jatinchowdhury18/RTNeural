@@ -57,12 +57,6 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* output) noexcept override
     {
-        //        auto inMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
-        //            RTNeuralEigenAlignment>(input, num_filters_in, num_features_in);
-        //
-        //        auto outMatrix = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
-        //            RTNeuralEigenAlignment>(output, num_filters_out, num_features_out);
-
         for(int i = 0; i < kernel_size_time; ++i)
         {
             int state_idx_to_use = (state_index + (receptive_field - 1) - i * dilation_rate) % receptive_field;
@@ -74,11 +68,11 @@ public:
         {
             for(int j = 0; j < num_filters_out; ++j)
             {
-                output[i + j * num_filters_out] = state[state_index][i + j * num_filters_out] + bias[j];
+                output[i * num_filters_out + j] = state[state_index][i * num_filters_out + j] + bias[j];
             }
         }
 
-        std::fill (state[state_index].begin(), state[state_index].end(), (T)0);
+        std::fill(state[state_index].begin(), state[state_index].end(), (T)0);
         state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
     }
 
@@ -154,10 +148,7 @@ public:
     static constexpr auto out_size = num_filters_out_t * num_features_out;
 
     using bias_type = std::array<T, num_filters_out_t>;
-    using input_type = std::array<std::array<T, num_features_in_t>, num_features_in_t>;
-    using input_type_flat = std::array<T, in_size>;
-    using output_type = std::array<std::array<T, num_filters_out_t>, num_features_out>;
-    using output_type_flat = std::array<T, out_size>;
+    using output_type = std::array<T, num_filters_out_t * num_features_out>;
 
     static constexpr int receptive_field = 1 + (kernel_size_time_t - 1) * dilation_rate_t;
     static constexpr int num_filters_in = num_filters_in_t;
@@ -184,30 +175,34 @@ public:
 
         for(int i = 0; i < receptive_field; i++)
         {
-            for(auto& stateVec : state[i])
-                std::fill(stateVec.begin(), stateVec.end(), (T)0);
+            std::fill(state[i].begin(), state[i].end(), (T)0);
         }
     };
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const input_type_flat& inMatrix) noexcept
+    inline void forward(const T (&ins)[in_size]) noexcept
     {
-        //        const auto inMatrixReshaped = Eigen::Map<const input_type, RTNeuralEigenAlignment>(inMatrix.data());
-        //        auto outMatrix = Eigen::Map<output_type, RTNeuralEigenAlignment>(outs.data());
-        //
-        //        for(int i = 0; i < kernel_size_time_t; i++)
-        //        {
-        //            int state_idx_to_use = (state_index + (receptive_field - 1) - i * dilation_rate) % receptive_field;
-        //
-        //            conv1dLayers[i].forward(inMatrixReshaped);
-        //
-        //            state[state_idx_to_use] += Eigen::Map<output_type, RTNeuralEigenAlignment>(conv1dLayers[i].outs);
-        //        }
-        //
-        //        outMatrix = state[state_index].colwise() + bias;
-        //
-        //        state[state_index].setZero();
-        //        state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
+        for(int i = 0; i < kernel_size_time; ++i)
+        {
+            int state_idx_to_use = (state_index + (receptive_field - 1) - i * dilation_rate) % receptive_field;
+
+            std::fill (std::begin(conv1dLayers[i].outs), std::end(conv1dLayers[i].outs), (T)0);
+            conv1dLayers[i].forward(ins);
+
+            for(int j = 0; j < state[state_idx_to_use].size(); ++j)
+                state[state_idx_to_use][j] += conv1dLayers[i].outs[j];
+        }
+
+        for(int i = 0; i < num_features_out; ++i)
+        {
+            for(int j = 0; j < num_filters_out; ++j)
+            {
+                outs[i * num_filters_out + j] = state[state_index][i * num_filters_out + j] + bias[j];
+            }
+        }
+
+        std::fill(state[state_index].begin(), state[state_index].end(), (T)0);
+        state_index = state_index == receptive_field - 1 ? 0 : state_index + 1;
     }
 
     /**
@@ -247,7 +242,7 @@ private:
 
     int state_index = 0;
 
-    bias_type bias;
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) bias_type bias;
 };
 
 } // RTNEURAL
