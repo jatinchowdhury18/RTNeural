@@ -473,9 +473,11 @@ private:
 
 
 #if RTNEURAL_USE_EIGEN || ! RTNEURAL_USE_XSIMD
+/** A static sequential 2D neural network model. */
 template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int num_features_out, typename... Layers>
 using ModelT2D = ModelT<T, num_filters_in * num_features_in, num_filters_out * num_features_out, Layers...>;
 #else
+/** A static sequential 2D neural network model. */
 template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int num_features_out, typename... Layers>
 class ModelT2D
 {

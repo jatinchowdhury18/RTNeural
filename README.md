@@ -23,10 +23,10 @@ Currently supported layers:
   - [x] GRU
   - [x] LSTM
   - [x] Conv1D
-  - [x] Conv2D (Eigen and STL only)
+  - [x] Conv2D
   - [ ] MaxPooling
   - [x] BatchNorm1D
-  - [x] BatchNorm2D (Eigen and STL only)
+  - [x] BatchNorm2D
 
 Currently supported activations:
   - [x] tanh
