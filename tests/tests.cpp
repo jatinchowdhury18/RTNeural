@@ -106,10 +106,7 @@ int main(int argc, char* argv[])
         result |= model_test::model_test();
         result |= approximationTests();
         result |= sampleRateRNNTest();
-
-#if !RTNEURAL_USE_XSIMD
         result |= conv2d_test();
-#endif // ! RTNEURAL_USE_XSIMD
 
         for(auto& testConfig : tests)
         {
@@ -120,12 +117,10 @@ int main(int argc, char* argv[])
         return result;
     }
 
-#if !RTNEURAL_USE_XSIMD
     if(arg == "conv2d")
     {
         return conv2d_test();
     }
-#endif // ! RTNEURAL_USE_XSIMD
 
     if(arg == "util")
     {

@@ -1,16 +1,9 @@
-#ifndef CONV2D_H_INCLUDED
-#define CONV2D_H_INCLUDED
+#ifndef RTNEURAL_CONV2D_XSIMD_H
+#define RTNEURAL_CONV2D_XSIMD_H
 
-#if RTNEURAL_USE_EIGEN
-#include "conv2d_eigen.h"
-#include "conv2d_eigen.tpp"
-#elif RTNEURAL_USE_XSIMD
-#include "conv2d_xsimd.h"
-#include "conv2d_xsimd.tpp"
-#else
 #include "../Layer.h"
-#include "../common.h"
 #include "../conv1d_stateless/conv1d_stateless.h"
+#include <xsimd/xsimd.hpp>
 
 namespace RTNeural
 {
@@ -68,10 +61,10 @@ public:
 
         for(int i = 0; i < num_features_out; ++i)
         {
-            for(int j = 0; j < num_filters_out; ++j)
-            {
-                output[i * num_filters_out + j] = state[state_index][i * num_filters_out + j] + bias[j];
-            }
+            const auto* stateCol = state[state_index].data() + i * num_filters_out;
+            auto* outCol = output + i * num_filters_out;
+            xsimd::transform(stateCol, stateCol + num_filters_out, bias.begin(), outCol, [](auto a, auto b)
+                { return a + b; });
         }
 
         std::fill(state[state_index].begin(), state[state_index].end(), (T)0);
@@ -118,11 +111,11 @@ public:
 private:
     std::vector<Conv1DStateless<T>> conv1dLayers;
 
-    std::vector<std::vector<T>> state;
+    std::vector<std::vector<T, xsimd::aligned_allocator<T>>> state;
 
     int state_index = 0;
 
-    std::vector<T> bias;
+    std::vector<T, xsimd::aligned_allocator<T>> bias;
 };
 
 //====================================================
@@ -144,13 +137,18 @@ template <typename T, int num_filters_in_t, int num_filters_out_t, int num_featu
     int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
 class Conv2DT
 {
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_num_filters_in = ceil_div(num_filters_in_t, v_size);
+    static constexpr auto v_num_filters_out = ceil_div(num_filters_out_t, v_size);
+    static constexpr auto v_in_size = v_num_filters_in * num_features_in_t;
 public:
     static constexpr int num_features_out = Conv1DStateless<T>::computeNumFeaturesOut(num_features_in_t, kernel_size_feature_t, stride_t, valid_pad_t);
     static constexpr auto in_size = num_filters_in_t * num_features_in_t;
     static constexpr auto out_size = num_filters_out_t * num_features_out;
+    static constexpr auto v_out_size = v_num_filters_out * num_features_out;
 
-    using bias_type = std::array<T, num_filters_out_t>;
-    using output_type = std::array<T, num_filters_out_t * num_features_out>;
+    using output_type = std::array<v_type, v_out_size>;
 
     static constexpr int receptive_field = 1 + (kernel_size_time_t - 1) * dilation_rate_t;
     static constexpr int num_filters_in = num_filters_in_t;
@@ -182,7 +180,7 @@ public:
     };
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T (&ins)[in_size]) noexcept
+    inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         for(int i = 0; i < kernel_size_time; ++i)
         {
@@ -197,9 +195,9 @@ public:
 
         for(int i = 0; i < num_features_out; ++i)
         {
-            for(int j = 0; j < num_filters_out; ++j)
+            for(int j = 0; j < v_num_filters_out; ++j)
             {
-                outs[i * num_filters_out + j] = state[state_index][i * num_filters_out + j] + bias[j];
+                outs[i * v_num_filters_out + j] = state[state_index][i * v_num_filters_out + j] + bias[j];
             }
         }
 
@@ -233,7 +231,7 @@ public:
     /** Returns the convolution dilation rate */
     int getDilationRate() const noexcept { return dilation_rate_t; }
 
-    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out_t * num_features_out];
+    v_type outs[v_out_size];
 
 private:
     std::array<Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t, kernel_size_feature_t, stride_t, valid_pad_t>,
@@ -244,10 +242,9 @@ private:
 
     int state_index = 0;
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) bias_type bias;
+    v_type bias[v_num_filters_out];
 };
 
 } // RTNEURAL
 
-#endif // RTNEURAL_USE_STL
-#endif // CONV2D_H_INCLUDED
+#endif // RTNEURAL_CONV2D_XSIMD_H
