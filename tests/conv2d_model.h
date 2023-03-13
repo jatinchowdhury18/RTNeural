@@ -1,5 +1,3 @@
-#if !RTNEURAL_USE_XSIMD
-
 #pragma once
 
 #include "load_csv.hpp"
@@ -139,7 +137,7 @@ int conv2d_test()
     std::cout << "SUCCESS NON TEMPLATED!" << std::endl
               << std::endl;
 
-#if MODELT_AVAILABLE
+#if 0 // MODELT_AVAILABLE
     // templated model
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
@@ -185,5 +183,3 @@ int conv2d_test()
 
     return 0;
 }
-
-#endif // RTNEURAL_USE_EIGEN

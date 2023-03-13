@@ -1,15 +1,8 @@
-#ifndef CONV2D_H_INCLUDED
-#define CONV2D_H_INCLUDED
+#ifndef RTNEURAL_CONV2D_XSIMD_H
+#define RTNEURAL_CONV2D_XSIMD_H
 
-#if RTNEURAL_USE_EIGEN
-#include "conv2d_eigen.h"
-#include "conv2d_eigen.tpp"
-#elif RTNEURAL_USE_XSIMD
-#include "conv2d_xsimd.h"
-#include "conv2d_xsimd.tpp"
-#else
 #include "../Layer.h"
-#include "../common.h"
+#include <xsimd/xsimd.hpp>
 #include "../conv1d_stateless/conv1d_stateless.h"
 
 namespace RTNeural
@@ -249,5 +242,4 @@ private:
 
 } // RTNEURAL
 
-#endif // RTNEURAL_USE_STL
-#endif // CONV2D_H_INCLUDED
+#endif // RTNEURAL_CONV2D_XSIMD_H

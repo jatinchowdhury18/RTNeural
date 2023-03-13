@@ -1,14 +1,8 @@
-#ifndef BATCHNORM2D_H_INCLUDED
-#define BATCHNORM2D_H_INCLUDED
+#ifndef RTNEURAL_BATCHNORM2D_XSIMD_H
+#define RTNEURAL_BATCHNORM2D_XSIMD_H
 
-#if RTNEURAL_USE_EIGEN
-#include "batchnorm2d_eigen.h"
-#include "batchnorm2d_eigen.tpp"
-#elif RTNEURAL_USE_XSIMD
-#include "batchnorm2d_xsimd.h"
-#include "batchnorm2d_xsimd.tpp"
-#else
 #include "../Layer.h"
+#include <xsimd/xsimd.hpp>
 
 namespace RTNeural
 {
@@ -158,6 +152,4 @@ private:
 };
 }
 
-#endif // RTNEURAL_USE_STL
-
-#endif // BATCHNORM2D_H_INCLUDED
+#endif // RTNEURAL_BATCHNORM2D_XSIMD_H
