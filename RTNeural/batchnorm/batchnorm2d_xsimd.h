@@ -73,6 +73,10 @@ private:
 template <typename T, int num_filters_t, int num_features_t, bool affine = true>
 class BatchNorm2DT
 {
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_num_filters = ceil_div(num_filters_t, v_size);
+    static constexpr auto v_io_size = v_num_filters * num_features_t;
 public:
     static constexpr auto in_size = num_filters_t * num_features_t;
     static constexpr auto out_size = num_filters_t * num_features_t;
@@ -94,15 +98,13 @@ public:
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
     inline typename std::enable_if<isAffine, void>::type
-    forward(const T (&ins)[in_size]) noexcept
+    forward(const v_type (&ins)[v_io_size]) noexcept
     {
-        // pad along "num_filters"
-
         for(int i = 0; i < num_features; i++)
         {
-            for(int j = 0; j < num_filters; ++j)
+            for(int j = 0; j < v_num_filters; ++j)
             {
-                outs[i * num_filters + j] = (ins[i * num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
+                outs[i * v_num_filters + j] = (ins[i * v_num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
             }
         }
     }
@@ -110,13 +112,13 @@ public:
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
     inline typename std::enable_if<!isAffine, void>::type
-    forward(const T (&ins)[in_size]) noexcept
+    forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < num_features; i++)
         {
-            for(int j = 0; j < num_filters; ++j)
+            for(int j = 0; j < v_num_filters; ++j)
             {
-                outs[i * num_filters + j] = (ins[i * num_filters + j] - running_mean[j]) * multiplier[j];
+                outs[i * v_num_filters + j] = (ins[i * v_num_filters + j] - running_mean[j]) * multiplier[j];
             }
         }
     }
@@ -146,18 +148,18 @@ public:
     /** Set's the layer "epsilon" value. */
     void setEpsilon(T epsilon);
 
-    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    v_type outs[v_io_size];
 
 private:
     void updateMultiplier();
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T gamma[num_filters_t];
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T beta[num_filters_t];
+    v_type gamma[v_num_filters];
+    v_type beta[v_num_filters];
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T running_mean[num_filters_t];
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T running_var[num_filters_t];
+    v_type running_mean[v_num_filters];
+    v_type running_var[v_num_filters];
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T multiplier[num_filters_t];
+    v_type multiplier[v_num_filters];
 
     T epsilon = (T)0;
 };

@@ -83,6 +83,6 @@ template <typename T, int num_filters_in_t, int num_filters_out_t, int num_featu
 void Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t,
     kernel_size_feature_t, dilation_rate_t, stride_t, valid_pad_t>::setBias(const std::vector<T>& inBias)
 {
-    std::copy(inBias.begin(), inBias.end(), bias.begin());
+    std::copy(inBias.begin(), inBias.end(), reinterpret_cast<T*>(std::begin(bias)));
 }
 } // RTNeural

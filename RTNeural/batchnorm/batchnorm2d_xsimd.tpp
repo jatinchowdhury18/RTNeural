@@ -72,7 +72,7 @@ template <typename T, int num_filters_t, int num_features_t, bool affine>
 template <bool isAffine>
 typename std::enable_if<isAffine, void>::type BatchNorm2DT<T, num_filters_t, num_features_t, affine>::setGamma(const std::vector<T>& gammaVals)
 {
-    std::copy(gammaVals.begin(), gammaVals.end(), std::begin(gamma));
+    std::copy(gammaVals.begin(), gammaVals.end(), reinterpret_cast<T*>(std::begin(gamma)));
     updateMultiplier();
 }
 
@@ -80,19 +80,19 @@ template <typename T, int num_filters_t, int num_features_t, bool affine>
 template <bool isAffine>
 typename std::enable_if<isAffine, void>::type BatchNorm2DT<T, num_filters_t, num_features_t, affine>::setBeta(const std::vector<T>& betaVals)
 {
-    std::copy(betaVals.begin(), betaVals.end(), std::begin(beta));
+    std::copy(betaVals.begin(), betaVals.end(), reinterpret_cast<T*>(std::begin(beta)));
 }
 
 template <typename T, int num_filters_t, int num_features_t, bool affine>
 void BatchNorm2DT<T, num_filters_t, num_features_t, affine>::setRunningMean(const std::vector<T>& runningMean)
 {
-    std::copy(runningMean.begin(), runningMean.end(), std::begin(running_mean));
+    std::copy(runningMean.begin(), runningMean.end(), reinterpret_cast<T*>(std::begin(running_mean)));
 }
 
 template <typename T, int num_filters_t, int num_features_t, bool affine>
 void BatchNorm2DT<T, num_filters_t, num_features_t, affine>::setRunningVariance(const std::vector<T>& runningVar)
 {
-    std::copy(runningVar.begin(), runningVar.end(), std::begin(running_var));
+    std::copy(runningVar.begin(), runningVar.end(), reinterpret_cast<T*>(std::begin(running_var)));
     updateMultiplier();
 }
 
@@ -106,7 +106,7 @@ void BatchNorm2DT<T, num_filters_t, num_features_t, affine>::setEpsilon(T newEps
 template <typename T, int num_filters_t, int num_features_t, bool affine>
 void BatchNorm2DT<T, num_filters_t, num_features_t, affine>::updateMultiplier()
 {
-    for(int i = 0; i < num_filters_t; ++i)
-        multiplier[i] = gamma[i] / std::sqrt(running_var[i] + epsilon);
+    for(int i = 0; i < v_num_filters; ++i)
+        multiplier[i] = gamma[i] / xsimd::sqrt(running_var[i] + epsilon);
 }
 }

@@ -137,12 +137,13 @@ int conv2d_test()
     std::cout << "SUCCESS NON TEMPLATED!" << std::endl
               << std::endl;
 
-#if 0 // MODELT_AVAILABLE
+#if MODELT_AVAILABLE
     // templated model
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
         std::cout << "Loading templated model" << std::endl;
-        RTNeural::ModelT<TestType, num_features_in, 8,
+
+        RTNeural::ModelT2D<TestType, 1, num_features_in, 1, 8,
             RTNeural::Conv2DT<TestType, 1, 2, num_features_in, 5, 5, 2, 1, true>,
             RTNeural::BatchNorm2DT<TestType, 2, 19, false>,
             RTNeural::ReLuActivationT<TestType, 2 * 19>,

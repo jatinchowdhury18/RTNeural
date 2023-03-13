@@ -84,8 +84,9 @@ public:
                             kernelWeights[out_row_idx][kernel_col_idx].end(),
                             input + in_col_idx * num_filters_in,
                             scratch.begin(),
-                            [] (auto a, auto b) { return a * b; });
-                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
+                            [](auto a, auto b)
+                            { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T {});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -108,8 +109,9 @@ public:
                             kernelWeights[out_row_idx][kernel_col_idx].end(),
                             input + in_col_idx * num_filters_in,
                             scratch.begin(),
-                            [] (auto a, auto b) { return a * b; });
-                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
+                            [](auto a, auto b)
+                            { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T {});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -124,8 +126,9 @@ public:
                             kernelWeights[out_row_idx][kernel_col_idx].end(),
                             input + in_col_idx * num_filters_in,
                             scratch.begin(),
-                            [] (auto a, auto b) { return a * b; });
-                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
+                            [](auto a, auto b)
+                            { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T {});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -141,8 +144,9 @@ public:
                             kernelWeights[out_row_idx][kernel_col_idx].end(),
                             input + in_col_idx * num_filters_in,
                             scratch.begin(),
-                            [] (auto a, auto b) { return a * b; });
-                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
+                            [](auto a, auto b)
+                            { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T {});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -203,7 +207,14 @@ class Conv1DStatelessT
     static constexpr int pad_left = Conv1DStateless<T>::computePadLeft(num_features_in_t, kernel_size_t, stride_t, valid_pad_t);
     static constexpr int pad_right = Conv1DStateless<T>::computePadRight(num_features_in_t, kernel_size_t, stride_t, valid_pad_t);
 
-    using weights_type = std::array<std::array<T, kernel_size_t>, num_filters_in_t>;
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_num_filters_in = ceil_div(num_filters_in_t, v_size);
+    static constexpr auto v_num_filters_out = ceil_div(num_filters_out_t, v_size);
+    static constexpr auto v_in_size = v_num_filters_in * num_features_in_t;
+    static constexpr auto v_out_size = v_num_filters_out * num_features_out;
+
+    using weights_type = std::array<std::array<v_type, v_num_filters_in>, kernel_size_t>;
 
 public:
     Conv1DStatelessT();
@@ -220,20 +231,26 @@ public:
     /** Performs forward propagation for this layer if pad is "valid". */
     template <bool isValid = valid_pad_t>
     inline typename std::enable_if<isValid, void>::type
-    forward(const T (&inMatrix)[num_features_in_t * num_filters_in_t]) noexcept
+    forward(const v_type (&inMatrix)[v_in_size]) noexcept
     {
-        for(int out_row_idx = 0; out_row_idx < num_filters_out_t; ++out_row_idx)
+        // @TODO: can we vectorize in the other direction if num_filters == 1?
+        for(int out_col_idx = 0; out_col_idx < num_features_out; ++out_col_idx)
         {
-            for(int out_col_idx = 0; out_col_idx < num_features_out; ++out_col_idx)
+            for(int out_row_idx = 0; out_row_idx < v_num_filters_out; ++out_row_idx)
             {
-                T sum {};
-                for(int in_col_idx = out_col_idx * stride_t; in_col_idx < out_col_idx * stride_t + kernel_size_t; ++in_col_idx)
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_temp[v_size] {};
+                for(int i = 0; i < v_size; ++i)
                 {
-                    const auto kernel_col_idx = in_col_idx - out_col_idx * stride_t;
-                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
-                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
+                    v_type sum {};
+                    for(int in_col_idx = out_col_idx * stride_t; in_col_idx < out_col_idx * stride_t + kernel_size_t; ++in_col_idx)
+                    {
+                        const auto kernel_col_idx = in_col_idx - out_col_idx * stride_t;
+                        for(int in_row_idx = 0; in_row_idx < v_num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx * v_size + i][kernel_col_idx][in_row_idx] * (inMatrix[in_col_idx * v_num_filters_in + in_row_idx]);
+                    }
+                    out_temp[i] = xsimd::reduce_add(sum);
                 }
-                outs[out_col_idx * num_filters_out_t + out_row_idx] += sum;
+                outs[out_col_idx * v_num_filters_out + out_row_idx] += xsimd::load_aligned(out_temp);
             }
         }
     }
@@ -241,48 +258,69 @@ public:
     /** Performs forward propagation for this layer if pad is "same" */
     template <bool isValid = valid_pad_t>
     inline typename std::enable_if<!isValid, void>::type
-    forward(const T (&inMatrix)[num_features_in_t * num_filters_in_t]) noexcept
+    forward(const v_type (&inMatrix)[v_in_size]) noexcept
     {
-        for(int out_row_idx = 0; out_row_idx < num_filters_out_t; ++out_row_idx)
+        int out_col_idx = 0;
+
+        for(; out_col_idx * stride_t < pad_left; ++out_col_idx)
         {
-            int out_col_idx = 0;
-
-            for(; out_col_idx * stride_t < pad_left; ++out_col_idx)
+            for(int out_row_idx = 0; out_row_idx < v_num_filters_out; ++out_row_idx)
             {
-                T sum {};
-                const int eff_kernel_size = kernel_size_t - pad_left + out_col_idx * stride_t;
-                for(int in_col_idx = 0; in_col_idx < eff_kernel_size; ++in_col_idx)
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_temp[v_size] {};
+                for(int i = 0; i < v_size; ++i)
                 {
-                    const auto kernel_col_idx = in_col_idx + (kernel_size_t - eff_kernel_size);
-                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
-                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
+                    v_type sum {};
+                    const int eff_kernel_size = kernel_size_t - pad_left + out_col_idx * stride_t;
+                    for(int in_col_idx = 0; in_col_idx < eff_kernel_size; ++in_col_idx)
+                    {
+                        const auto kernel_col_idx = in_col_idx + (kernel_size_t - eff_kernel_size);
+                        for(int in_row_idx = 0; in_row_idx < v_num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx * v_size + i][kernel_col_idx][in_row_idx] * (inMatrix[in_col_idx * v_num_filters_in + in_row_idx]);
+                    }
+                    out_temp[i] = xsimd::reduce_add(sum);
                 }
-                outs[out_col_idx * num_filters_out_t + out_row_idx] = sum;
+                outs[out_col_idx * v_num_filters_out + out_row_idx] += xsimd::load_aligned(out_temp);
             }
+        }
 
-            for(; out_col_idx * stride_t - pad_left + kernel_size_t < num_features_in_t; ++out_col_idx)
+        for(; out_col_idx * stride_t - pad_left + kernel_size_t < num_features_in_t; ++out_col_idx)
+        {
+            for(int out_row_idx = 0; out_row_idx < v_num_filters_out; ++out_row_idx)
             {
-                T sum {};
-                for(int in_col_idx = out_col_idx * stride_t - pad_left; in_col_idx < out_col_idx * stride_t - pad_left + kernel_size_t; ++in_col_idx)
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_temp[v_size] {};
+                for(int i = 0; i < v_size; ++i)
                 {
-                    const auto kernel_col_idx = in_col_idx - (out_col_idx * stride_t - pad_left);
-                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
-                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
+                    v_type sum {};
+                    for(int in_col_idx = out_col_idx * stride_t - pad_left; in_col_idx < out_col_idx * stride_t - pad_left + kernel_size_t; ++in_col_idx)
+                    {
+                        const auto kernel_col_idx = in_col_idx - (out_col_idx * stride_t - pad_left);
+                        for(int in_row_idx = 0; in_row_idx < v_num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx * v_size + i][kernel_col_idx][in_row_idx] * (inMatrix[in_col_idx * v_num_filters_in + in_row_idx]);
+                    }
+                    out_temp[i] = xsimd::reduce_add(sum);
                 }
-                outs[out_col_idx * num_filters_out_t + out_row_idx] = sum;
+                outs[out_col_idx * v_num_filters_out + out_row_idx] += xsimd::load_aligned(out_temp);
             }
+        }
 
-            for(; out_col_idx * stride_t - pad_left + kernel_size_t <= num_features_in_t + pad_right; ++out_col_idx)
+        for(; out_col_idx * stride_t - pad_left + kernel_size_t <= num_features_in_t + pad_right; ++out_col_idx)
+        {
+            for(int out_row_idx = 0; out_row_idx < v_num_filters_out; ++out_row_idx)
             {
-                T sum {};
-                const int eff_kernel_size = num_features_in_t - (out_col_idx * stride_t - pad_left);
-                for(int in_col_idx = (num_features_in_t - eff_kernel_size); in_col_idx < num_features_in_t; ++in_col_idx)
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_temp[v_size] {};
+                for(int i = 0; i < v_size; ++i)
                 {
-                    const auto kernel_col_idx = in_col_idx - (num_features_in_t - eff_kernel_size);
-                    for(int in_row_idx = 0; in_row_idx < num_filters_in_t; ++in_row_idx)
-                        sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (inMatrix[in_col_idx * num_filters_in_t + in_row_idx]);
+                    v_type sum {};
+                    const int eff_kernel_size = num_features_in_t - (out_col_idx * stride_t - pad_left);
+                    for(int in_col_idx = (num_features_in_t - eff_kernel_size); in_col_idx < num_features_in_t; ++in_col_idx)
+                    {
+                        const auto kernel_col_idx = in_col_idx - (num_features_in_t - eff_kernel_size);
+                        for(int in_row_idx = 0; in_row_idx < v_num_filters_in; ++in_row_idx)
+                            sum += kernelWeights[out_row_idx * v_size + i][kernel_col_idx][in_row_idx] * (inMatrix[in_col_idx * v_num_filters_in + in_row_idx]);
+                    }
+                    out_temp[i] = xsimd::reduce_add(sum);
                 }
-                outs[out_col_idx * num_filters_out_t + out_row_idx] = sum;
+                outs[out_col_idx * v_num_filters_out + out_row_idx] += xsimd::load_aligned(out_temp);
             }
         }
     }
@@ -300,7 +338,7 @@ public:
     /** Returns the convolution dilation rate. */
     int getStride() const noexcept { return stride_t; }
 
-    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out_t * num_features_out];
+    v_type outs[v_out_size];
 
 private:
     weights_type kernelWeights[num_filters_out_t];

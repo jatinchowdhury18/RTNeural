@@ -132,7 +132,6 @@ namespace modelt_detail
                 json_stream_idx++;
         }
     }
-#if !RTNEURAL_USE_XSIMD
     template <typename T, int num_filters_in_t, int num_filters_out_t, int num_features_in_t, int kernel_size_time_t,
         int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
     void loadLayer(Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_size_time_t,
@@ -166,7 +165,6 @@ namespace modelt_detail
                 json_stream_idx++;
         }
     }
-#endif // RTNEURAL_USE_EIGEN
 
     template <typename T, int in_size, int out_size, SampleRateCorrectionMode mode>
     void loadLayer(GRULayerT<T, in_size, out_size, mode>& gru, int& json_stream_idx, const nlohmann::json& l,
@@ -235,7 +233,6 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
-#if !RTNEURAL_USE_XSIMD
     template <typename T, int num_filters, int num_features, bool affine>
     void loadLayer(BatchNorm2DT<T, num_filters, num_features, affine>& batch_norm, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
@@ -255,8 +252,73 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
-#endif // RTNEURAL_USE_EIGEN
+    template <typename T, int in_size, typename... Layers>
+    void parseJson(const nlohmann::json& parent, std::tuple<Layers...>& layers, const bool debug = false, std::initializer_list<std::string> custom_layers = {})
+    {
+        using namespace json_parser;
 
+        auto shape = parent["in_shape"];
+        auto json_layers = parent["layers"];
+
+        if(!shape.is_array() || !json_layers.is_array())
+            return;
+
+        // If 4D: nDims is num_features * num_channels
+        const int nDims = shape.size() == 4 ? shape[2].get<int>() * shape[3].get<int>() : shape.back().get<int>();
+
+        debug_print("# dimensions: " + std::to_string(nDims), debug);
+
+        if(nDims != in_size)
+        {
+            debug_print("Incorrect input size!", debug);
+            return;
+        }
+
+        int json_stream_idx = 0;
+        modelt_detail::forEachInTuple([&](auto& layer, size_t)
+            {
+                if(json_stream_idx >= (int)json_layers.size())
+                {
+                    debug_print("Too many layers!", debug);
+                    return;
+                }
+
+                const auto l = json_layers.at(json_stream_idx);
+                const auto type = l["type"].get<std::string>();
+                const auto layerShape = l["shape"];
+
+                // If 4D: layerDims is num_features * num_channels
+                const int layerDims = layerShape.size() == 4 ? layerShape[2].get<int>() * layerShape[3].get<int>() : layerShape.back().get<int>();
+
+                if(layer.isActivation()) // activation layers don't need initialisation
+                {
+                    if(!l.contains("activation"))
+                    {
+                        debug_print("No activation layer expected!", debug);
+                        return;
+                    }
+
+                    const auto activationType = l["activation"].get<std::string>();
+                    if(!activationType.empty())
+                    {
+                        debug_print("  activation: " + activationType, debug);
+                        checkActivation(layer, activationType, layerDims, debug);
+                    }
+
+                    json_stream_idx++;
+                    return;
+                }
+
+                if(std::find(custom_layers.begin(), custom_layers.end(), type) != custom_layers.end())
+                {
+                    std::cout << "Skipping loading weights for custom layer: " << type << std::endl;
+                    json_stream_idx++;
+                    return;
+                }
+
+                modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug); },
+            layers);
+    }
 } // namespace modelt_detail
 #endif // DOXYGEN
 
@@ -375,69 +437,7 @@ public:
     /** Loads neural network model weights from a json stream. */
     void parseJson(const nlohmann::json& parent, const bool debug = false, std::initializer_list<std::string> custom_layers = {})
     {
-        using namespace json_parser;
-
-        auto shape = parent["in_shape"];
-        auto json_layers = parent["layers"];
-
-        if(!shape.is_array() || !json_layers.is_array())
-            return;
-
-        // If 4D: nDims is num_features * num_channels
-        const int nDims = shape.size() == 4 ? shape[2].get<int>() * shape[3].get<int>() : shape.back().get<int>();
-
-        debug_print("# dimensions: " + std::to_string(nDims), debug);
-
-        if(nDims != in_size)
-        {
-            debug_print("Incorrect input size!", debug);
-            return;
-        }
-
-        int json_stream_idx = 0;
-        modelt_detail::forEachInTuple([&](auto& layer, size_t)
-            {
-            if(json_stream_idx >= (int)json_layers.size())
-            {
-                debug_print("Too many layers!", debug);
-                return;
-            }
-
-            const auto l = json_layers.at(json_stream_idx);
-            const auto type = l["type"].get<std::string>();
-            const auto layerShape = l["shape"];
-
-            // If 4D: layerDims is num_features * num_channels
-            const int layerDims = layerShape.size() == 4 ? layerShape[2].get<int>() * layerShape[3].get<int>() : layerShape.back().get<int>();
-
-            if(layer.isActivation()) // activation layers don't need initialisation
-            {
-                if(!l.contains("activation"))
-                {
-                    debug_print("No activation layer expected!", debug);
-                    return;
-                }
-
-                const auto activationType = l["activation"].get<std::string>();
-                if(!activationType.empty())
-                {
-                    debug_print("  activation: " + activationType, debug);
-                    checkActivation(layer, activationType, layerDims, debug);
-                }
-
-                json_stream_idx++;
-                return;
-            }
-
-            if(std::find(custom_layers.begin(), custom_layers.end(), type) != custom_layers.end())
-            {
-                std::cout << "Skipping loading weights for custom layer: " << type << std::endl;
-                json_stream_idx++;
-                return;
-            }
-
-            modelt_detail::loadLayer<T>(layer, json_stream_idx, l, type, layerDims, debug); },
-            layers);
+        modelt_detail::parseJson<T, in_size>(parent, layers, debug, custom_layers);
     }
 
     /** Loads neural network model weights from a json stream. */
@@ -461,12 +461,118 @@ private:
     T v_ins alignas(RTNEURAL_DEFAULT_ALIGNMENT)[in_size];
 #endif
 
+#if RTNEURAL_USE_XSIMD
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_out_size * v_size];
+#else
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+#endif
 
     std::tuple<Layers...> layers;
     static constexpr size_t n_layers = sizeof...(Layers);
 };
 
+
+#if RTNEURAL_USE_EIGEN || ! RTNEURAL_USE_XSIMD
+template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int num_features_out, typename... Layers>
+using ModelT2D = ModelT<T, num_filters_in * num_features_in, num_filters_out * num_features_out, Layers...>;
+#else
+template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int num_features_out, typename... Layers>
+class ModelT2D
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_num_filters_in = ceil_div(num_filters_in, v_size);
+    static constexpr auto v_num_filters_out = ceil_div(num_filters_out, v_size);
+    static constexpr auto v_in_size = v_num_filters_in * num_features_in;
+    static constexpr auto v_out_size = v_num_filters_out * num_features_out;
+
+public:
+    static constexpr auto input_size = num_filters_in * num_features_in;
+    static constexpr auto output_size = num_filters_out * num_features_out;
+    static constexpr auto input_size_padded = v_in_size * v_size;
+    static constexpr auto output_size_padded = v_out_size * v_size;
+
+    ModelT2D()
+    {
+        for(int i = 0; i < v_in_size; ++i)
+            v_ins[i] = v_type((T)0);
+    }
+
+    /** Get a reference to the layer at index `Index`. */
+    template <int Index>
+    auto& get() noexcept
+    {
+        return std::get<Index>(layers);
+    }
+
+    /** Get a reference to the layer at index `Index`. */
+    template <int Index>
+    const auto& get() const noexcept
+    {
+        return std::get<Index>(layers);
+    }
+
+    /** Resets the state of the network layers. */
+    void reset()
+    {
+        modelt_detail::forEachInTuple([&](auto& layer, size_t)
+            { layer.reset(); },
+            layers);
+    }
+
+    /** Performs forward propagation for this model. */
+    inline T forward(const T* input)
+    {
+        for(int feature_index = 0; feature_index < num_features_in; ++feature_index)
+        {
+            alignas (RTNEURAL_DEFAULT_ALIGNMENT) T load_arr[v_size * v_num_filters_in] {};
+            std::copy(input + feature_index * num_filters_in, input + feature_index * num_filters_in + num_filters_in, std::begin(load_arr));
+            for (int i = 0; i < v_num_filters_in; ++i)
+                v_ins[feature_index * num_filters_in + i] = xsimd::load_aligned(load_arr + i * v_size);
+        }
+        std::get<0>(layers).forward(v_ins);
+        modelt_detail::forward_unroll<1, n_layers - 1>::call(layers);
+
+        for(int feature_index = 0; feature_index < num_features_out; ++feature_index)
+        {
+            alignas (RTNEURAL_DEFAULT_ALIGNMENT) T store_arr[v_size * v_num_filters_out] {};
+            for (int i = 0; i < v_num_filters_out; ++i)
+                xsimd::store_aligned(store_arr + i * v_size, get<n_layers - 1>().outs[feature_index * num_filters_out + i]);
+            std::copy(std::begin(store_arr), std::begin(store_arr) + num_filters_out, outs + feature_index * num_filters_out);
+        }
+
+        return outs[0];
+    }
+
+    /** Returns a pointer to the output of the final layer in the network. */
+    inline const T* getOutputs() const noexcept
+    {
+        return outs;
+    }
+
+    /** Loads neural network model weights from a json stream. */
+    void parseJson(const nlohmann::json& parent, const bool debug = false, std::initializer_list<std::string> custom_layers = {})
+    {
+        modelt_detail::parseJson<T, input_size>(parent, layers, debug, custom_layers);
+    }
+
+    /** Loads neural network model weights from a json stream. */
+    void parseJson(std::ifstream& jsonStream, const bool debug = false, std::initializer_list<std::string> custom_layers = {})
+    {
+        nlohmann::json parent;
+        jsonStream >> parent;
+        return parseJson(parent, debug, custom_layers);
+    }
+
+private:
+    v_type v_ins[v_in_size] {};
+
+    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[output_size] {};
+
+    std::tuple<Layers...> layers;
+    static constexpr size_t n_layers = sizeof...(Layers);
+};
+#endif // RTNEURAL_USE_XSIMD
 } // namespace RTNeural
 
 #endif // MODELT_AVAILABLE

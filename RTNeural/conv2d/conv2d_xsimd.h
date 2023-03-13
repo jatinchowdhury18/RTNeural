@@ -137,13 +137,18 @@ template <typename T, int num_filters_in_t, int num_filters_out_t, int num_featu
     int kernel_size_feature_t, int dilation_rate_t, int stride_t, bool valid_pad_t>
 class Conv2DT
 {
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_num_filters_in = ceil_div(num_filters_in_t, v_size);
+    static constexpr auto v_num_filters_out = ceil_div(num_filters_out_t, v_size);
+    static constexpr auto v_in_size = v_num_filters_in * num_features_in_t;
 public:
     static constexpr int num_features_out = Conv1DStateless<T>::computeNumFeaturesOut(num_features_in_t, kernel_size_feature_t, stride_t, valid_pad_t);
     static constexpr auto in_size = num_filters_in_t * num_features_in_t;
     static constexpr auto out_size = num_filters_out_t * num_features_out;
+    static constexpr auto v_out_size = v_num_filters_out * num_features_out;
 
-    using bias_type = std::array<T, num_filters_out_t>;
-    using output_type = std::array<T, num_filters_out_t * num_features_out>;
+    using output_type = std::array<v_type, v_out_size>;
 
     static constexpr int receptive_field = 1 + (kernel_size_time_t - 1) * dilation_rate_t;
     static constexpr int num_filters_in = num_filters_in_t;
@@ -175,7 +180,7 @@ public:
     };
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T (&ins)[in_size]) noexcept
+    inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         for(int i = 0; i < kernel_size_time; ++i)
         {
@@ -190,9 +195,9 @@ public:
 
         for(int i = 0; i < num_features_out; ++i)
         {
-            for(int j = 0; j < num_filters_out; ++j)
+            for(int j = 0; j < v_num_filters_out; ++j)
             {
-                outs[i * num_filters_out + j] = state[state_index][i * num_filters_out + j] + bias[j];
+                outs[i * v_num_filters_out + j] = state[state_index][i * v_num_filters_out + j] + bias[j];
             }
         }
 
@@ -226,7 +231,7 @@ public:
     /** Returns the convolution dilation rate */
     int getDilationRate() const noexcept { return dilation_rate_t; }
 
-    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out_t * num_features_out];
+    v_type outs[v_out_size];
 
 private:
     std::array<Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t, kernel_size_feature_t, stride_t, valid_pad_t>,
@@ -237,7 +242,7 @@ private:
 
     int state_index = 0;
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) bias_type bias;
+    v_type bias[v_num_filters_out];
 };
 
 } // RTNEURAL

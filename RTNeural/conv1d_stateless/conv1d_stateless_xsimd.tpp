@@ -69,6 +69,6 @@ void Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t,
     for(int i = 0; i < num_filters_out_t; ++i)
         for(int k = 0; k < num_filters_in_t; ++k)
             for(int j = 0; j < kernel_size_t; ++j)
-                kernelWeights[i][k][j] = inWeights.at(i).at(k).at(j);
+                kernelWeights[i][j][k / v_size] = set_value(kernelWeights[i][j][k / v_size], k % v_size, inWeights.at(i).at(k).at(j));
 }
 } // RTNeural
