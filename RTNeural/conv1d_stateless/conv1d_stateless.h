@@ -164,7 +164,7 @@ private:
     const int pad_left;
     const int pad_right;
 
-    using Matrix = std::vector<std::vector<float>>;
+    using Matrix = std::vector<std::vector<T>>;
     std::vector<Matrix> kernelWeights;
 };
 

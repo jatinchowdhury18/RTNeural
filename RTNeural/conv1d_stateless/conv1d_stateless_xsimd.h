@@ -80,8 +80,12 @@ public:
                     for(int in_col_idx = out_col_idx * stride; in_col_idx < out_col_idx * stride + kernel_size; ++in_col_idx)
                     {
                         const auto kernel_col_idx = in_col_idx - out_col_idx * stride;
-                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
-                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
+                        xsimd::transform(kernelWeights[out_row_idx][kernel_col_idx].begin(),
+                            kernelWeights[out_row_idx][kernel_col_idx].end(),
+                            input + in_col_idx * num_filters_in,
+                            scratch.begin(),
+                            [] (auto a, auto b) { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -100,8 +104,12 @@ public:
                     for(int in_col_idx = 0; in_col_idx < eff_kernel_size; ++in_col_idx)
                     {
                         const auto kernel_col_idx = in_col_idx + (kernel_size - eff_kernel_size);
-                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
-                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
+                        xsimd::transform(kernelWeights[out_row_idx][kernel_col_idx].begin(),
+                            kernelWeights[out_row_idx][kernel_col_idx].end(),
+                            input + in_col_idx * num_filters_in,
+                            scratch.begin(),
+                            [] (auto a, auto b) { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -112,8 +120,12 @@ public:
                     for(int in_col_idx = out_col_idx * stride - pad_left; in_col_idx < out_col_idx * stride - pad_left + kernel_size; ++in_col_idx)
                     {
                         const auto kernel_col_idx = in_col_idx - (out_col_idx * stride - pad_left);
-                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
-                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
+                        xsimd::transform(kernelWeights[out_row_idx][kernel_col_idx].begin(),
+                            kernelWeights[out_row_idx][kernel_col_idx].end(),
+                            input + in_col_idx * num_filters_in,
+                            scratch.begin(),
+                            [] (auto a, auto b) { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -125,8 +137,12 @@ public:
                     for(int in_col_idx = (num_features_in - eff_kernel_size); in_col_idx < num_features_in; ++in_col_idx)
                     {
                         const auto kernel_col_idx = in_col_idx - (num_features_in - eff_kernel_size);
-                        for(int in_row_idx = 0; in_row_idx < num_filters_in; ++in_row_idx)
-                            sum += kernelWeights[out_row_idx][in_row_idx][kernel_col_idx] * (input[in_col_idx * num_filters_in + in_row_idx]);
+                        xsimd::transform(kernelWeights[out_row_idx][kernel_col_idx].begin(),
+                            kernelWeights[out_row_idx][kernel_col_idx].end(),
+                            input + in_col_idx * num_filters_in,
+                            scratch.begin(),
+                            [] (auto a, auto b) { return a * b; });
+                        sum += xsimd::reduce(scratch.begin(), scratch.end(), T{});
                     }
                     output[out_col_idx * num_filters_out + out_row_idx] += sum;
                 }
@@ -158,8 +174,10 @@ private:
     const int pad_left;
     const int pad_right;
 
-    using Matrix = std::vector<std::vector<float>>;
+    using Matrix = std::vector<std::vector<T, xsimd::aligned_allocator<T>>>;
     std::vector<Matrix> kernelWeights;
+
+    std::vector<T, xsimd::aligned_allocator<T>> scratch;
 };
 
 //====================================================

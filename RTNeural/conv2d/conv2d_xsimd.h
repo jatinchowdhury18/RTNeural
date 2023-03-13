@@ -2,8 +2,8 @@
 #define RTNEURAL_CONV2D_XSIMD_H
 
 #include "../Layer.h"
-#include <xsimd/xsimd.hpp>
 #include "../conv1d_stateless/conv1d_stateless.h"
+#include <xsimd/xsimd.hpp>
 
 namespace RTNeural
 {
@@ -61,10 +61,10 @@ public:
 
         for(int i = 0; i < num_features_out; ++i)
         {
-            for(int j = 0; j < num_filters_out; ++j)
-            {
-                output[i * num_filters_out + j] = state[state_index][i * num_filters_out + j] + bias[j];
-            }
+            const auto* stateCol = state[state_index].data() + i * num_filters_out;
+            auto* outCol = output + i * num_filters_out;
+            xsimd::transform(stateCol, stateCol + num_filters_out, bias.begin(), outCol, [](auto a, auto b)
+                { return a + b; });
         }
 
         std::fill(state[state_index].begin(), state[state_index].end(), (T)0);
@@ -111,11 +111,11 @@ public:
 private:
     std::vector<Conv1DStateless<T>> conv1dLayers;
 
-    std::vector<std::vector<T>> state;
+    std::vector<std::vector<T, xsimd::aligned_allocator<T>>> state;
 
     int state_index = 0;
 
-    std::vector<T> bias;
+    std::vector<T, xsimd::aligned_allocator<T>> bias;
 };
 
 //====================================================

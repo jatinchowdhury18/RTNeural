@@ -21,10 +21,17 @@ public:
     {
         for(int i = 0; i < num_features; i++)
         {
-            for(int j = 0; j < num_filters; ++j)
-            {
-                out[i * num_filters + j] = (input[i * num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
-            }
+            const auto* inCol = input + i * num_filters;
+            auto* outCol = out + i * num_filters;
+            xsimd::transform(inCol, inCol + num_filters, running_mean.begin(), outCol,
+                [](auto const& a, auto const& b)
+                { return a - b; });
+            xsimd::transform(outCol, outCol + num_filters, multiplier.begin(), outCol,
+                [](auto const& a, auto const& b)
+                { return a * b; });
+            xsimd::transform(outCol, outCol + num_filters, beta.begin(), outCol,
+                [](auto const& a, auto const& b)
+                { return a + b; });
         }
     }
 
@@ -49,13 +56,15 @@ private:
     const int num_filters;
     const int num_features;
 
-    std::vector<T> gamma;
-    std::vector<T> beta;
+    using vec_type = std::vector<T, xsimd::aligned_allocator<T>>;
 
-    std::vector<T> running_mean;
-    std::vector<T> running_var;
+    vec_type gamma;
+    vec_type beta;
 
-    std::vector<T> multiplier;
+    vec_type running_mean;
+    vec_type running_var;
+
+    vec_type multiplier;
 
     T epsilon = (T)0;
 };
@@ -87,6 +96,8 @@ public:
     inline typename std::enable_if<isAffine, void>::type
     forward(const T (&ins)[in_size]) noexcept
     {
+        // pad along "num_filters"
+
         for(int i = 0; i < num_features; i++)
         {
             for(int j = 0; j < num_filters; ++j)

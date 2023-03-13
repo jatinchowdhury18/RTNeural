@@ -18,10 +18,12 @@ Conv1DStateless<T>::Conv1DStateless(int in_num_filters_in, int in_num_features_i
     kernelWeights.resize(num_filters_out);
     for(auto& kw : kernelWeights)
     {
-        kw.resize(num_filters_in);
+        kw.resize(kernel_size);
         for(auto& col : kw)
-            col.resize(kernel_size, (T)0);
+            col.resize(num_filters_in, (T)0);
     }
+
+    scratch.resize(num_filters_in, (T)0);
 }
 
 template <typename T>
@@ -48,7 +50,7 @@ void Conv1DStateless<T>::setWeights(const std::vector<std::vector<std::vector<T>
     for(int i = 0; i < num_filters_out; ++i)
         for(int k = 0; k < num_filters_in; ++k)
             for(int j = 0; j < kernel_size; ++j)
-                kernelWeights[i][k][j] = inWeights.at(i).at(k).at(j);
+                kernelWeights[i][j][k] = inWeights.at(i).at(k).at(j);
 }
 
 //====================================================
