@@ -142,6 +142,7 @@ class Conv2DT
     static constexpr auto v_num_filters_in = ceil_div(num_filters_in_t, v_size);
     static constexpr auto v_num_filters_out = ceil_div(num_filters_out_t, v_size);
     static constexpr auto v_in_size = v_num_filters_in * num_features_in_t;
+
 public:
     static constexpr int num_features_out = Conv1DStateless<T>::computeNumFeaturesOut(num_features_in_t, kernel_size_feature_t, stride_t, valid_pad_t);
     static constexpr auto in_size = num_filters_in_t * num_features_in_t;

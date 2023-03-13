@@ -77,6 +77,7 @@ class BatchNorm2DT
     static constexpr auto v_size = (int)v_type::size;
     static constexpr auto v_num_filters = ceil_div(num_filters_t, v_size);
     static constexpr auto v_io_size = v_num_filters * num_features_t;
+
 public:
     static constexpr auto in_size = num_filters_t * num_features_t;
     static constexpr auto out_size = num_filters_t * num_features_t;

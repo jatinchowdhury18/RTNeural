@@ -471,8 +471,7 @@ private:
     static constexpr size_t n_layers = sizeof...(Layers);
 };
 
-
-#if RTNEURAL_USE_EIGEN || ! RTNEURAL_USE_XSIMD
+#if RTNEURAL_USE_EIGEN || !RTNEURAL_USE_XSIMD
 /** A static sequential 2D neural network model. */
 template <typename T, int num_filters_in, int num_features_in, int num_filters_out, int num_features_out, typename... Layers>
 using ModelT2D = ModelT<T, num_filters_in * num_features_in, num_filters_out * num_features_out, Layers...>;
@@ -527,9 +526,9 @@ public:
     {
         for(int feature_index = 0; feature_index < num_features_in; ++feature_index)
         {
-            alignas (RTNEURAL_DEFAULT_ALIGNMENT) T load_arr[v_size * v_num_filters_in] {};
+            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T load_arr[v_size * v_num_filters_in] {};
             std::copy(input + feature_index * num_filters_in, input + feature_index * num_filters_in + num_filters_in, std::begin(load_arr));
-            for (int i = 0; i < v_num_filters_in; ++i)
+            for(int i = 0; i < v_num_filters_in; ++i)
                 v_ins[feature_index * num_filters_in + i] = xsimd::load_aligned(load_arr + i * v_size);
         }
         std::get<0>(layers).forward(v_ins);
@@ -537,8 +536,8 @@ public:
 
         for(int feature_index = 0; feature_index < num_features_out; ++feature_index)
         {
-            alignas (RTNEURAL_DEFAULT_ALIGNMENT) T store_arr[v_size * v_num_filters_out] {};
-            for (int i = 0; i < v_num_filters_out; ++i)
+            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T store_arr[v_size * v_num_filters_out] {};
+            for(int i = 0; i < v_num_filters_out; ++i)
                 xsimd::store_aligned(store_arr + i * v_size, get<n_layers - 1>().outs[feature_index * num_filters_out + i]);
             std::copy(std::begin(store_arr), std::begin(store_arr) + num_filters_out, outs + feature_index * num_filters_out);
         }
