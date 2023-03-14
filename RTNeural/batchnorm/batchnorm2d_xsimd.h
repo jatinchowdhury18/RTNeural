@@ -1,14 +1,8 @@
-#ifndef BATCHNORM2D_H_INCLUDED
-#define BATCHNORM2D_H_INCLUDED
+#ifndef RTNEURAL_BATCHNORM2D_XSIMD_H
+#define RTNEURAL_BATCHNORM2D_XSIMD_H
 
-#if RTNEURAL_USE_EIGEN
-#include "batchnorm2d_eigen.h"
-#include "batchnorm2d_eigen.tpp"
-#elif RTNEURAL_USE_XSIMD
-#include "batchnorm2d_xsimd.h"
-#include "batchnorm2d_xsimd.tpp"
-#else
 #include "../Layer.h"
+#include <xsimd/xsimd.hpp>
 
 namespace RTNeural
 {
@@ -27,10 +21,17 @@ public:
     {
         for(int i = 0; i < num_features; i++)
         {
-            for(int j = 0; j < num_filters; ++j)
-            {
-                out[i * num_filters + j] = (input[i * num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
-            }
+            const auto* inCol = input + i * num_filters;
+            auto* outCol = out + i * num_filters;
+            xsimd::transform(inCol, inCol + num_filters, running_mean.begin(), outCol,
+                [](auto const& a, auto const& b)
+                { return a - b; });
+            xsimd::transform(outCol, outCol + num_filters, multiplier.begin(), outCol,
+                [](auto const& a, auto const& b)
+                { return a * b; });
+            xsimd::transform(outCol, outCol + num_filters, beta.begin(), outCol,
+                [](auto const& a, auto const& b)
+                { return a + b; });
         }
     }
 
@@ -55,13 +56,15 @@ private:
     const int num_filters;
     const int num_features;
 
-    std::vector<T> gamma;
-    std::vector<T> beta;
+    using vec_type = std::vector<T, xsimd::aligned_allocator<T>>;
 
-    std::vector<T> running_mean;
-    std::vector<T> running_var;
+    vec_type gamma;
+    vec_type beta;
 
-    std::vector<T> multiplier;
+    vec_type running_mean;
+    vec_type running_var;
+
+    vec_type multiplier;
 
     T epsilon = (T)0;
 };
@@ -70,6 +73,11 @@ private:
 template <typename T, int num_filters_t, int num_features_t, bool affine = true>
 class BatchNorm2DT
 {
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto v_num_filters = ceil_div(num_filters_t, v_size);
+    static constexpr auto v_io_size = v_num_filters * num_features_t;
+
 public:
     static constexpr auto in_size = num_filters_t * num_features_t;
     static constexpr auto out_size = num_filters_t * num_features_t;
@@ -91,13 +99,13 @@ public:
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
     inline typename std::enable_if<isAffine, void>::type
-    forward(const T (&ins)[in_size]) noexcept
+    forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < num_features; i++)
         {
-            for(int j = 0; j < num_filters; ++j)
+            for(int j = 0; j < v_num_filters; ++j)
             {
-                outs[i * num_filters + j] = (ins[i * num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
+                outs[i * v_num_filters + j] = (ins[i * v_num_filters + j] - running_mean[j]) * multiplier[j] + beta[j];
             }
         }
     }
@@ -105,13 +113,13 @@ public:
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
     inline typename std::enable_if<!isAffine, void>::type
-    forward(const T (&ins)[in_size]) noexcept
+    forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < num_features; i++)
         {
-            for(int j = 0; j < num_filters; ++j)
+            for(int j = 0; j < v_num_filters; ++j)
             {
-                outs[i * num_filters + j] = (ins[i * num_filters + j] - running_mean[j]) * multiplier[j];
+                outs[i * v_num_filters + j] = (ins[i * v_num_filters + j] - running_mean[j]) * multiplier[j];
             }
         }
     }
@@ -141,23 +149,21 @@ public:
     /** Set's the layer "epsilon" value. */
     void setEpsilon(T epsilon);
 
-    T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    v_type outs[v_io_size];
 
 private:
     void updateMultiplier();
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T gamma[num_filters_t];
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T beta[num_filters_t];
+    v_type gamma[v_num_filters];
+    v_type beta[v_num_filters];
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T running_mean[num_filters_t];
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T running_var[num_filters_t];
+    v_type running_mean[v_num_filters];
+    v_type running_var[v_num_filters];
 
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T multiplier[num_filters_t];
+    v_type multiplier[v_num_filters];
 
     T epsilon = (T)0;
 };
 }
 
-#endif // RTNEURAL_USE_STL
-
-#endif // BATCHNORM2D_H_INCLUDED
+#endif // RTNEURAL_BATCHNORM2D_XSIMD_H

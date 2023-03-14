@@ -1,5 +1,3 @@
-#if !RTNEURAL_USE_XSIMD
-
 #pragma once
 
 #include "load_csv.hpp"
@@ -63,6 +61,9 @@ void processModel(ModelType& model, const std::vector<TestType>& xData, std::vec
 
 int conv2d_test()
 {
+#if RTNEURAL_AVX_ENABLED
+    std::cout << "SKIPPING CONV2D MODEL TEST w/ AVX ENABLED..." << std::endl;
+#else
     std::cout << "TESTING CONV2D MODEL..." << std::endl;
 
     const std::string model_file = "models/conv2d.json";
@@ -144,7 +145,8 @@ int conv2d_test()
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
         std::cout << "Loading templated model" << std::endl;
-        RTNeural::ModelT<TestType, num_features_in, 8,
+
+        RTNeural::ModelT2D<TestType, 1, num_features_in, 1, 8,
             RTNeural::Conv2DT<TestType, 1, 2, num_features_in, 5, 5, 2, 1, true>,
             RTNeural::BatchNorm2DT<TestType, 2, 19, false>,
             RTNeural::ReLuActivationT<TestType, 2 * 19>,
@@ -181,9 +183,7 @@ int conv2d_test()
 
     std::cout << "SUCCESS TEMPLATED!" << std::endl;
 
-#endif
-
+#endif // MODELT_AVAILABLE
+#endif // ! RTNEURAL_USE_AVX
     return 0;
 }
-
-#endif // RTNEURAL_USE_EIGEN
