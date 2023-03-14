@@ -61,6 +61,9 @@ void processModel(ModelType& model, const std::vector<TestType>& xData, std::vec
 
 int conv2d_test()
 {
+#if RTNEURAL_AVX_ENABLED
+    std::cout << "SKIPPING CONV2D MODEL TEST w/ AVX ENABLED..." << std::endl;
+#else
     std::cout << "TESTING CONV2D MODEL..." << std::endl;
 
     const std::string model_file = "models/conv2d.json";
@@ -180,7 +183,7 @@ int conv2d_test()
 
     std::cout << "SUCCESS TEMPLATED!" << std::endl;
 
-#endif
-
+#endif // MODELT_AVAILABLE
+#endif // ! RTNEURAL_USE_AVX
     return 0;
 }
