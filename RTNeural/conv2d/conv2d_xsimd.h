@@ -41,7 +41,7 @@ public:
         {
             std::fill(state[i].begin(), state[i].end(), (T)0);
         }
-    };
+    }
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv2d"; }
@@ -178,7 +178,7 @@ public:
         {
             std::fill(state[i].begin(), state[i].end(), (T)0);
         }
-    };
+    }
 
     /** Performs forward propagation for this layer. */
     inline void forward(const v_type (&ins)[v_in_size]) noexcept
