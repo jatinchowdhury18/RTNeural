@@ -120,12 +120,6 @@ public:
     /** Returns the stride. */
     int getStride() const noexcept { return stride; }
 
-    void printWeights() const noexcept
-    {
-        for(int i = 0; i < num_filters_out; i++)
-            std::cout << kernelWeights[i] << std::endl;
-    }
-
 private:
     const int num_filters_in;
     const int num_features_in;

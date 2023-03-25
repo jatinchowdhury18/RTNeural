@@ -311,7 +311,7 @@ namespace modelt_detail
 
                 if(std::find(custom_layers.begin(), custom_layers.end(), type) != custom_layers.end())
                 {
-                    std::cout << "Skipping loading weights for custom layer: " << type << std::endl;
+                    debug_print ("Skipping loading weights for custom layer: " + type, debug);
                     json_stream_idx++;
                     return;
                 }

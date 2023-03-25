@@ -3,20 +3,35 @@
 #include "../modules/json/json.hpp"
 #include "Model.h"
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <string>
+
+#if !RTNEURAL_NO_DEBUG
+#include <iostream>
+#endif
+
+#if defined(__cplusplus) && __cplusplus >= 201703L
+#define RTNEURAL_MAYBE_UNUSED [[maybe_unused]]
+#else
+#define RTNEURAL_MAYBE_UNUSED
+#endif
 
 namespace RTNeural
 {
 /** Utility functions for loading model weights from their json representation. */
 namespace json_parser
 {
-    [[maybe_unused]] static void debug_print(const std::string& str, bool debug)
+#if RTNEURAL_NO_DEBUG
+    RTNEURAL_MAYBE_UNUSED static void debug_print(const std::string&, bool)
+    {
+    }
+#else
+    RTNEURAL_MAYBE_UNUSED static void debug_print(const std::string& str, bool debug)
     {
         if(debug)
             std::cout << str << std::endl;
     }
+#endif
 
     /** Loads weights for a Dense (or DenseT) layer from a json representation of the layer weights. */
     template <typename T, typename DenseType>
