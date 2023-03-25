@@ -59,7 +59,7 @@ public:
     }
 
     /** Resets the layer state. */
-    void reset() override {}
+    void reset() override { }
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d_stateless"; }
@@ -226,7 +226,7 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Empty function, this layer has no state */
-    void reset() {}
+    void reset() { }
 
     /** Performs forward propagation for this layer if pad is "valid". */
     template <bool isValid = valid_pad_t>
