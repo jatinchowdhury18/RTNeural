@@ -1,5 +1,5 @@
-#include "../../tests/load_csv.hpp"
-#include <RTNeural/RTNeural.h>
+#include "RTNeural/RTNeural.h"
+#include "tests/load_csv.hpp"
 #include <filesystem>
 #include <iostream>
 
@@ -15,7 +15,6 @@ std::string getRootDir(fs::path path)
 std::string getModelFile(fs::path path)
 {
     path = getRootDir(path);
-    //    path.append("examples/rtneural_static_model/test_net.json");
     path.append("models/conv1d_torch.json");
 
     return path.string();

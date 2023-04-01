@@ -174,7 +174,7 @@ public:
      * Sets the layer bias from a given array of size
      * bias[out_size]
      */
-    void setBias(T* b)
+    void setBias(const T* b)
     {
         for(int i = 0; i < out_size; ++i)
             bias(i, 0) = b[i];

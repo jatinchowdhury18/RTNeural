@@ -65,6 +65,10 @@ jobs:
       shell: bash
       run: ./build/examples_out/torch_conv1d
 
+    - name: RTNeural GRU Torch
+      shell: bash
+      run: ./build/examples_out/torch_gru
+
     - name: Hello RTNeural with Makefile
       if: runner.os == 'Linux'
       shell: bash
