@@ -8,6 +8,7 @@
 #include "test_configs.hpp"
 #include "torch_conv1d_test.hpp"
 #include "torch_gru_test.hpp"
+#include "torch_lstm_test.hpp"
 #include "util_tests.hpp"
 
 // @TODO: make tests for both float and double precision
@@ -112,6 +113,7 @@ int main(int argc, char* argv[])
         result |= conv2d_test();
         result |= torchGRUTest();
         result |= torchConv1DTest();
+        result |= torchLSTMTest();
 
         for(auto& testConfig : tests)
         {
@@ -158,6 +160,7 @@ int main(int argc, char* argv[])
         int result = 0;
         result |= torchGRUTest();
         result |= torchConv1DTest();
+        result |= torchLSTMTest();
         return result;
     }
 

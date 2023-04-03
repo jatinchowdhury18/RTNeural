@@ -95,9 +95,21 @@ namespace torch_helpers
         gru.setBVals(gru_bias);
     }
 
-    void loadLSTM()
+    /** Loads a LSTM layer from a JSON object containing a PyTorch state_dict. */
+    template <typename T, typename LSTMType>
+    void loadLSTM(const nlohmann::json& modelJson, const std::string& layerPrefix, LSTMType& lstm)
     {
-        // @TODO...
+        const std::vector<std::vector<T>> lstm_weights_ih = modelJson.at (layerPrefix + "weight_ih_l0");
+        lstm.setWVals (detail::transpose (lstm_weights_ih));
+
+        const std::vector<std::vector<T>> lstm_weights_hh = modelJson.at (layerPrefix + "weight_hh_l0");
+        lstm.setUVals (detail::transpose (lstm_weights_hh));
+
+        std::vector<T> lstm_bias_ih = modelJson.at (layerPrefix + "bias_ih_l0");
+        std::vector<T> lstm_bias_hh = modelJson.at (layerPrefix + "bias_hh_l0");
+        for (int i = 0; i < lstm_bias_ih.size(); ++i)
+            lstm_bias_hh[(size_t) i] += lstm_bias_ih[(size_t) i];
+        lstm.setBVals (lstm_bias_hh);
     }
 }
 }
