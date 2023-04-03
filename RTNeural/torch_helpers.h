@@ -40,7 +40,7 @@ namespace torch_helpers
 
         /** Swaps the "r" and "z" indexes of a GRU layer weights. */
         template <typename T>
-        void swap_rz (std::vector<std::vector<T>>& vec2d, int size)
+        void swap_rz(std::vector<std::vector<T>>& vec2d, int size)
         {
             for(auto& vec : vec2d)
                 std::swap_ranges(vec.begin(), vec.begin() + size, vec.begin() + size);
@@ -48,7 +48,7 @@ namespace torch_helpers
     }
 
     template <typename T, typename DenseType>
-    void loadDense (const nlohmann::json& modelJson, const std::string& layerPrefix, DenseType& dense)
+    void loadDense(const nlohmann::json& modelJson, const std::string& layerPrefix, DenseType& dense)
     {
         const std::vector<std::vector<T>> dense_weights = modelJson.at(layerPrefix + "weight");
         dense.setWeights(dense_weights);
@@ -99,17 +99,17 @@ namespace torch_helpers
     template <typename T, typename LSTMType>
     void loadLSTM(const nlohmann::json& modelJson, const std::string& layerPrefix, LSTMType& lstm)
     {
-        const std::vector<std::vector<T>> lstm_weights_ih = modelJson.at (layerPrefix + "weight_ih_l0");
-        lstm.setWVals (detail::transpose (lstm_weights_ih));
+        const std::vector<std::vector<T>> lstm_weights_ih = modelJson.at(layerPrefix + "weight_ih_l0");
+        lstm.setWVals(detail::transpose(lstm_weights_ih));
 
-        const std::vector<std::vector<T>> lstm_weights_hh = modelJson.at (layerPrefix + "weight_hh_l0");
-        lstm.setUVals (detail::transpose (lstm_weights_hh));
+        const std::vector<std::vector<T>> lstm_weights_hh = modelJson.at(layerPrefix + "weight_hh_l0");
+        lstm.setUVals(detail::transpose(lstm_weights_hh));
 
-        std::vector<T> lstm_bias_ih = modelJson.at (layerPrefix + "bias_ih_l0");
-        std::vector<T> lstm_bias_hh = modelJson.at (layerPrefix + "bias_hh_l0");
-        for (int i = 0; i < lstm_bias_ih.size(); ++i)
-            lstm_bias_hh[(size_t) i] += lstm_bias_ih[(size_t) i];
-        lstm.setBVals (lstm_bias_hh);
+        std::vector<T> lstm_bias_ih = modelJson.at(layerPrefix + "bias_ih_l0");
+        std::vector<T> lstm_bias_hh = modelJson.at(layerPrefix + "bias_hh_l0");
+        for(int i = 0; i < lstm_bias_ih.size(); ++i)
+            lstm_bias_hh[(size_t)i] += lstm_bias_ih[(size_t)i];
+        lstm.setBVals(lstm_bias_hh);
     }
 }
 }
