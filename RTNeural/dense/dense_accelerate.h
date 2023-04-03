@@ -73,7 +73,7 @@ public:
     }
 
     /** Sets the layer bias from a given array. */
-    void setBias(T* b)
+    void setBias(const T* b)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             bias[i] = b[i];
