@@ -87,6 +87,9 @@ model.train()
 save_model(model, 'model_weights.json')
 ```
 
+For an example of exporting a model from PyTorch,
+see [this example script](./python/gru_torch.py).
+
 ### Creating a model
 
 Next, you can create an inferencing engine in C++ directly
@@ -130,7 +133,6 @@ RTNeural::ModelT<double, 8, 1
 
 // load model weights from json
 std::ifstream jsonStream("model_weights.json", std::ifstream::binary);
-auto model = RTNeural::json_parser::parseJson<double>(jsonStream);
 modelT.parseJson(jsonStream);
 
 modelT.reset(); // reset state
@@ -138,6 +140,27 @@ modelT.reset(); // reset state
 double input[] = { 1.0, 0.5, -0.1 }; // set up input vector
 double output = modelT.forward(input); // compute output
 ```
+
+### Loading Layers from PyTorch
+
+The above example code assumes that the trained model has
+been exported from TensorFlow. For loading PyTorch models,
+the RTNeural namespace `RTNeural::torch_helpers`, provides
+helper functions for loading layers exported from PyTorch.
+
+```cpp
+// load model weights from json
+std::ifstream jsonStream("model_weights.json", std::ifstream::binary);
+nlohmann::json modelJson;
+jsonStream >> modelJson;
+
+// load a layer from a static model
+RTNeural::ModelT<float, 1, 1, RTNeural::DenseT<float, 1, 1>> model;
+RTNeural::torch_helpers::loadDense(modelJson, "name_of_layer.", model.get<0>());
+```
+
+For more examples, see the
+[`examples/torch`](./examples/torch) directory.
 
 ## Building with CMake
 
