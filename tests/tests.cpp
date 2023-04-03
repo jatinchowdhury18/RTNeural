@@ -6,6 +6,9 @@
 #include "sample_rate_rnn_test.hpp"
 #include "templated_tests.hpp"
 #include "test_configs.hpp"
+#include "torch_conv1d_test.hpp"
+#include "torch_gru_test.hpp"
+#include "torch_lstm_test.hpp"
 #include "util_tests.hpp"
 
 // @TODO: make tests for both float and double precision
@@ -22,6 +25,7 @@ void help()
     std::cout << "    approx" << std::endl;
     std::cout << "    sample_rate_rnn" << std::endl;
     std::cout << "    bad_model" << std::endl;
+    std::cout << "    torch" << std::endl;
     for(auto& testConfig : tests)
         std::cout << "    " << testConfig.first << std::endl;
     std::cout << "    conv2d" << std::endl;
@@ -107,6 +111,9 @@ int main(int argc, char* argv[])
         result |= approximationTests();
         result |= sampleRateRNNTest();
         result |= conv2d_test();
+        result |= torchGRUTest();
+        result |= torchConv1DTest();
+        result |= torchLSTMTest();
 
         for(auto& testConfig : tests)
         {
@@ -148,12 +155,19 @@ int main(int argc, char* argv[])
         return badModelTest();
     }
 
-#if RTNEURAL_USE_EIGEN
+    if(arg == "torch")
+    {
+        int result = 0;
+        result |= torchGRUTest();
+        result |= torchConv1DTest();
+        result |= torchLSTMTest();
+        return result;
+    }
+
     if(arg == "conv2d_model")
     {
         return conv2d_test();
     }
-#endif // RTNEURAL_USE_EIGEN
 
     if(tests.find(arg) != tests.end())
     {
