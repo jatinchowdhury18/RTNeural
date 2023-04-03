@@ -19,3 +19,4 @@
 #include "Model.h"
 #include "ModelT.h"
 #include "model_loader.h"
+#include "torch_helpers.h"

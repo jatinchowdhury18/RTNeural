@@ -80,34 +80,6 @@ std::vector<std::vector<T>> loadFile2D(std::ifstream& stream)
     return transpose(vec);
 }
 
-using ConvLayer = RTNeural::Conv1DT<float, 1, 12, 5, 1>;
-
-void reverseKernels(std::vector<std::vector<std::vector<float>>>& conv_weights)
-{
-    for (auto& channel_weights : conv_weights)
-    {
-        for (auto& kernel : channel_weights)
-        {
-            std::reverse(kernel.begin(), kernel.end());
-        }
-    }
-}
-
-void loadModel(std::ifstream& jsonStream, ConvLayer& conv)
-{
-    nlohmann::json modelJson;
-    jsonStream >> modelJson;
-    //    std::cout << "Weights: " << modelJson["weight"].dump() << std::endl;
-    //    std::cout << "Bias: " << modelJson["bias"].dump() << std::endl;
-
-    std::vector<std::vector<std::vector<float>>> conv_weights = modelJson.at("weight");
-    reverseKernels(conv_weights);
-    conv.setWeights(conv_weights);
-
-    std::vector<float> conv_bias = modelJson.at("bias");
-    conv.setBias(conv_bias);
-}
-
 template <typename Container>
 void printArray(const Container& arr)
 {
@@ -126,9 +98,11 @@ int main([[maybe_unused]] int argc, char* argv[])
 
     std::cout << "Loading model from path: " << modelFilePath << std::endl;
     std::ifstream jsonStream(modelFilePath, std::ifstream::binary);
+    nlohmann::json modelJson;
+    jsonStream >> modelJson;
 
-    RTNeural::ModelT<float, 1, 12, ConvLayer> model;
-    loadModel(jsonStream, model.get<0>());
+    RTNeural::ModelT<float, 1, 12, RTNeural::Conv1DT<float, 1, 12, 5, 1>> model;
+    RTNeural::torch_helpers::loadConv1D<float> (modelJson, "", model.get<0>());
     model.reset();
 
     std::ifstream modelInputsFile { getInputFile(executablePath) };
