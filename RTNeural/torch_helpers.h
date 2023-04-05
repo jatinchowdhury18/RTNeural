@@ -61,7 +61,7 @@ namespace torch_helpers
         }
         else
         {
-            const std::vector<T> dense_bias((size_t) dense.out_size, (T)0);
+            const std::vector<T> dense_bias((size_t)dense.out_size, (T)0);
             dense.setBias(dense_bias.data());
         }
     }
@@ -81,7 +81,7 @@ namespace torch_helpers
         }
         else
         {
-            std::vector<T> conv_bias((size_t) conv.out_size, (T)0);
+            std::vector<T> conv_bias((size_t)conv.out_size, (T)0);
             conv.setBias(conv_bias);
         }
     }
@@ -116,8 +116,8 @@ namespace torch_helpers
         }
         else
         {
-            const std::vector<T> gru_ih_bias ((size_t) gru.out_size * 3, (T) 0);
-            const std::vector<T> gru_hh_bias ((size_t) gru.out_size * 3, (T) 0);
+            const std::vector<T> gru_ih_bias((size_t)gru.out_size * 3, (T)0);
+            const std::vector<T> gru_hh_bias((size_t)gru.out_size * 3, (T)0);
             std::vector<std::vector<T>> gru_bias { gru_ih_bias, gru_hh_bias };
             gru.setBVals(gru_bias);
         }
@@ -143,7 +143,7 @@ namespace torch_helpers
         }
         else
         {
-            std::vector<T> lstm_bias_hh ((size_t) lstm.out_size * 4, (T) 0);
+            std::vector<T> lstm_bias_hh((size_t)lstm.out_size * 4, (T)0);
             lstm.setBVals(lstm_bias_hh);
         }
     }
