@@ -107,8 +107,8 @@ namespace torch_helpers
 
         std::vector<T> lstm_bias_ih = modelJson.at(layerPrefix + "bias_ih_l0");
         std::vector<T> lstm_bias_hh = modelJson.at(layerPrefix + "bias_hh_l0");
-        for(int i = 0; i < lstm_bias_ih.size(); ++i)
-            lstm_bias_hh[(size_t)i] += lstm_bias_ih[(size_t)i];
+        for(size_t i = 0; i < lstm_bias_ih.size(); ++i)
+            lstm_bias_hh[i] += lstm_bias_ih[i];
         lstm.setBVals(lstm_bias_hh);
     }
 }
