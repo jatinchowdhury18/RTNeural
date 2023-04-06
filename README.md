@@ -314,6 +314,7 @@ RTNeural is currently being used by several audio plugins and other projects:
 - [MLTerror15](https://github.com/IHorvalds/MLTerror15): Deeply learned simulator for the Orange Tiny Terror with Recurrent Neural Networks.
 - [4000DB-NeuralAmp](https://github.com/EnrcDamn/4000DB-NeuralAmp): Neural emulation of the pre-amp section from the Akai 4000DB tape machine.
 - [ToobAmp](https://github.com/rerdavies/ToobAmp): Guitar effect plugins for the Raspberry Pi.
+- [AIDA-X](https://github.com/AidaDSP/AIDA-X): A CLAP/LV2/VST2/VST3 audio plugin plugin using RTNeural that loads RTNeural models and cabinet IRs.
 
 If you are using RTNeural in one of your projects, let us know and we will add it to this list!
 
