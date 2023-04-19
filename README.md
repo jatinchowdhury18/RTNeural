@@ -304,17 +304,22 @@ Pleas thank the following individuals for their important contributions:
 
 RTNeural is currently being used by several audio plugins and other projects:
 
-- [NeuralNote](https://github.com/DamRsn/NeuralNote): An audio-to-MIDI transcription plugin using Spotify's [basic-pitch](https://github.com/spotify/basic-pitch) model.
-- [BYOD](https://github.com/Chowdhury-DSP/BYOD): A guitar distortion plugin containing several machine learning-based effects.
-- [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
-- [cppTimbreID](https://github.com/domenicostefani/cpp-timbreID): An audio feature extraction library.
-- [rt-neural-lv2](https://github.com/AidaDSP/aidadsp-lv2): A headless lv2 plugin using RTNeural to model guitar pedals and amplifiers.
-- [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
-- [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
-- [MLTerror15](https://github.com/IHorvalds/MLTerror15): Deeply learned simulator for the Orange Tiny Terror with Recurrent Neural Networks.
 - [4000DB-NeuralAmp](https://github.com/EnrcDamn/4000DB-NeuralAmp): Neural emulation of the pre-amp section from the Akai 4000DB tape machine.
-- [ToobAmp](https://github.com/rerdavies/ToobAmp): Guitar effect plugins for the Raspberry Pi.
 - [AIDA-X](https://github.com/AidaDSP/AIDA-X): A CLAP/LV2/VST2/VST3 audio plugin that loads RTNeural models and cabinet IRs.
+- [BYOD](https://github.com/Chowdhury-DSP/BYOD): A guitar distortion plugin containing several machine learning-based effects.
+- [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
+- [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
+- [cppTimbreID](https://github.com/domenicostefani/cpp-timbreID): An audio feature extraction library.
+- [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
+- [MLTerror15](https://github.com/IHorvalds/MLTerror15): Deeply learned simulator for the Orange Tiny Terror with Recurrent Neural Networks.
+- [NeuralNote](https://github.com/DamRsn/NeuralNote): An audio-to-MIDI transcription plugin using Spotify's [basic-pitch](https://github.com/spotify/basic-pitch) model.
+- [rt-neural-lv2](https://github.com/AidaDSP/aidadsp-lv2): A headless lv2 plugin using RTNeural to model guitar pedals and amplifiers.
+- Tone Empire plugins:
+  - [LVL - 01](https://tone-empire.com/shop/lvl-01/): An A.I./M.L.-based compressor effect.
+  - [TM700](https://tone-empire.com/shop/tm700/): A machine learning tape emulation effect.
+  - [Neural Q](https://tone-empire.com/shop/neuralq-v2/): An analog emulation 2-band EQ, using recurrent neural networks.
+- [ToobAmp](https://github.com/rerdavies/ToobAmp): Guitar effect plugins for the Raspberry Pi.
+
 
 If you are using RTNeural in one of your projects, let us know and we will add it to this list!
 
