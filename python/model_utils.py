@@ -47,11 +47,11 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         return 'unknown'
 
     def get_layer_activation(layer):
-        if not hasattr(layer, 'activation'):
-            return ''
-
         if isinstance(layer, keras.layers.TimeDistributed):
             return get_layer_activation(layer.layer)
+
+        if not hasattr(layer, 'activation'):
+            return ''
 
         if layer.activation == keras.activations.tanh:
             return 'tanh'
