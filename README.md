@@ -305,7 +305,7 @@ Pleas thank the following individuals for their important contributions:
 RTNeural is currently being used by several audio plugins and other projects:
 
 - [4000DB-NeuralAmp](https://github.com/EnrcDamn/4000DB-NeuralAmp): Neural emulation of the pre-amp section from the Akai 4000DB tape machine.
-- [AIDA-X](https://github.com/AidaDSP/AIDA-X): A CLAP/LV2/VST2/VST3 audio plugin that loads RTNeural models and cabinet IRs.
+- [AIDA-X](https://github.com/AidaDSP/AIDA-X): An AU/CLAP/LV2/VST2/VST3 audio plugin that loads RTNeural models and cabinet IRs.
 - [BYOD](https://github.com/Chowdhury-DSP/BYOD): A guitar distortion plugin containing several machine learning-based effects.
 - [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
 - [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
