@@ -293,7 +293,7 @@ backend.
 
 ## Contributors
 
-Pleas thank the following individuals for their important contributions:
+Please thank the following individuals for their important contributions:
 
 - [wayne-chen](https://github.com/wayne-chen): Softmax activation layer and general API improvements
 - [hollance](https://github.com/hollance): RTNeural logo
