@@ -181,8 +181,9 @@ public:
         for(int i = 0; i < v_out_size; ++i)
         {
             alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
-            for(int k = 0; k < v_size; ++k)
+            for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
             {
+                assert(i * v_size + k < out_size);
                 const auto& subWeights = weights[i * v_size + k];
                 v_type accum {};
                 for(int j = 0; j < kernel_size; ++j)
@@ -203,8 +204,8 @@ public:
     }
 
     /** Performs forward propagation for this layer. */
-    template <int DR = dilation_rate>
-    inline typename std::enable_if<DR == 1, void>::type
+    template <int DR = dilation_rate, int KS = kernel_size>
+    inline typename std::enable_if<(DR == 1 && KS > 1), void>::type
     forward(const v_type (&ins)[v_in_size]) noexcept
     {
         // insert input into a circular buffer
@@ -217,7 +218,7 @@ public:
         for(int i = 0; i < v_out_size; ++i)
         {
             alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
-            for(int k = 0; k < v_size; ++k)
+            for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
             {
                 const auto& subWeights = weights[i * v_size + k];
                 v_type accum {};
@@ -236,6 +237,28 @@ public:
         }
 
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
+    /** Performs forward propagation for this layer. */
+    template <int DR = dilation_rate, int KS = kernel_size>
+    inline typename std::enable_if<DR == 1 && KS == 1, void>::type
+    forward(const v_type (&ins)[v_in_size]) noexcept
+    {
+        for(int i = 0; i < v_out_size; ++i)
+        {
+            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+            for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+            {
+                const auto& subWeights = weights[i * v_size + k][0];
+
+                v_type accum {};
+                for (int j = 0; j < v_in_size; ++j)
+                    accum += subWeights[j] * ins[j];
+                out_sum[k] = xsimd::reduce_add (accum);
+            }
+
+            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        }
     }
 
     /**
@@ -274,14 +297,14 @@ private:
     using state_type = typename std::conditional<dynamic_state, std::vector<state_col_type, xsimd::aligned_allocator<state_col_type>>, std::array<state_col_type, state_size>>::type;
     using weights_type = std::array<std::array<v_type, v_in_size>, kernel_size>;
 
-    state_type state;
-    weights_type state_cols;
+    state_type state {};
+    weights_type state_cols {};
 
     int state_ptr = 0;
-    std::array<int, kernel_size> state_ptrs;
+    std::array<int, kernel_size> state_ptrs {};
 
-    weights_type weights[out_size];
-    v_type bias[v_out_size];
+    weights_type weights[out_size] {};
+    v_type bias[v_out_size] {};
 
     /** Sets pointers to state array columns. */
     inline void setStatePointers()

@@ -87,13 +87,14 @@ int templatedTests(std::string arg)
             TanhActivationT<TestType, 4>,
             BatchNorm1DT<TestType, 4>,
             PReLUActivationT<TestType, 4>,
+            Conv1DT<TestType, 4, 4, 1, 1>,
+            TanhActivationT<TestType, 4>,
             Conv1DT<TestType, 4, 4, 3, 2>,
             TanhActivationT<TestType, 4>,
             BatchNorm1DT<TestType, 4, false>,
             PReLUActivationT<TestType, 4>,
-            DenseT<TestType, 4, 8>,
-            SigmoidActivationT<TestType, 8>,
-            DenseT<TestType, 8, 1>>;
+            DenseT<TestType, 4, 1>,
+            SigmoidActivationT<TestType, 1>>;
         result |= runTestTemplated<TestType, ModelType>(tests.at(arg));
     }
     else if(arg == "gru")
