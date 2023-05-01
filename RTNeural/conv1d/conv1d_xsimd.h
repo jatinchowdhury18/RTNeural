@@ -252,9 +252,9 @@ public:
                 const auto& subWeights = weights[i * v_size + k][0];
 
                 v_type accum {};
-                for (int j = 0; j < v_in_size; ++j)
+                for(int j = 0; j < v_in_size; ++j)
                     accum += subWeights[j] * ins[j];
-                out_sum[k] = xsimd::reduce_add (accum);
+                out_sum[k] = xsimd::reduce_add(accum);
             }
 
             outs[i] = xsimd::load_aligned(out_sum) + bias[i];
