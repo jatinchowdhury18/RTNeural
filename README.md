@@ -65,7 +65,7 @@ are available in the [`examples/`](./examples) directory.
 Neural networks are typically trained using `Python`
 libraries including Tensorflow or PyTorch. Once you
 have trained a neural network using one of these frameworks,
-you must "export" the network weights to a json file,
+you can "export" the network weights to a json file,
 so that `RTNeural` can read them. An implementation of
 the export process for a Tensorflow model is provided in
 `python/model_utils.py`, and can be used as follows.
@@ -275,14 +275,10 @@ It may also be worth checking out the
 Contributions to this project are most welcome!
 Currently, there is considerable need for the
 following improvements:
-- Better implementation of convolutional layers:
-  - Implement more options (grouping, stride, etc...)
-  - Implement Conv2D
-- Support for exporting/loading PyTorch models
-- More robust support for exporting/loading Tensorflow models
-- Support for more activation layers
-- Better test coverage
-- Any changes that improve overall performance
+- Improved support for 2-dimensional input/output data.
+- More robust support for exporting/loading models.
+- Support for more activation layers.
+- Any changes that improve overall performance.
 
 General code maintenance and documentation is always
 appreciated as well! Note that if you are implementing
