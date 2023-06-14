@@ -137,9 +137,9 @@ struct rotation_base_generic_product_selector<RotationDerived,OtherVectorType,tr
   *
   * \brief Constructs a Dim x Dim rotation matrix from the rotation \a r
   */
-template<typename Scalar_, int Rows_, int Cols_, int _Storage, int MaxRows_, int MaxCols_>
+template<typename Scalar_, int Rows_, int Cols_, int Storage_, int MaxRows_, int MaxCols_>
 template<typename OtherDerived>
-EIGEN_DEVICE_FUNC Matrix<Scalar_, Rows_, Cols_, _Storage, MaxRows_, MaxCols_>
+EIGEN_DEVICE_FUNC Matrix<Scalar_, Rows_, Cols_, Storage_, MaxRows_, MaxCols_>
 ::Matrix(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
 {
   EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,int(OtherDerived::Dim),int(OtherDerived::Dim))
@@ -150,10 +150,10 @@ EIGEN_DEVICE_FUNC Matrix<Scalar_, Rows_, Cols_, _Storage, MaxRows_, MaxCols_>
   *
   * \brief Set a Dim x Dim rotation matrix from the rotation \a r
   */
-template<typename Scalar_, int Rows_, int Cols_, int _Storage, int MaxRows_, int MaxCols_>
+template<typename Scalar_, int Rows_, int Cols_, int Storage_, int MaxRows_, int MaxCols_>
 template<typename OtherDerived>
-EIGEN_DEVICE_FUNC Matrix<Scalar_, Rows_, Cols_, _Storage, MaxRows_, MaxCols_>&
-Matrix<Scalar_, Rows_, Cols_, _Storage, MaxRows_, MaxCols_>
+EIGEN_DEVICE_FUNC Matrix<Scalar_, Rows_, Cols_, Storage_, MaxRows_, MaxCols_>&
+Matrix<Scalar_, Rows_, Cols_, Storage_, MaxRows_, MaxCols_>
 ::operator=(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
 {
   EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,int(OtherDerived::Dim),int(OtherDerived::Dim))

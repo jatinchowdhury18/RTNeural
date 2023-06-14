@@ -71,8 +71,7 @@ template<typename Derived> class SparseMatrixBase
           * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
 
 
-      SizeAtCompileTime = (internal::size_at_compile_time<internal::traits<Derived>::RowsAtCompileTime,
-                                                   internal::traits<Derived>::ColsAtCompileTime>::ret),
+      SizeAtCompileTime = (internal::size_of_xpr_at_compile_time<Derived>::ret),
         /**< This is equal to the number of coefficients, i.e. the number of
           * rows times the number of columns, or to \a Dynamic if this is not
           * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
@@ -80,8 +79,7 @@ template<typename Derived> class SparseMatrixBase
       MaxRowsAtCompileTime = RowsAtCompileTime,
       MaxColsAtCompileTime = ColsAtCompileTime,
 
-      MaxSizeAtCompileTime = (internal::size_at_compile_time<MaxRowsAtCompileTime,
-                                                      MaxColsAtCompileTime>::ret),
+      MaxSizeAtCompileTime = internal::size_at_compile_time(MaxRowsAtCompileTime, MaxColsAtCompileTime),
 
       IsVectorAtCompileTime = RowsAtCompileTime == 1 || ColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
@@ -105,17 +103,17 @@ template<typename Derived> class SparseMatrixBase
                              : int(IsRowMajor) ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
 
       #ifndef EIGEN_PARSED_BY_DOXYGEN
-      _HasDirectAccess = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC
+      HasDirectAccess_ = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC
       #endif
     };
 
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
+    typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<const Derived> >,
                         Transpose<const Derived>
-                     >::type AdjointReturnType;
+                     > AdjointReturnType;
     typedef Transpose<Derived> TransposeReturnType;
-    typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
+    typedef Transpose<const Derived> ConstTransposeReturnType;
 
     // FIXME storage order do not match evaluator storage order
     typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, StorageIndex> PlainObject;
@@ -131,7 +129,7 @@ template<typename Derived> class SparseMatrixBase
 
     /** \internal the return type of coeff()
       */
-    typedef typename internal::conditional<_HasDirectAccess, const Scalar&, Scalar>::type CoeffReturnType;
+    typedef std::conditional_t<HasDirectAccess_, const Scalar&, Scalar> CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Matrix<Scalar,Dynamic,Dynamic> > ConstantReturnType;
@@ -216,11 +214,11 @@ template<typename Derived> class SparseMatrixBase
     inline void assignGeneric(const OtherDerived& other);
 
   public:
-
+#ifndef EIGEN_NO_IO
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
       typedef typename Derived::Nested Nested;
-      typedef typename internal::remove_all<Nested>::type NestedCleaned;
+      typedef internal::remove_all_t<Nested> NestedCleaned;
 
       if (Flags&RowMajorBit)
       {
@@ -265,6 +263,7 @@ template<typename Derived> class SparseMatrixBase
       }
       return s;
     }
+#endif
 
     template<typename OtherDerived>
     Derived& operator+=(const SparseMatrixBase<OtherDerived>& other);

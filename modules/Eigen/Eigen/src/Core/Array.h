@@ -21,10 +21,6 @@ struct traits<Array<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> > : tra
   typedef ArrayXpr XprKind;
   typedef ArrayBase<Array<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> > XprBase;
 };
-
-template<typename Scalar_, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
-struct has_trivially_copyable_storage<Array<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> >
-    : has_trivially_copyable_storage<Matrix<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> > {};
 }
 
 /** \class Array
@@ -124,12 +120,6 @@ class Array
       return Base::_set(other);
     }
 
-#if EIGEN_COMP_HAS_P0848R3
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array& operator=(
-        const Array& other) requires internal::has_trivially_copyable_storage<Array>::value = default;
-#endif
-
     /** Default constructor.
       *
       * For fixed-size matrices, does nothing.
@@ -169,13 +159,6 @@ class Array
       return *this;
     }
 
-#if EIGEN_COMP_HAS_P0848R3
-    EIGEN_DEVICE_FUNC Array(Array&& other) EIGEN_NOEXCEPT
-        requires internal::has_trivially_copyable_storage<Array>::value = default;
-    EIGEN_DEVICE_FUNC Array& operator=(Array&& other) EIGEN_NOEXCEPT
-        requires internal::has_trivially_copyable_storage<Array>::value = default;
-#endif
-
     /** \copydoc PlainObjectBase(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
      *
      * Example: \include Array_variadic_ctor_cxx11.cpp
@@ -210,8 +193,9 @@ class Array
       *
       * \sa  Array(const Scalar& a0, const Scalar& a1, const Scalar& a2, const Scalar& a3, const ArgTypes&... args)
       */
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const std::initializer_list<std::initializer_list<Scalar>>& list) : Base(list) {}
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr Array(
+        const std::initializer_list<std::initializer_list<Scalar>>& list)
+        : Base(list) {}
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename T>
@@ -283,12 +267,6 @@ class Array
             : Base(other)
     { }
 
-#if EIGEN_COMP_HAS_P0848R3
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const Array& other) requires internal::has_trivially_copyable_storage<Array>::value =
-        default;
-#endif
-
   private:
     struct PrivateType {};
   public:
@@ -297,8 +275,8 @@ class Array
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const EigenBase<OtherDerived> &other,
-                              typename internal::enable_if<internal::is_convertible<typename OtherDerived::Scalar,Scalar>::value,
-                                                           PrivateType>::type = PrivateType())
+                              std::enable_if_t<internal::is_convertible<typename OtherDerived::Scalar,Scalar>::value,
+                                               PrivateType> = PrivateType())
       : Base(other.derived())
     { }
 

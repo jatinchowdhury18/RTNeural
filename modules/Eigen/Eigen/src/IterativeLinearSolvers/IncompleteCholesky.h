@@ -26,8 +26,7 @@ namespace Eigen {
   * \tparam Scalar the scalar type of the input matrices
   * \tparam UpLo_ The triangular part that will be used for the computations. It can be Lower
     *               or Upper. Default is Lower.
-  * \tparam OrderingType_ The ordering method to use, either AMDOrdering<> or NaturalOrdering<>. Default is AMDOrdering<int>,
-  *                       unless EIGEN_MPL2_ONLY is defined, in which case the default is NaturalOrdering<int>.
+  * \tparam OrderingType_ The ordering method to use, either AMDOrdering<> or NaturalOrdering<>. Default is AMDOrdering<int>.
   *
   * \implsparsesolverconcept
   *
@@ -162,13 +161,13 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,UpL
     }
 
     /** \returns the sparse lower triangular factor L */
-    const FactorType& matrixL() const { eigen_assert("m_factorizationIsOk"); return m_L; }
+    const FactorType& matrixL() const { eigen_assert(m_factorizationIsOk && "factorize() should be called first"); return m_L; }
 
     /** \returns a vector representing the scaling factor S */
-    const VectorRx& scalingS() const { eigen_assert("m_factorizationIsOk"); return m_scale; }
+    const VectorRx& scalingS() const { eigen_assert(m_factorizationIsOk && "factorize() should be called first"); return m_scale; }
 
     /** \returns the fill-in reducing permutation P (can be empty for a natural ordering) */
-    const PermutationType& permutationP() const { eigen_assert("m_analysisIsOk"); return m_perm; }
+    const PermutationType& permutationP() const { eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); return m_perm; }
 
   protected:
     FactorType m_L;              // The lower part stored in CSC

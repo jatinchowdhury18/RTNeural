@@ -133,7 +133,6 @@ template<typename Derived>
 std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat& fmt)
 {
   using internal::is_same;
-  using internal::conditional;
 
   if(_m.size() == 0)
   {
@@ -143,22 +142,21 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   
   typename Derived::Nested m = _m;
   typedef typename Derived::Scalar Scalar;
-  typedef typename
-      conditional<
+  typedef std::conditional_t<
           is_same<Scalar, char>::value ||
             is_same<Scalar, unsigned char>::value ||
             is_same<Scalar, numext::int8_t>::value ||
             is_same<Scalar, numext::uint8_t>::value,
           int,
-          typename conditional<
+          std::conditional_t<
               is_same<Scalar, std::complex<char> >::value ||
                 is_same<Scalar, std::complex<unsigned char> >::value ||
                 is_same<Scalar, std::complex<numext::int8_t> >::value ||
                 is_same<Scalar, std::complex<numext::uint8_t> >::value,
               std::complex<int>,
               const Scalar&
-            >::type
-        >::type PrintType;
+            >
+        > PrintType;
 
   Index width = 0;
 
@@ -253,6 +251,11 @@ std::ostream & operator <<
  const DenseBase<Derived> & m)
 {
   return internal::print_matrix(s, m.eval(), EIGEN_DEFAULT_IO_FORMAT);
+}
+
+template <typename Derived>
+std::ostream& operator<<(std::ostream& s, const DiagonalBase<Derived>& m) {
+  return internal::print_matrix(s, m.derived(), EIGEN_DEFAULT_IO_FORMAT);
 }
 
 } // end namespace Eigen

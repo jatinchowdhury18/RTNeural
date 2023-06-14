@@ -31,6 +31,7 @@
   * \endcode
   */
 
+// IWYU pragma: begin_exports
 #include "src/QR/HouseholderQR.h"
 #include "src/QR/FullPivHouseholderQR.h"
 #include "src/QR/ColPivHouseholderQR.h"
@@ -40,6 +41,7 @@
 #include "src/QR/HouseholderQR_LAPACKE.h"
 #include "src/QR/ColPivHouseholderQR_LAPACKE.h"
 #endif
+// IWYU pragma: end_exports
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

@@ -85,7 +85,7 @@ struct evaluator<SolveWithGuess<Decomposition,RhsType, GuessType> >
   evaluator(const SolveType& solve)
     : m_result(solve.rows(), solve.cols())
   {
-    ::new (static_cast<Base*>(this)) Base(m_result);
+    internal::construct_at<Base>(this, m_result);
     m_result = solve.guess();
     solve.dec()._solve_with_guess_impl(solve.rhs(), m_result);
   }

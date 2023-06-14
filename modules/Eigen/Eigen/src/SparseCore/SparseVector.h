@@ -353,6 +353,7 @@ class SparseVector
     }
     #endif
 
+#ifndef EIGEN_NO_IO
     friend std::ostream & operator << (std::ostream & s, const SparseVector& m)
     {
       for (Index i=0; i<m.nonZeros(); ++i)
@@ -360,6 +361,7 @@ class SparseVector
       s << std::endl;
       return s;
     }
+#endif
 
     /** Destructor */
     inline ~SparseVector() {}
@@ -492,6 +494,78 @@ struct sparse_vector_assign_selector<Dest,Src,SVA_RuntimeSwitch> {
 };
 
 }
+
+// Specialization for SparseVector.
+// Serializes [size, numNonZeros, innerIndices, values].
+template <typename Scalar, int Options, typename StorageIndex>
+class Serializer<SparseVector<Scalar, Options, StorageIndex>, void> {
+ public:
+  typedef SparseVector<Scalar, Options, StorageIndex> SparseMat;
+
+  struct Header {
+    typename SparseMat::Index size;
+    Index num_non_zeros;
+  };
+
+  EIGEN_DEVICE_FUNC size_t size(const SparseMat& value) const {
+    return sizeof(Header) +
+           (sizeof(Scalar) + sizeof(StorageIndex)) * value.nonZeros();
+  }
+
+  EIGEN_DEVICE_FUNC uint8_t* serialize(uint8_t* dest, uint8_t* end,
+                                       const SparseMat& value) {
+    if (EIGEN_PREDICT_FALSE(dest == nullptr)) return nullptr;
+    if (EIGEN_PREDICT_FALSE(dest + size(value) > end)) return nullptr;
+
+    const size_t header_bytes = sizeof(Header);
+    Header header = {value.innerSize(), value.nonZeros()};
+    EIGEN_USING_STD(memcpy)
+    memcpy(dest, &header, header_bytes);
+    dest += header_bytes;
+
+    // Inner indices.
+    std::size_t data_bytes = sizeof(StorageIndex) * header.num_non_zeros;
+    memcpy(dest, value.innerIndexPtr(), data_bytes);
+    dest += data_bytes;
+
+    // Values.
+    data_bytes = sizeof(Scalar) * header.num_non_zeros;
+    memcpy(dest, value.valuePtr(), data_bytes);
+    dest += data_bytes;
+
+    return dest;
+  }
+
+  EIGEN_DEVICE_FUNC const uint8_t* deserialize(const uint8_t* src,
+                                               const uint8_t* end,
+                                               SparseMat& value) const {
+    if (EIGEN_PREDICT_FALSE(src == nullptr)) return nullptr;
+    if (EIGEN_PREDICT_FALSE(src + sizeof(Header) > end)) return nullptr;
+
+    const size_t header_bytes = sizeof(Header);
+    Header header;
+    EIGEN_USING_STD(memcpy)
+    memcpy(&header, src, header_bytes);
+    src += header_bytes;
+
+    value.setZero();
+    value.resize(header.size);
+    value.resizeNonZeros(header.num_non_zeros);
+
+    // Inner indices.
+    std::size_t data_bytes = sizeof(StorageIndex) * header.num_non_zeros;
+    if (EIGEN_PREDICT_FALSE(src + data_bytes > end)) return nullptr;
+    memcpy(value.innerIndexPtr(), src, data_bytes);
+    src += data_bytes;
+
+    // Values.
+    data_bytes = sizeof(Scalar) * header.num_non_zeros;
+    if (EIGEN_PREDICT_FALSE(src + data_bytes > end)) return nullptr;
+    memcpy(value.valuePtr(), src, data_bytes);
+    src += data_bytes;
+    return src;
+  }
+};
 
 } // end namespace Eigen
 

@@ -52,17 +52,17 @@ template<int Size, int MaxSize> struct product_size_category
 
 template<typename Lhs, typename Rhs> struct product_type
 {
-  typedef typename remove_all<Lhs>::type _Lhs;
-  typedef typename remove_all<Rhs>::type _Rhs;
+  typedef remove_all_t<Lhs> Lhs_;
+  typedef remove_all_t<Rhs> Rhs_;
   enum {
-    MaxRows = traits<_Lhs>::MaxRowsAtCompileTime,
-    Rows    = traits<_Lhs>::RowsAtCompileTime,
-    MaxCols = traits<_Rhs>::MaxColsAtCompileTime,
-    Cols    = traits<_Rhs>::ColsAtCompileTime,
-    MaxDepth = min_size_prefer_fixed(traits<_Lhs>::MaxColsAtCompileTime,
-                                     traits<_Rhs>::MaxRowsAtCompileTime),
-    Depth = min_size_prefer_fixed(traits<_Lhs>::ColsAtCompileTime,
-                                  traits<_Rhs>::RowsAtCompileTime)
+    MaxRows = traits<Lhs_>::MaxRowsAtCompileTime,
+    Rows    = traits<Lhs_>::RowsAtCompileTime,
+    MaxCols = traits<Rhs_>::MaxColsAtCompileTime,
+    Cols    = traits<Rhs_>::ColsAtCompileTime,
+    MaxDepth = min_size_prefer_fixed(traits<Lhs_>::MaxColsAtCompileTime,
+                                     traits<Rhs_>::MaxRowsAtCompileTime),
+    Depth = min_size_prefer_fixed(traits<Lhs_>::ColsAtCompileTime,
+                                  traits<Rhs_>::RowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
@@ -191,7 +191,7 @@ struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
   internal::plain_array<Scalar, internal::min_size_prefer_fixed(Size, MaxSize)+(ForceAlignment?EIGEN_MAX_ALIGN_BYTES:0),0> m_data;
   EIGEN_STRONG_INLINE Scalar* data() {
     return ForceAlignment
-            ? reinterpret_cast<Scalar*>((internal::UIntPtr(m_data.array) & ~(std::size_t(EIGEN_MAX_ALIGN_BYTES-1))) + EIGEN_MAX_ALIGN_BYTES)
+            ? reinterpret_cast<Scalar*>((std::uintptr_t(m_data.array) & ~(std::size_t(EIGEN_MAX_ALIGN_BYTES-1))) + EIGEN_MAX_ALIGN_BYTES)
             : m_data.array;
   }
   #endif
@@ -219,7 +219,6 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
     typedef typename Lhs::Scalar   LhsScalar;
     typedef typename Rhs::Scalar   RhsScalar;
     typedef typename Dest::Scalar  ResScalar;
-    typedef typename Dest::RealScalar  RealScalar;
     
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
@@ -234,7 +233,7 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
     ResScalar actualAlpha = combine_scalar_factors(alpha, lhs, rhs);
 
     // make sure Dest is a compile-time vector type (bug 1166)
-    typedef typename conditional<Dest::IsVectorAtCompileTime, Dest, typename Dest::ColXpr>::type ActualDest;
+    typedef std::conditional_t<Dest::IsVectorAtCompileTime, Dest, typename Dest::ColXpr> ActualDest;
 
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
@@ -264,7 +263,7 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
     {
       gemv_static_vector_if<ResScalar,ActualDest::SizeAtCompileTime,ActualDest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
 
-      const bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
+      const bool alphaIsCompatible = (!ComplexByReal) || (numext::is_exactly_zero(numext::imag(actualAlpha)));
       const bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
 
       ei_declare_aligned_stack_constructed_variable(ResScalar,actualDestPtr,dest.size(),
@@ -317,10 +316,10 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,true>
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
     typedef internal::blas_traits<Rhs> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-    typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
+    typedef internal::remove_all_t<ActualRhsType> ActualRhsTypeCleaned;
 
-    typename add_const<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
-    typename add_const<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
+    std::add_const_t<ActualLhsType> actualLhs = LhsBlasTraits::extract(lhs);
+    std::add_const_t<ActualRhsType> actualRhs = RhsBlasTraits::extract(rhs);
 
     ResScalar actualAlpha = combine_scalar_factors(alpha, lhs, rhs);
 

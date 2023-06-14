@@ -31,22 +31,22 @@ class TupleImpl<N, T1, Ts...> {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   // Default constructor, enable if all types are default-constructible.
-  template<typename U1 = T1, typename EnableIf = typename std::enable_if<
+  template<typename U1 = T1, typename EnableIf = std::enable_if_t<
       std::is_default_constructible<U1>::value
       && reduce_all<std::is_default_constructible<Ts>::value...>::value
-    >::type>
+    >>
   EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC
   TupleImpl() : head_{}, tail_{} {}
  
   // Element constructor.
   template<typename U1, typename... Us, 
            // Only enable if...
-           typename EnableIf = typename std::enable_if<
+           typename EnableIf = std::enable_if_t<
               // the number of input arguments match, and ...
               sizeof...(Us) == sizeof...(Ts) && (
                 // this does not look like a copy/move constructor.
                 N > 1 || std::is_convertible<U1, T1>::value)
-           >::type>
+           >>
   EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC
   TupleImpl(U1&& arg1, Us&&... args) 
     : head_(std::forward<U1>(arg1)), tail_(std::forward<Us>(args)...) {}
@@ -165,8 +165,8 @@ struct tuple_cat_impl<NTuples, TupleImpl<N1, Args1...>, TupleImpl<N2, Args2...>,
   // then recursively calls again.
   template<typename Tuple1, size_t... I1s, typename Tuple2, size_t... I2s, typename... MoreTuples>
   static EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  ReturnType run(Tuple1&& tuple1, index_sequence<I1s...>,
-                 Tuple2&& tuple2, index_sequence<I2s...>,
+  ReturnType run(Tuple1&& tuple1, std::index_sequence<I1s...>,
+                 Tuple2&& tuple2, std::index_sequence<I2s...>,
                  MoreTuples&&... tuples) {
     return tuple_cat_impl<NTuples-1, MergedTupleType, Tuples...>::run(
         MergedTupleType(tuple_get_impl<I1s, Args1...>::run(std::forward<Tuple1>(tuple1))...,
@@ -178,8 +178,8 @@ struct tuple_cat_impl<NTuples, TupleImpl<N1, Args1...>, TupleImpl<N2, Args2...>,
   template<typename Tuple1, typename Tuple2, typename... MoreTuples>
   static EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   ReturnType run(Tuple1&& tuple1, Tuple2&& tuple2, MoreTuples&&... tuples) {
-    return run(std::forward<Tuple1>(tuple1), make_index_sequence<N1>{},
-               std::forward<Tuple2>(tuple2), make_index_sequence<N2>{},
+    return run(std::forward<Tuple1>(tuple1), std::make_index_sequence<N1>{},
+               std::forward<Tuple2>(tuple2), std::make_index_sequence<N2>{},
                std::forward<MoreTuples>(tuples)...);
   }
 };
@@ -253,9 +253,9 @@ get(TupleImpl<sizeof...(Types), Types...>& tuple) {
  * \return concatenated tuple.
  */
 template<typename... Tuples,
-          typename EnableIf = typename std::enable_if<
+          typename EnableIf = std::enable_if_t<
             internal::reduce_all<
-              is_tuple<typename std::decay<Tuples>::type>::value...>::value>::type>
+              is_tuple<typename std::decay<Tuples>::type>::value...>::value>>
 EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 typename tuple_cat_impl<sizeof...(Tuples), typename std::decay<Tuples>::type...>::ReturnType
 tuple_cat(Tuples&&... tuples) {

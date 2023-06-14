@@ -63,10 +63,10 @@ struct default_digits_impl<T,false,false> // Floating point
 {
   EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
   static int run() {
-    using std::log;
+    using std::log2;
     using std::ceil;
     typedef typename NumTraits<T>::Real Real;
-    return int(ceil(-log(NumTraits<Real>::epsilon())/log(static_cast<Real>(2))));
+    return int(ceil(-log2(NumTraits<Real>::epsilon())));
   }
 };
 
@@ -95,7 +95,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Tgt bit_cast(const Src& src) {
   // Load src into registers first. This allows the memcpy to be elided by CUDA.
   const Src staged = src;
   EIGEN_USING_STD(memcpy)
-  memcpy(&tgt, &staged, sizeof(Tgt));
+  memcpy(static_cast<void*>(&tgt),static_cast<const void*>(&staged), sizeof(Tgt));
   return tgt;
 }
 }  // namespace numext
@@ -164,11 +164,7 @@ template<typename T> struct GenericNumTraits
   };
 
   typedef T Real;
-  typedef typename internal::conditional<
-                     IsInteger,
-                     typename internal::conditional<sizeof(T)<=2, float, double>::type,
-                     T
-                   >::type NonInteger;
+  typedef std::conditional_t<IsInteger, std::conditional_t<sizeof(T)<=2, float, double>, T> NonInteger;
   typedef T Nested;
   typedef T Literal;
 
@@ -247,12 +243,25 @@ template<> struct NumTraits<double> : GenericNumTraits<double>
   static inline double dummy_precision() { return 1e-12; }
 };
 
+// GPU devices treat `long double` as `double`.
+#ifndef EIGEN_GPU_COMPILE_PHASE
 template<> struct NumTraits<long double>
   : GenericNumTraits<long double>
 {
-  EIGEN_CONSTEXPR
-  static inline long double dummy_precision() { return 1e-15l; }
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+  static inline long double dummy_precision() { return static_cast<long double>(1e-15l); }
+
+#if defined(EIGEN_ARCH_PPC) && (__LDBL_MANT_DIG__ == 106)
+  // PowerPC double double causes issues with some values
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+  static inline long double epsilon()
+  {
+    // 2^(-(__LDBL_MANT_DIG__)+1)
+    return static_cast<long double>(2.4651903288156618919116517665087e-32l);
+  }
+#endif
 };
+#endif
 
 template<typename Real_> struct NumTraits<std::complex<Real_> >
   : GenericNumTraits<std::complex<Real_> >

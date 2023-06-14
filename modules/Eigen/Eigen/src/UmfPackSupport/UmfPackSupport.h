@@ -531,16 +531,16 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<MatrixType_> >
     template<typename MatrixDerived>
     void grab(const EigenBase<MatrixDerived> &A)
     {
-      mp_matrix.~UmfpackMatrixRef();
-      ::new (&mp_matrix) UmfpackMatrixRef(A.derived());
+      internal::destroy_at(&mp_matrix);
+      internal::construct_at(&mp_matrix, A.derived());
     }
 
     void grab(const UmfpackMatrixRef &A)
     {
       if(&(A.derived()) != &mp_matrix)
       {
-        mp_matrix.~UmfpackMatrixRef();
-        ::new (&mp_matrix) UmfpackMatrixRef(A);
+        internal::destroy_at(&mp_matrix);
+        internal::construct_at(&mp_matrix, A);
       }
     }
 

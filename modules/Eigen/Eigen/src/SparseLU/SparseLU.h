@@ -37,9 +37,10 @@ public:
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
   };
 
-  SparseLUTransposeView() : m_sparseLU(NULL) {}
-  SparseLUTransposeView(const SparseLUTransposeView& view) {
+  SparseLUTransposeView() : APIBase(), m_sparseLU(NULL) {}
+  SparseLUTransposeView(const SparseLUTransposeView& view) : APIBase() {
     this->m_sparseLU = view.m_sparseLU;
+    this->m_isInitialized = view.m_isInitialized;
   }
   void setIsInitialized(const bool isInitialized) {this->m_isInitialized = isInitialized;}
   void setSparseLU(SparseLUType* sparseLU) {m_sparseLU = sparseLU;}
@@ -754,10 +755,13 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       info = Base::pivotL(jj, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu);
       if ( info ) 
       {
-        m_lastError = "THE MATRIX IS STRUCTURALLY SINGULAR ... ZERO COLUMN AT ";
+        m_lastError = "THE MATRIX IS STRUCTURALLY SINGULAR";
+#ifndef EIGEN_NO_IO
         std::ostringstream returnInfo;
-        returnInfo << info; 
+        returnInfo << " ... ZERO COLUMN AT ";
+        returnInfo << info;
         m_lastError += returnInfo.str();
+#endif
         m_info = NumericalIssue; 
         m_factorizationIsOk = false; 
         return; 
@@ -816,6 +820,31 @@ struct SparseLUMatrixLReturnType : internal::no_assignment_operator
     m_mapL.template solveTransposedInPlace<Conjugate>(X);
   }
 
+  SparseMatrix<Scalar, ColMajor, Index> toSparse() const {
+    ArrayXi colCount = ArrayXi::Ones(cols());
+    for (Index i = 0; i < cols(); i++) {
+      typename MappedSupernodalType::InnerIterator iter(m_mapL, i);
+      for (; iter; ++iter) {
+        if (iter.row() > iter.col()) {
+          colCount(iter.col())++;
+        }
+      }
+    }
+    SparseMatrix<Scalar, ColMajor, Index> sL(rows(), cols());
+    sL.reserve(colCount);
+    for (Index i = 0; i < cols(); i++) {
+      sL.insert(i, i) = 1.0;
+      typename MappedSupernodalType::InnerIterator iter(m_mapL, i);
+      for (; iter; ++iter) {
+        if (iter.row() > iter.col()) {
+          sL.insert(iter.row(), iter.col()) = iter.value();
+        }
+      }
+    }
+    sL.makeCompressed();
+    return sL;
+  }
+
   const MappedSupernodalType& m_mapL;
 };
 
@@ -832,7 +861,6 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
   template<typename Dest>   void solveInPlace(MatrixBase<Dest> &X) const
   {
     Index nrhs = X.cols();
-    Index n    = X.rows();
     // Backward solve with U
     for (Index k = m_mapL.nsuper(); k >= 0; k--)
     {
@@ -852,7 +880,7 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
       {
         // FIXME: the following lines should use Block expressions and not Map!
         Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > A( &(m_mapL.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
-        Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X.coeffRef(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
+        typename Dest::RowsBlockXpr U = X.derived().middleRows(fsupc, nsupc);
         U = A.template triangularView<Upper>().solve(U);
       }
 
@@ -875,7 +903,6 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
   {
     using numext::conj;
     Index nrhs = X.cols();
-    Index n    = X.rows();
     // Forward solve with U
     for (Index k = 0; k <=  m_mapL.nsuper(); k++)
     {
@@ -906,7 +933,7 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
       else
       {
         Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > A( &(m_mapL.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
-        Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
+        typename Dest::RowsBlockXpr U = X.derived().middleRows(fsupc, nsupc);
         if(Conjugate)
           U = A.adjoint().template triangularView<Lower>().solve(U);
         else
@@ -915,6 +942,32 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
     }// End For U-solve
   }
 
+  SparseMatrix<Scalar, RowMajor, Index> toSparse() {
+    ArrayXi rowCount = ArrayXi::Zero(rows());
+    for (Index i = 0; i < cols(); i++) {
+      typename MatrixLType::InnerIterator iter(m_mapL, i);
+      for (; iter; ++iter) {
+        if (iter.row() <= iter.col()) {
+          rowCount(iter.row())++;
+        }
+      }
+    }
+
+    SparseMatrix<Scalar, RowMajor, Index> sU(rows(), cols());
+    sU.reserve(rowCount);
+    for (Index i = 0; i < cols(); i++) {
+      typename MatrixLType::InnerIterator iter(m_mapL, i);
+      for (; iter; ++iter) {
+        if (iter.row() <= iter.col()) {
+          sU.insert(iter.row(), iter.col()) = iter.value();
+        }
+      }
+    }
+    sU.makeCompressed();
+    const SparseMatrix<Scalar, RowMajor, Index> u = m_mapU;  // convert to RowMajor
+    sU += u;
+    return sU;
+  }
 
   const MatrixLType& m_mapL;
   const MatrixUType& m_mapU;

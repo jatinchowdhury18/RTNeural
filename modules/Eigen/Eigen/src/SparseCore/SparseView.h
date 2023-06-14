@@ -47,11 +47,11 @@ template<typename MatrixType>
 class SparseView : public SparseMatrixBase<SparseView<MatrixType> >
 {
   typedef typename MatrixType::Nested MatrixTypeNested;
-  typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef internal::remove_all_t<MatrixTypeNested> MatrixTypeNested_;
   typedef SparseMatrixBase<SparseView > Base;
 public:
   EIGEN_SPARSE_PUBLIC_INTERFACE(SparseView)
-  typedef typename internal::remove_all<MatrixType>::type NestedExpression;
+  typedef internal::remove_all_t<MatrixType> NestedExpression;
 
   explicit SparseView(const MatrixType& mat, const Scalar& reference = Scalar(0),
                       const RealScalar &epsilon = NumTraits<Scalar>::dummy_precision())
@@ -64,7 +64,7 @@ public:
   inline Index outerSize() const { return m_matrix.outerSize(); }
   
   /** \returns the nested expression */
-  const typename internal::remove_all<MatrixTypeNested>::type&
+  const internal::remove_all_t<MatrixTypeNested>&
   nestedExpression() const { return m_matrix; }
   
   Scalar reference() const { return m_reference; }

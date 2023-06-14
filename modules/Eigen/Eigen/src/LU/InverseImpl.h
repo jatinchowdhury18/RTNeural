@@ -317,7 +317,7 @@ struct Assignment<DstXprType, Inverse<XprType>, internal::assign_op<typename Dst
               && "Aliasing problem detected in inverse(), you need to do inverse().eval() here.");
 
     typedef typename internal::nested_eval<XprType,XprType::ColsAtCompileTime>::type  ActualXprType;
-    typedef typename internal::remove_all<ActualXprType>::type                        ActualXprTypeCleanded;
+    typedef internal::remove_all_t<ActualXprType>                        ActualXprTypeCleanded;
     
     ActualXprType actual_xpr(src.nestedExpression());
     
@@ -387,11 +387,11 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   eigen_assert(rows() == cols());
   // for 2x2, it's worth giving a chance to avoid evaluating.
   // for larger sizes, evaluating has negligible cost and limits code size.
-  typedef typename internal::conditional<
+  typedef std::conditional_t<
     RowsAtCompileTime == 2,
-    typename internal::remove_all<typename internal::nested_eval<Derived, 2>::type>::type,
+    internal::remove_all_t<typename internal::nested_eval<Derived, 2>::type>,
     PlainObject
-  >::type MatrixType;
+  > MatrixType;
   internal::compute_inverse_and_det_with_check<MatrixType, ResultType>::run
     (derived(), absDeterminantThreshold, inverse, determinant, invertible);
 }

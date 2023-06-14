@@ -25,6 +25,8 @@
 
 #include "src/misc/Kernel.h"
 #include "src/misc/Image.h"
+
+// IWYU pragma: begin_exports
 #include "src/LU/FullPivLU.h"
 #include "src/LU/PartialPivLU.h"
 #ifdef EIGEN_USE_LAPACKE
@@ -37,6 +39,7 @@
 #if defined EIGEN_VECTORIZE_SSE || defined EIGEN_VECTORIZE_NEON
   #include "src/LU/arch/InverseSize4.h"
 #endif
+// IWYU pragma: end_exports
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

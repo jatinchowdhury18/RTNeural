@@ -108,6 +108,7 @@ template<typename MatrixType_> class SelfAdjointEigenSolver
       * This is a column vector with entries of type #RealScalar.
       * The length of the vector is the size of \p MatrixType_.
       */
+    typedef typename internal::plain_col_type<MatrixType, Scalar>::type VectorType;
     typedef typename internal::plain_col_type<MatrixType, RealScalar>::type RealVectorType;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
     typedef typename TridiagonalizationType::SubDiagonalType SubDiagonalType;
@@ -125,6 +126,7 @@ template<typename MatrixType_> class SelfAdjointEigenSolver
     EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver()
         : m_eivec(),
+          m_workspace(),
           m_eivalues(),
           m_subdiag(),
           m_hcoeffs(),
@@ -148,6 +150,7 @@ template<typename MatrixType_> class SelfAdjointEigenSolver
     EIGEN_DEVICE_FUNC
     explicit SelfAdjointEigenSolver(Index size)
         : m_eivec(size, size),
+          m_workspace(size),
           m_eivalues(size),
           m_subdiag(size > 1 ? size - 1 : 1),
           m_hcoeffs(size > 1 ? size - 1 : 1),
@@ -174,6 +177,7 @@ template<typename MatrixType_> class SelfAdjointEigenSolver
     EIGEN_DEVICE_FUNC
     explicit SelfAdjointEigenSolver(const EigenBase<InputType>& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
+        m_workspace(matrix.cols()),
         m_eivalues(matrix.cols()),
         m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
         m_hcoeffs(matrix.cols() > 1 ? matrix.cols() - 1 : 1),
@@ -377,6 +381,7 @@ template<typename MatrixType_> class SelfAdjointEigenSolver
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
 
     EigenvectorsType m_eivec;
+    VectorType m_workspace;
     RealVectorType m_eivalues;
     typename TridiagonalizationType::SubDiagonalType m_subdiag;
     typename TridiagonalizationType::CoeffVectorType m_hcoeffs;
@@ -447,11 +452,11 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
   mat = matrix.template triangularView<Lower>();
   RealScalar scale = mat.cwiseAbs().maxCoeff();
-  if(scale==RealScalar(0)) scale = RealScalar(1);
+  if(numext::is_exactly_zero(scale)) scale = RealScalar(1);
   mat.template triangularView<Lower>() /= scale;
   m_subdiag.resize(n-1);
   m_hcoeffs.resize(n-1);
-  internal::tridiagonalization_inplace(mat, diag, m_subdiag, m_hcoeffs, computeEigenvectors);
+  internal::tridiagonalization_inplace(mat, diag, m_subdiag, m_hcoeffs, m_workspace, computeEigenvectors);
 
   m_info = internal::computeFromTridiagonal_impl(diag, m_subdiag, m_maxIterations, computeEigenvectors, m_eivec);
   
@@ -526,7 +531,7 @@ ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag
     }
 
     // find the largest unreduced block at the end of the matrix.
-    while (end>0 && subdiag[end-1]==RealScalar(0))
+    while (end>0 && numext::is_exactly_zero(subdiag[end - 1]))
     {
       end--;
     }
@@ -538,7 +543,7 @@ ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag
     if(iter > maxIterations * n) break;
 
     start = end - 1;
-    while (start>0 && subdiag[start-1]!=0)
+    while (start>0 && !numext::is_exactly_zero(subdiag[start - 1]))
       start--;
 
     internal::tridiagonal_qr_step<MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor>(diag.data(), subdiag.data(), start, end, computeEigenvectors ? eivec.data() : (Scalar*)0, n);
@@ -843,12 +848,12 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
   //   RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * sqrt(td*td + e2));
   // This explain the following, somewhat more complicated, version:
   RealScalar mu = diag[end];
-  if(td==RealScalar(0)) {
+  if(numext::is_exactly_zero(td)) {
     mu -= numext::abs(e);
-  } else if (e != RealScalar(0)) {
+  } else if (!numext::is_exactly_zero(e)) {
     const RealScalar e2 = numext::abs2(e);
     const RealScalar h = numext::hypot(td,e);
-    if(e2 == RealScalar(0)) {
+    if(numext::is_exactly_zero(e2)) {
       mu -= e / ((td + (td>RealScalar(0) ? h : -h)) / e);
     } else {
       mu -= e2 / (td + (td>RealScalar(0) ? h : -h)); 
@@ -859,7 +864,7 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
   RealScalar z = subdiag[start];
   // If z ever becomes zero, the Givens rotation will be the identity and
   // z will stay zero for all future iterations.
-  for (Index k = start; k < end && z != RealScalar(0); ++k)
+  for (Index k = start; k < end && !numext::is_exactly_zero(z); ++k)
   {
     JacobiRotation<RealScalar> rot;
     rot.makeGivens(x, z);

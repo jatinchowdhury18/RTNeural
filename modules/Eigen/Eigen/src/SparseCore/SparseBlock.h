@@ -19,7 +19,7 @@ template<typename XprType, int BlockRows, int BlockCols>
 class BlockImpl<XprType,BlockRows,BlockCols,true,Sparse>
   : public SparseMatrixBase<Block<XprType,BlockRows,BlockCols,true> >
 {
-    typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
+    typedef internal::remove_all_t<typename XprType::Nested> MatrixTypeNested_;
     typedef Block<XprType, BlockRows, BlockCols, true> BlockType;
 public:
     enum { IsRowMajor = internal::traits<BlockType>::IsRowMajor };
@@ -98,7 +98,7 @@ template<typename SparseMatrixType, int BlockRows, int BlockCols>
 class sparse_matrix_block_impl
   : public SparseCompressedBase<Block<SparseMatrixType,BlockRows,BlockCols,true> >
 {
-    typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _MatrixTypeNested;
+    typedef internal::remove_all_t<typename SparseMatrixType::Nested> MatrixTypeNested_;
     typedef Block<SparseMatrixType, BlockRows, BlockCols, true> BlockType;
     typedef SparseCompressedBase<Block<SparseMatrixType,BlockRows,BlockCols,true> > Base;
     using Base::convert_index;
@@ -121,8 +121,8 @@ public:
     template<typename OtherDerived>
     inline BlockType& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _NestedMatrixType;
-      _NestedMatrixType& matrix = m_matrix;
+      typedef internal::remove_all_t<typename SparseMatrixType::Nested> NestedMatrixType_;
+      NestedMatrixType_& matrix = m_matrix;
       // This assignment is slow if this vector set is not empty
       // and/or it is not at the end of the nonzeros of the underlying matrix.
 
@@ -342,7 +342,7 @@ public:
     enum { IsRowMajor = internal::traits<BlockType>::IsRowMajor };
     EIGEN_SPARSE_PUBLIC_INTERFACE(BlockType)
 
-    typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
+    typedef internal::remove_all_t<typename XprType::Nested> MatrixTypeNested_;
 
     /** Column or Row constructor
       */
@@ -431,17 +431,12 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
 
     enum {
       IsRowMajor = XprType::IsRowMajor,
-
-      OuterVector =  (BlockCols==1 && ArgType::IsRowMajor)
-                    | // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
-                      // revert to || as soon as not needed anymore.
-                     (BlockRows==1 && !ArgType::IsRowMajor),
-
+      OuterVector = (BlockCols == 1 && ArgType::IsRowMajor) || (BlockRows == 1 && !ArgType::IsRowMajor),
       CoeffReadCost = evaluator<ArgType>::CoeffReadCost,
       Flags = XprType::Flags
     };
 
-    typedef typename internal::conditional<OuterVector,OuterVectorInnerIterator,InnerVectorInnerIterator>::type InnerIterator;
+    typedef std::conditional_t<OuterVector,OuterVectorInnerIterator,InnerVectorInnerIterator> InnerIterator;
 
     explicit unary_evaluator(const XprType& op)
       : m_argImpl(op.nestedExpression()), m_block(op)
@@ -535,8 +530,8 @@ public:
     while(++m_outerPos<m_end)
     {
       // Restart iterator at the next inner-vector:
-      m_it.~EvalIterator();
-      ::new (&m_it) EvalIterator(m_eval.m_argImpl, m_outerPos);
+      internal::destroy_at(&m_it);
+      internal::construct_at(&m_it, m_eval.m_argImpl, m_outerPos);
       // search for the key m_innerIndex in the current outer-vector
       while(m_it && m_it.index() < m_innerIndex) ++m_it;
       if(m_it && m_it.index()==m_innerIndex) break;

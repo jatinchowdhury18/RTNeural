@@ -20,7 +20,6 @@ namespace internal {
   */
 template <>
 struct scalar_logistic_op<Eigen::half> {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_logistic_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Eigen::half operator()(const Eigen::half& x) const {
     // Convert to float and call scalar_logistic_op<float>.

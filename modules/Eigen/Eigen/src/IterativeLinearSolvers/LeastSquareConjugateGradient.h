@@ -75,7 +75,7 @@ void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest
     Scalar alpha = absNew / tmp.squaredNorm();      // the amount we travel on dir
     x += alpha * p;                                 // update solution
     residual -= alpha * tmp;                        // update residual
-    normal_residual = mat.adjoint() * residual;     // update residual of the normal equation
+    normal_residual.noalias() = mat.adjoint() * residual;     // update residual of the normal equation
     
     residualNorm2 = normal_residual.squaredNorm();
     if(residualNorm2 < threshold)
@@ -113,7 +113,7 @@ struct traits<LeastSquaresConjugateGradient<MatrixType_,Preconditioner_> >
 /** \ingroup IterativeLinearSolvers_Module
   * \brief A conjugate gradient solver for sparse (or dense) least-square problems
   *
-  * This class allows to solve for A x = b linear problems using an iterative conjugate gradient algorithm.
+  * This class solves for the least-squares solution to A x = b using an iterative conjugate gradient algorithm.
   * The matrix A can be non symmetric and rectangular, but the matrix A' A should be positive-definite to guaranty stability.
   * Otherwise, the SparseLU or SparseQR classes might be preferable.
   * The matrix A and the vectors x and b can be either dense or sparse.

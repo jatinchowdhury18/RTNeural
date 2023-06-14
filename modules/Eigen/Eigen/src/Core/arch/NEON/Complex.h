@@ -59,13 +59,13 @@ template<> struct packet_traits<std::complex<float> > : default_packet_traits
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 2,
-    HasHalfPacket = 1,
 
     HasAdd       = 1,
     HasSub       = 1,
     HasMul       = 1,
     HasDiv       = 1,
     HasNegate    = 1,
+    HasSqrt      = 1,
     HasAbs       = 0,
     HasAbs2      = 0,
     HasMin       = 0,
@@ -131,12 +131,12 @@ template<> EIGEN_STRONG_INLINE Packet2cf pnegate(const Packet2cf& a) { return Pa
 
 template<> EIGEN_STRONG_INLINE Packet1cf pconj(const Packet1cf& a)
 {
-  const Packet2ui b = vreinterpret_u32_f32(a.v);
+  const Packet2ui b = Packet2ui(vreinterpret_u32_f32(a.v));
   return Packet1cf(vreinterpret_f32_u32(veor_u32(b, p2ui_CONJ_XOR())));
 }
 template<> EIGEN_STRONG_INLINE Packet2cf pconj(const Packet2cf& a)
 {
-  const Packet4ui b = vreinterpretq_u32_f32(a.v);
+  const Packet4ui b = Packet4ui(vreinterpretq_u32_f32(a.v));
   return Packet2cf(vreinterpretq_f32_u32(veorq_u32(b, p4ui_CONJ_XOR())));
 }
 
@@ -399,13 +399,13 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
     Vectorizable = 1,
     AlignedOnScalar = 0,
     size = 1,
-    HasHalfPacket = 0,
 
     HasAdd    = 1,
     HasSub    = 1,
     HasMul    = 1,
     HasDiv    = 1,
     HasNegate = 1,
+    HasSqrt   = 1,
     HasAbs    = 0,
     HasAbs2   = 0,
     HasMin    = 0,

@@ -59,18 +59,25 @@
 // Compiler identification, EIGEN_COMP_*
 //------------------------------------------------------------------------------------------
 
-/// \internal EIGEN_COMP_GNUC set to 1 for all compilers compatible with GCC
+/// \internal EIGEN_COMP_GNUC set to version (e.g., 951 for GCC 9.5.1) for all compilers compatible with GCC
 #ifdef __GNUC__
-  #define EIGEN_COMP_GNUC (__GNUC__*10+__GNUC_MINOR__)
+  #define EIGEN_COMP_GNUC (__GNUC__*100+__GNUC_MINOR__*10+__GNUC_PATCHLEVEL__)
 #else
   #define EIGEN_COMP_GNUC 0
 #endif
 
-/// \internal EIGEN_COMP_CLANG set to major+minor version (e.g., 307 for clang 3.7) if the compiler is clang
+/// \internal EIGEN_COMP_CLANG set to version (e.g., 372 for clang 3.7.2) if the compiler is clang
 #if defined(__clang__)
-  #define EIGEN_COMP_CLANG (__clang_major__*100+__clang_minor__)
+  #define EIGEN_COMP_CLANG (__clang_major__*100+__clang_minor__*10+__clang_patchlevel__)
 #else
   #define EIGEN_COMP_CLANG 0
+#endif
+
+/// \internal EIGEN_COMP_CLANGAPPLE set to the version number (e.g. 9000000 for AppleClang 9.0) if the compiler is AppleClang
+#if defined(__clang__) && defined(__apple_build_version__)
+  #define EIGEN_COMP_CLANGAPPLE __apple_build_version__
+#else
+  #define EIGEN_COMP_CLANGAPPLE 0
 #endif
 
 /// \internal EIGEN_COMP_CASTXML set to 1 if being preprocessed by CastXML
@@ -236,25 +243,55 @@
   #define EIGEN_COMP_CLANGCPE 0
 #endif
 
+/// \internal EIGEN_COMP_LCC set to 1 if the compiler is MCST-LCC (MCST eLbrus Compiler Collection)
+#if defined(__LCC__) && defined(__MCST__)
+  #define EIGEN_COMP_LCC (__LCC__*100+__LCC_MINOR__)
+#else
+  #define EIGEN_COMP_LCC 0
+#endif
 
-/// \internal EIGEN_GNUC_STRICT set to 1 if the compiler is really GCC and not a compatible compiler (e.g., ICC, clang, mingw, etc.)
-#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_CLANGICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM || EIGEN_COMP_EMSCRIPTEN || EIGEN_COMP_FCC || EIGEN_COMP_CLANGFCC || EIGEN_COMP_CPE || EIGEN_COMP_CLANGCPE)
+
+/// \internal EIGEN_COMP_GNUC_STRICT set to 1 if the compiler is really GCC and not a compatible compiler (e.g., ICC, clang, mingw, etc.)
+#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_CLANGICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM || EIGEN_COMP_EMSCRIPTEN || EIGEN_COMP_FCC || EIGEN_COMP_CLANGFCC || EIGEN_COMP_CPE || EIGEN_COMP_CLANGCPE || EIGEN_COMP_LCC)
   #define EIGEN_COMP_GNUC_STRICT 1
 #else
   #define EIGEN_COMP_GNUC_STRICT 0
 #endif
 
-
-#if EIGEN_COMP_GNUC
-  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__==x && __GNUC_MINOR__>=y) || __GNUC__>x)
-  #define EIGEN_GNUC_AT_MOST(x,y)  ((__GNUC__==x && __GNUC_MINOR__<=y) || __GNUC__<x)
-  #define EIGEN_GNUC_AT(x,y)       ( __GNUC__==x && __GNUC_MINOR__==y )
+// GCC, and compilers that pretend to be it, have different version schemes, so this only makes sense to use with the real GCC.
+#if EIGEN_COMP_GNUC_STRICT
+  #define EIGEN_GNUC_STRICT_AT_LEAST(x,y,z)  ((__GNUC__ > x) || \
+                                              (__GNUC__ == x && __GNUC_MINOR__ > y) || \
+                                              (__GNUC__ == x && __GNUC_MINOR__ == y && __GNUC_PATCHLEVEL__ >= z))
+  #define EIGEN_GNUC_STRICT_LESS_THAN(x,y,z) ((__GNUC__ < x) || \
+                                              (__GNUC__ == x && __GNUC_MINOR__ < y) || \
+                                              (__GNUC__ == x && __GNUC_MINOR__ == y && __GNUC_PATCHLEVEL__ < z))
 #else
-  #define EIGEN_GNUC_AT_LEAST(x,y) 0
-  #define EIGEN_GNUC_AT_MOST(x,y)  0
-  #define EIGEN_GNUC_AT(x,y)       0
+  #define EIGEN_GNUC_STRICT_AT_LEAST(x,y,z)  0
+  #define EIGEN_GNUC_STRICT_LESS_THAN(x,y,z) 0
 #endif
 
+
+
+/// \internal EIGEN_COMP_CLANG_STRICT set to 1 if the compiler is really Clang and not a compatible compiler (e.g., AppleClang, etc.)
+#if EIGEN_COMP_CLANG && !(EIGEN_COMP_CLANGAPPLE || EIGEN_COMP_CLANGICC || EIGEN_COMP_CLANGFCC || EIGEN_COMP_CLANGCPE)
+  #define EIGEN_COMP_CLANG_STRICT 1
+#else
+  #define EIGEN_COMP_CLANG_STRICT 0
+#endif
+
+// Clang, and compilers forked from it, have different version schemes, so this only makes sense to use with the real Clang.
+#if EIGEN_COMP_CLANG_STRICT
+  #define EIGEN_CLANG_STRICT_AT_LEAST(x,y,z)  ((__clang_major__ > x) || \
+                                               (__clang_major__ == x && __clang_minor__ > y) || \
+                                               (__clang_major__ == x && __clang_minor__ == y && __clang_patchlevel__ >= z))
+  #define EIGEN_CLANG_STRICT_LESS_THAN(x,y,z) ((__clang_major__ < x) || \
+                                               (__clang_major__ == x && __clang_minor__ < y) || \
+                                               (__clang_major__ == x && __clang_minor__ == y && __clang_patchlevel__ < z))
+#else
+  #define EIGEN_CLANG_STRICT_AT_LEAST(x,y,z)  0
+  #define EIGEN_CLANG_STRICT_LESS_THAN(x,y,z) 0
+#endif
 
 //------------------------------------------------------------------------------------------
 // Architecture identification, EIGEN_ARCH_*
@@ -310,34 +347,12 @@
 
 /// \internal EIGEN_HAS_ARM64_FP16 set to 1 if the architecture provides an IEEE
 /// compliant Arm fp16 type
-#if EIGEN_ARCH_ARM64
+#if EIGEN_ARCH_ARM_OR_ARM64
   #ifndef EIGEN_HAS_ARM64_FP16
     #if defined(__ARM_FP16_FORMAT_IEEE)
       #define EIGEN_HAS_ARM64_FP16 1
     #else
       #define EIGEN_HAS_ARM64_FP16 0
-    #endif
-  #endif
-#endif
-
-/// \internal EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC set to 1 if the architecture
-/// supports Neon vector intrinsics for fp16.
-#if EIGEN_ARCH_ARM64
-  #ifndef EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC
-    #if defined(__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
-      #define EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC 1
-    #else
-      #define EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC 0
-    #endif
-  #endif
-#endif
-
-/// \internal EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC set to 1 if the architecture
-/// supports Neon scalar intrinsics for fp16.
-#if EIGEN_ARCH_ARM64
-  #ifndef EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC
-    #if defined(__ARM_FEATURE_FP16_SCALAR_ARITHMETIC)
-      #define EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC 1
     #endif
   #endif
 #endif
@@ -364,7 +379,7 @@
 #endif
 
 /// \internal EIGEN_ARCH_PPC set to 1 if the architecture is PowerPC
-#if defined(__powerpc__) || defined(__ppc__) || defined(_M_PPC)
+#if defined(__powerpc__) || defined(__ppc__) || defined(_M_PPC) || defined(__POWERPC__)
   #define EIGEN_ARCH_PPC 1
 #else
   #define EIGEN_ARCH_PPC 0
@@ -494,12 +509,12 @@
   #error "NVCC as the target platform for HIPCC is currently not supported."
 #endif
 
-#if defined(__CUDACC__) && !defined(EIGEN_NO_CUDA)
+#if defined(__CUDACC__) && !defined(EIGEN_NO_CUDA) && !defined(__SYCL_DEVICE_ONLY__)
   // Means the compiler is either nvcc or clang with CUDA enabled
   #define EIGEN_CUDACC __CUDACC__
 #endif
 
-#if defined(__CUDA_ARCH__) && !defined(EIGEN_NO_CUDA)
+#if defined(__CUDA_ARCH__) && !defined(EIGEN_NO_CUDA) && !defined(__SYCL_DEVICE_ONLY__)
   // Means we are generating code for the device
   #define EIGEN_CUDA_ARCH __CUDA_ARCH__
 #endif
@@ -511,7 +526,7 @@
   #define EIGEN_CUDA_SDK_VER 0
 #endif
 
-#if defined(__HIPCC__) && !defined(EIGEN_NO_HIP)
+#if defined(__HIPCC__) && !defined(EIGEN_NO_HIP) && !defined(__SYCL_DEVICE_ONLY__)
   // Means the compiler is HIPCC (analogous to EIGEN_CUDACC, but for HIP)
   #define EIGEN_HIPCC __HIPCC__
 
@@ -520,7 +535,7 @@
   // ++ host_defines.h which contains the defines for the __host__ and __device__ macros
   #include <hip/hip_runtime.h>
 
-  #if defined(__HIP_DEVICE_COMPILE__)
+  #if defined(__HIP_DEVICE_COMPILE__) && !defined(__SYCL_DEVICE_ONLY__)
     // analogous to EIGEN_CUDA_ARCH, but for HIP
     #define EIGEN_HIP_DEVICE_COMPILE __HIP_DEVICE_COMPILE__
   #endif
@@ -600,6 +615,28 @@
 //
 #endif
 
+/// \internal EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC set to 1 if the architecture
+/// supports Neon vector intrinsics for fp16.
+#if EIGEN_ARCH_ARM_OR_ARM64
+  #ifndef EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC
+    #if defined(__ARM_FEATURE_FP16_VECTOR_ARITHMETIC) && !defined(EIGEN_GPU_COMPILE_PHASE)
+      #define EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC 1
+    #else
+      #define EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC 0
+    #endif
+  #endif
+#endif
+
+/// \internal EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC set to 1 if the architecture
+/// supports Neon scalar intrinsics for fp16.
+#if EIGEN_ARCH_ARM_OR_ARM64
+  #ifndef EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC
+    #if defined(__ARM_FEATURE_FP16_SCALAR_ARITHMETIC) && !defined(EIGEN_GPU_COMPILE_PHASE)
+      #define EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC 1
+    #endif
+  #endif
+#endif
+
 #if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
 // EIGEN_USE_SYCL is a user-defined macro while __SYCL_DEVICE_ONLY__ is a compiler-defined macro.
 // In most cases we want to check if both macros are defined which can be done using the define below.
@@ -643,11 +680,11 @@
 // The macro EIGEN_COMP_CXXVER defines the c++ version expected by the compiler.
 // For instance, if compiling with gcc and -std=c++17, then EIGEN_COMP_CXXVER
 // is defined to 17.
-#if EIGEN_CPLUSPLUS > 201703L
+#if EIGEN_CPLUSPLUS >= 202002L
   #define EIGEN_COMP_CXXVER 20
-#elif EIGEN_CPLUSPLUS > 201402L
+#elif EIGEN_CPLUSPLUS >= 201703L
   #define EIGEN_COMP_CXXVER 17
-#elif EIGEN_CPLUSPLUS > 201103L
+#elif EIGEN_CPLUSPLUS >= 201402L
   #define EIGEN_COMP_CXXVER 14
 #elif EIGEN_CPLUSPLUS >= 201103L
   #define EIGEN_COMP_CXXVER 11
@@ -660,10 +697,13 @@
 // but in practice we should not rely on them but rather on the availability of
 // individual features as defined later.
 // This is why there is no EIGEN_HAS_CXX17.
-#if EIGEN_MAX_CPP_VER<14 || EIGEN_COMP_CXXVER<14 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1900) || \
-  (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1500) || (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000) ||     \
-  (EIGEN_COMP_CLANG && ((EIGEN_COMP_CLANG<309) || (defined(__apple_build_version__) && (__apple_build_version__ < 9000000)))) || \
-  (EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<51)
+#if EIGEN_MAX_CPP_VER < 14 || EIGEN_COMP_CXXVER < 14 || \
+  (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1900) || \
+  (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1500) || \
+  (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000) || \
+  (EIGEN_COMP_CLANG_STRICT && EIGEN_COMP_CLANG < 390) || \
+  (EIGEN_COMP_CLANGAPPLE && EIGEN_COMP_CLANGAPPLE < 9000000) || \
+  (EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC < 510)
 #error This compiler appears to be too old to be supported by Eigen
 #endif
 
@@ -678,16 +718,6 @@
   #define EIGEN_HAS_C99_MATH 1
 #else
   #define EIGEN_HAS_C99_MATH 0
-#endif
-#endif
-
-// Does the compiler support result_of?
-// result_of was deprecated in c++17 and removed in c++ 20
-#ifndef EIGEN_HAS_STD_RESULT_OF
-#if EIGEN_COMP_CXXVER < 17
-#define EIGEN_HAS_STD_RESULT_OF 1
-#else
-#define EIGEN_HAS_STD_RESULT_OF 0
 #endif
 #endif
 
@@ -710,57 +740,29 @@
 #endif
 #endif
 
-// Does the compiler fully support const expressions? (as in c++14)
-#ifndef EIGEN_HAS_CONSTEXPR
-  #if defined(EIGEN_CUDACC)
-  // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-    #if (EIGEN_COMP_CLANG || EIGEN_COMP_NVCC >= 70500)
-      #define EIGEN_HAS_CONSTEXPR 1
-    #endif
-  #else
-    #define EIGEN_HAS_CONSTEXPR 1
-  #endif
-
-  #ifndef EIGEN_HAS_CONSTEXPR
-    #define EIGEN_HAS_CONSTEXPR 0
-  #endif
-
-#endif // EIGEN_HAS_CONSTEXPR
-
-#if EIGEN_HAS_CONSTEXPR
 #define EIGEN_CONSTEXPR constexpr
-#else
-#define EIGEN_CONSTEXPR
-#endif
-
-// Does the compiler support C++11 math?
-// Let's be conservative and enable the default C++11 implementation only if we are sure it exists
-#ifndef EIGEN_HAS_CXX11_MATH
-  #if (EIGEN_ARCH_i386_OR_x86_64 && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC))
-    #define EIGEN_HAS_CXX11_MATH 1
-  #else
-    #define EIGEN_HAS_CXX11_MATH 0
-  #endif
-#endif
 
 // NOTE: the required Apple's clang version is very conservative
 //       and it could be that XCode 9 works just fine.
 // NOTE: the MSVC version is based on https://en.cppreference.com/w/cpp/compiler_support
 //       and not tested.
+// NOTE: Intel C++ Compiler Classic (icc) Version 19.0 and later supports dynamic allocation
+//       for over-aligned data, but not in a manner that is compatible with Eigen.
+//       See https://gitlab.com/libeigen/eigen/-/issues/2575
 #ifndef EIGEN_HAS_CXX17_OVERALIGN
-#if EIGEN_MAX_CPP_VER>=17 && EIGEN_COMP_CXXVER>=17 && (                                 \
-           (EIGEN_COMP_MSVC >= 1912)                                                    \
-        || (EIGEN_GNUC_AT_LEAST(7,0))                                                   \
-        || ((!defined(__apple_build_version__)) && (EIGEN_COMP_CLANG>=500))             \
-        || (( defined(__apple_build_version__)) && (__apple_build_version__>=10000000)) \
-      )
+#if EIGEN_MAX_CPP_VER>=17 && EIGEN_COMP_CXXVER>=17 && (                 \
+           (EIGEN_COMP_MSVC >= 1912)                                    \
+        || (EIGEN_GNUC_STRICT_AT_LEAST(7,0,0))                          \
+        || (EIGEN_CLANG_STRICT_AT_LEAST(5,0,0))                         \
+        || (EIGEN_COMP_CLANGAPPLE && EIGEN_COMP_CLANGAPPLE >= 10000000) \
+      ) && !EIGEN_COMP_ICC
 #define EIGEN_HAS_CXX17_OVERALIGN 1
 #else
 #define EIGEN_HAS_CXX17_OVERALIGN 0
 #endif
 #endif
 
-#if defined(EIGEN_CUDACC) && EIGEN_HAS_CONSTEXPR
+#if defined(EIGEN_CUDACC)
   // While available already with c++11, this is useful mostly starting with c++14 and relaxed constexpr rules
   #if defined(__NVCC__)
     // nvcc considers constexpr functions as __host__ __device__ with the option --expt-relaxed-constexpr
@@ -846,8 +848,8 @@
 
 // GPU stuff
 
-// Disable some features when compiling with GPU compilers (NVCC/clang-cuda/SYCL/HIPCC)
-#if defined(EIGEN_CUDACC) || defined(SYCL_DEVICE_ONLY) || defined(EIGEN_HIPCC)
+// Disable some features when compiling with GPU compilers (SYCL/HIPCC)
+#if defined(SYCL_DEVICE_ONLY) || defined(EIGEN_HIP_DEVICE_COMPILE)
   // Do not try asserts on device code
   #ifndef EIGEN_NO_DEBUG
   #define EIGEN_NO_DEBUG
@@ -856,7 +858,10 @@
   #ifdef EIGEN_INTERNAL_DEBUGGING
   #undef EIGEN_INTERNAL_DEBUGGING
   #endif
+#endif
 
+// No exceptions on device.
+#if defined(SYCL_DEVICE_ONLY) || defined(EIGEN_GPU_COMPILE_PHASE)
   #ifdef EIGEN_EXCEPTIONS
   #undef EIGEN_EXCEPTIONS
   #endif
@@ -888,22 +893,6 @@
 # endif
 #endif
 
-// eigen_plain_assert is where we implement the workaround for the assert() bug in GCC <= 4.3, see bug 89
-#ifdef EIGEN_NO_DEBUG
-  #ifdef SYCL_DEVICE_ONLY // used to silence the warning on SYCL device
-    #define eigen_plain_assert(x) EIGEN_UNUSED_VARIABLE(x)
-  #else
-    #define eigen_plain_assert(x)
-  #endif
-#else
-    namespace Eigen {
-    namespace internal {
-    inline bool copy_bool(bool b) { return b; }
-    }
-    }
-    #define eigen_plain_assert(x) assert(x)
-#endif
-
 // eigen_assert can be overridden
 #ifndef eigen_assert
 #define eigen_assert(x) eigen_plain_assert(x)
@@ -912,10 +901,10 @@
 #ifdef EIGEN_INTERNAL_DEBUGGING
 #define eigen_internal_assert(x) eigen_assert(x)
 #else
-#define eigen_internal_assert(x)
+#define eigen_internal_assert(x) ((void)0)
 #endif
 
-#ifdef EIGEN_NO_DEBUG
+#if defined(EIGEN_NO_DEBUG) || (defined(EIGEN_GPU_COMPILE_PHASE) && defined(EIGEN_NO_DEBUG_GPU))
 #define EIGEN_ONLY_USED_FOR_DEBUG(x) EIGEN_UNUSED_VARIABLE(x)
 #else
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
@@ -939,10 +928,26 @@
 #define EIGEN_UNUSED
 #endif
 
+#if EIGEN_COMP_GNUC
+  #define EIGEN_PRAGMA(tokens) _Pragma(#tokens)
+  #define EIGEN_DIAGNOSTICS(tokens) EIGEN_PRAGMA(GCC diagnostic tokens)
+  #define EIGEN_DIAGNOSTICS_OFF(msc, gcc) EIGEN_DIAGNOSTICS(gcc)
+#elif EIGEN_COMP_MSVC
+  #define EIGEN_PRAGMA(tokens) __pragma(tokens)
+  #define EIGEN_DIAGNOSTICS(tokens) EIGEN_PRAGMA(warning(tokens))
+  #define EIGEN_DIAGNOSTICS_OFF(msc, gcc) EIGEN_DIAGNOSTICS(msc)
+#else
+  #define EIGEN_PRAGMA(tokens)
+  #define EIGEN_DIAGNOSTICS(tokens)
+  #define EIGEN_DIAGNOSTICS_OFF(msc, gcc)
+#endif
+
+#define EIGEN_DISABLE_DEPRECATED_WARNING EIGEN_DIAGNOSTICS_OFF(disable : 4996, ignored "-Wdeprecated-declarations")
+
 // Suppresses 'unused variable' warnings.
 namespace Eigen {
   namespace internal {
-    template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void ignore_unused_variable(const T&) {}
+    template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(const T&) {}
   }
 }
 #define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
@@ -996,17 +1001,28 @@ namespace Eigen {
     // directly for std::complex<T>, Eigen::half, Eigen::bfloat16. For these,
     // you will need to apply to the underlying POD type.
     #if EIGEN_ARCH_PPC && EIGEN_COMP_GNUC_STRICT
-      // This seems to be broken on clang.  Packet4f is loaded into a single
-      //   register rather than a vector, zeroing out some entries.  Integer
+      // This seems to be broken on clang. Packet4f is loaded into a single
+      //   register rather than a vector, zeroing out some entries. Integer
       //   types also generate a compile error.
-      // General, Altivec, VSX.
-      #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+r,v,wa" (X));
+      #if EIGEN_OS_MAC
+        // General, Altivec for Apple (VSX were added in ISA v2.06):
+        #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+r,v" (X));
+      #else
+        // General, Altivec, VSX otherwise:
+        #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+r,v,wa" (X));
+      #endif
     #elif EIGEN_ARCH_ARM_OR_ARM64
-      // General, NEON.
-      // Clang doesn't like "r",
-      //    error: non-trivial scalar-to-vector conversion, possible invalid
-      //           constraint for vector typ
-      #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+g,w" (X));
+      #ifdef __ARM_FP
+        // General, VFP or NEON.
+        // Clang doesn't like "r",
+        //    error: non-trivial scalar-to-vector conversion, possible invalid
+        //           constraint for vector typ
+        #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+g,w" (X));
+      #else
+        // Arm without VFP or NEON.
+        // "w" constraint will not compile.
+        #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+g" (X));
+      #endif
     #elif EIGEN_ARCH_i386_OR_x86_64
       // General, SSE.
       #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+g,x" (X));
@@ -1084,16 +1100,6 @@ namespace Eigen {
     }
 #endif
 
-/**
- * \internal
- * \brief Macro for conditionally trivial special member functions for supporting trivially copyable types.
- * This feature is officially known as C++20's P0848R3 and is enabled on supported compilers.
- */
-#if (EIGEN_COMP_CXXVER >= 20) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_MSVC_STRICT)
-#define EIGEN_COMP_HAS_P0848R3 1
-#else
-#define EIGEN_COMP_HAS_P0848R3 0
-#endif
 
 /**
  * \internal
@@ -1257,10 +1263,10 @@ namespace Eigen {
 namespace Eigen {
 namespace internal {
 
-inline bool all(){ return true; }
+EIGEN_DEVICE_FUNC inline bool all(){ return true; }
 
 template<typename T, typename ...Ts>
-bool all(T t, Ts ... ts){ return t && all(ts...); }
+EIGEN_DEVICE_FUNC bool all(T t, Ts ... ts){ return t && all(ts...); }
 
 }
 }
@@ -1278,6 +1284,14 @@ bool all(T t, Ts ... ts){ return t && all(ts...); }
   #endif
 #else
   #define EIGEN_UNROLL_LOOP
+#endif
+
+// Notice: Use this macro with caution. The code in the if body should still
+// compile with C++14.
+#if defined(EIGEN_HAS_CXX17_IFCONSTEXPR)
+#define EIGEN_IF_CONSTEXPR(X) if constexpr (X)
+#else
+#define EIGEN_IF_CONSTEXPR(X) if (X)
 #endif
 
 #endif // EIGEN_MACROS_H

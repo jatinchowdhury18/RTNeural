@@ -112,11 +112,6 @@ template<typename Derived> class ArrayBase
       return derived();
     }
     
-#if EIGEN_COMP_HAS_P0848R3
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ArrayBase& operator=(
-        const ArrayBase& other) requires internal::has_trivially_copyable_storage<Derived>::value = default;
-#endif
-
     /** Set all the entries to \a value.
       * \sa DenseBase::setConstant(), DenseBase::fill() */
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE

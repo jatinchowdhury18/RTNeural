@@ -19,9 +19,9 @@ namespace internal {
 template<typename Lhs, typename Rhs, typename ResultType>
 static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res, bool sortedInsertion = false)
 {
-  typedef typename remove_all<Lhs>::type::Scalar LhsScalar;
-  typedef typename remove_all<Rhs>::type::Scalar RhsScalar;
-  typedef typename remove_all<ResultType>::type::Scalar ResScalar;
+  typedef typename remove_all_t<Lhs>::Scalar LhsScalar;
+  typedef typename remove_all_t<Rhs>::Scalar RhsScalar;
+  typedef typename remove_all_t<ResultType>::Scalar ResScalar;
 
   // make sure to call innerSize/outerSize since we fake the storage order.
   Index rows = lhs.innerSize();
@@ -140,7 +140,7 @@ struct conservative_sparse_sparse_product_selector;
 template<typename Lhs, typename Rhs, typename ResultType>
 struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
 {
-  typedef typename remove_all<Lhs>::type LhsCleaned;
+  typedef remove_all_t<Lhs> LhsCleaned;
   typedef typename LhsCleaned::Scalar Scalar;
 
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
@@ -214,7 +214,7 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,R
 template<typename Lhs, typename Rhs, typename ResultType>
 struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,RowMajor>
 {
-  typedef typename traits<typename remove_all<Lhs>::type>::Scalar Scalar;
+  typedef typename traits<remove_all_t<Lhs>>::Scalar Scalar;
 
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
@@ -276,8 +276,8 @@ namespace internal {
 template<typename Lhs, typename Rhs, typename ResultType>
 static void sparse_sparse_to_dense_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res)
 {
-  typedef typename remove_all<Lhs>::type::Scalar LhsScalar;
-  typedef typename remove_all<Rhs>::type::Scalar RhsScalar;
+  typedef typename remove_all_t<Lhs>::Scalar LhsScalar;
+  typedef typename remove_all_t<Rhs>::Scalar RhsScalar;
   Index cols = rhs.outerSize();
   eigen_assert(lhs.outerSize() == rhs.innerSize());
 

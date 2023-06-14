@@ -23,13 +23,12 @@ template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename Rh
 struct triangular_matrix_vector_product<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,ColMajor,Version>
 {
   typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
-  enum {
-    IsLower = ((Mode&Lower)==Lower),
-    HasUnitDiag = (Mode & UnitDiag)==UnitDiag,
-    HasZeroDiag = (Mode & ZeroDiag)==ZeroDiag
-  };
-  static EIGEN_DONT_INLINE  void run(Index _rows, Index _cols, const LhsScalar* _lhs, Index lhsStride,
-                                     const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, const RhsScalar& alpha);
+  static constexpr bool IsLower = ((Mode & Lower) == Lower);
+  static constexpr bool HasUnitDiag = (Mode & UnitDiag) == UnitDiag;
+  static constexpr bool HasZeroDiag = (Mode & ZeroDiag) == ZeroDiag;
+  static EIGEN_DONT_INLINE void run(Index _rows, Index _cols, const LhsScalar* _lhs, Index lhsStride,
+                                    const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr,
+                                    const RhsScalar& alpha);
 };
 
 template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs, int Version>
@@ -94,13 +93,12 @@ template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename Rh
 struct triangular_matrix_vector_product<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,RowMajor,Version>
 {
   typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
-  enum {
-    IsLower = ((Mode&Lower)==Lower),
-    HasUnitDiag = (Mode & UnitDiag)==UnitDiag,
-    HasZeroDiag = (Mode & ZeroDiag)==ZeroDiag
-  };
+  static constexpr bool IsLower = ((Mode & Lower) == Lower);
+  static constexpr bool HasUnitDiag = (Mode & UnitDiag) == UnitDiag;
+  static constexpr bool HasZeroDiag = (Mode & ZeroDiag) == ZeroDiag;
   static EIGEN_DONT_INLINE void run(Index _rows, Index _cols, const LhsScalar* _lhs, Index lhsStride,
-                                    const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, const ResScalar& alpha);
+                                    const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr,
+                                    const ResScalar& alpha);
 };
 
 template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs,int Version>
@@ -202,7 +200,7 @@ struct triangular_product_impl<Mode,false,Lhs,true,Rhs,false>
 namespace internal {
 
 // TODO: find a way to factorize this piece of code with gemv_selector since the logic is exactly the same.
-  
+
 template<int Mode> struct trmv_selector<Mode,ColMajor>
 {
   template<typename Lhs, typename Rhs, typename Dest>
@@ -211,33 +209,31 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
     typedef typename Lhs::Scalar      LhsScalar;
     typedef typename Rhs::Scalar      RhsScalar;
     typedef typename Dest::Scalar     ResScalar;
-    typedef typename Dest::RealScalar RealScalar;
-    
+
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
     typedef internal::blas_traits<Rhs> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-    
-    typedef Map<Matrix<ResScalar,Dynamic,1>, plain_enum_min(AlignedMax,internal::packet_traits<ResScalar>::size)> MappedDest;
+    constexpr int Alignment = (std::min)(int(AlignedMax), int(internal::packet_traits<ResScalar>::size));
 
-    typename internal::add_const_on_value_type<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
-    typename internal::add_const_on_value_type<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
+    typedef Map<Matrix<ResScalar,Dynamic,1>, Alignment> MappedDest;
+
+    add_const_on_value_type_t<ActualLhsType> actualLhs = LhsBlasTraits::extract(lhs);
+    add_const_on_value_type_t<ActualRhsType> actualRhs = RhsBlasTraits::extract(rhs);
 
     LhsScalar lhs_alpha = LhsBlasTraits::extractScalarFactor(lhs);
     RhsScalar rhs_alpha = RhsBlasTraits::extractScalarFactor(rhs);
     ResScalar actualAlpha = alpha * lhs_alpha * rhs_alpha;
 
-    enum {
-      // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
-      // on, the other hand it is good for the cache to pack the vector anyways...
-      EvalToDestAtCompileTime = Dest::InnerStrideAtCompileTime==1,
-      ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex),
-      MightCannotUseDest = (Dest::InnerStrideAtCompileTime!=1) || ComplexByReal
-    };
+    // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
+    // on, the other hand it is good for the cache to pack the vector anyways...
+    constexpr bool EvalToDestAtCompileTime = Dest::InnerStrideAtCompileTime==1;
+    constexpr bool ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex);
+    constexpr bool MightCannotUseDest = (Dest::InnerStrideAtCompileTime!=1) || ComplexByReal;
 
     gemv_static_vector_if<ResScalar,Dest::SizeAtCompileTime,Dest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
 
-    bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
+    bool alphaIsCompatible = (!ComplexByReal) || numext::is_exactly_zero(numext::imag(actualAlpha));
     bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
 
     RhsScalar compatibleAlpha = get_factor<ResScalar,RhsScalar>::run(actualAlpha);
@@ -278,7 +274,7 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
         dest = MappedDest(actualDestPtr, dest.size());
     }
 
-    if ( ((Mode&UnitDiag)==UnitDiag) && (lhs_alpha!=LhsScalar(1)) )
+    if ( ((Mode&UnitDiag)==UnitDiag) && !numext::is_exactly_one(lhs_alpha) )
     {
       Index diagSize = (std::min)(lhs.rows(),lhs.cols());
       dest.head(diagSize) -= (lhs_alpha-LhsScalar(1))*rhs.head(diagSize);
@@ -299,18 +295,16 @@ template<int Mode> struct trmv_selector<Mode,RowMajor>
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
     typedef internal::blas_traits<Rhs> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-    typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
+    typedef internal::remove_all_t<ActualRhsType> ActualRhsTypeCleaned;
 
-    typename add_const<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
-    typename add_const<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
+    std::add_const_t<ActualLhsType> actualLhs = LhsBlasTraits::extract(lhs);
+    std::add_const_t<ActualRhsType> actualRhs = RhsBlasTraits::extract(rhs);
 
     LhsScalar lhs_alpha = LhsBlasTraits::extractScalarFactor(lhs);
     RhsScalar rhs_alpha = RhsBlasTraits::extractScalarFactor(rhs);
     ResScalar actualAlpha = alpha * lhs_alpha * rhs_alpha;
 
-    enum {
-      DirectlyUseRhs = ActualRhsTypeCleaned::InnerStrideAtCompileTime==1
-    };
+    constexpr bool DirectlyUseRhs = ActualRhsTypeCleaned::InnerStrideAtCompileTime==1;
 
     gemv_static_vector_if<RhsScalar,ActualRhsTypeCleaned::SizeAtCompileTime,ActualRhsTypeCleaned::MaxSizeAtCompileTime,!DirectlyUseRhs> static_rhs;
 
@@ -337,7 +331,7 @@ template<int Mode> struct trmv_selector<Mode,RowMajor>
             dest.data(),dest.innerStride(),
             actualAlpha);
 
-    if ( ((Mode&UnitDiag)==UnitDiag) && (lhs_alpha!=LhsScalar(1)) )
+    if ( ((Mode&UnitDiag)==UnitDiag) && !numext::is_exactly_one(lhs_alpha) )
     {
       Index diagSize = (std::min)(lhs.rows(),lhs.cols());
       dest.head(diagSize) -= (lhs_alpha-LhsScalar(1))*rhs.head(diagSize);

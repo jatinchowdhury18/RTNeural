@@ -186,14 +186,14 @@
     #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
   #endif
 #else
-  #if (defined __SSE2__) && ( (!EIGEN_COMP_GNUC) || EIGEN_COMP_ICC || EIGEN_COMP_GNUC )
-    #define EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC
+  #if defined(__SSE2__)
+    #define EIGEN_SSE2_ON_NON_MSVC
   #endif
 #endif
 
 #if !(defined(EIGEN_DONT_VECTORIZE) || defined(EIGEN_GPUCC))
 
-  #if defined (EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
+  #if defined (EIGEN_SSE2_ON_NON_MSVC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
 
     // Defines symbols for compile-time detection of which instructions are
     // used.
@@ -270,11 +270,22 @@
         #ifdef __AVX512BF16__
           #define EIGEN_VECTORIZE_AVX512BF16
         #endif
+        #ifdef __AVX512FP16__
+          #ifdef __AVX512VL__
+            #define EIGEN_VECTORIZE_AVX512FP16
+          #else
+            #if EIGEN_COMP_GNUC
+              #error Please add -mavx512vl to your compiler flags: compiling with -mavx512fp16 alone without AVX512-VL is not supported.
+            #else
+              #error Please enable AVX512-VL in your compiler flags (e.g. -mavx512vl): compiling with AVX512-FP16 alone without AVX512-VL is not supported.
+            #endif
+          #endif 
+        #endif
       #endif
     #endif
 
     // Disable AVX support on broken xcode versions
-    #if defined(__apple_build_version__) && (__apple_build_version__ == 11000033 ) && ( __MAC_OS_X_VERSION_MIN_REQUIRED == 101500 )
+    #if ( EIGEN_COMP_CLANGAPPLE == 11000033 ) && ( __MAC_OS_X_VERSION_MIN_REQUIRED == 101500 )
       // A nasty bug in the clang compiler shipped with xcode in a common compilation situation
       // when XCode 11.0 and Mac deployment target macOS 10.15 is https://trac.macports.org/ticket/58776#no1
       #ifdef EIGEN_VECTORIZE_AVX
@@ -317,7 +328,7 @@
     extern "C" {
       // In theory we should only include immintrin.h and not the other *mmintrin.h header files directly.
       // Doing so triggers some issues with ICC. However old gcc versions seems to not have this file, thus:
-      #if EIGEN_COMP_ICC >= 1110
+      #if EIGEN_COMP_ICC >= 1110 || EIGEN_COMP_EMSCRIPTEN
         #include <immintrin.h>
       #else
         #include <mmintrin.h>
@@ -341,10 +352,10 @@
       #endif
     } // end extern "C"
 
-  #elif defined __VSX__
+  #elif defined(__VSX__) && !defined(__APPLE__)
 
     #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_VSX
+    #define EIGEN_VECTORIZE_VSX 1
     #include <altivec.h>
     // We need to #undef all these ugly tokens defined in <altivec.h>
     // => use __vector instead of vector
@@ -416,7 +427,7 @@
   #include <arm_fp16.h>
 #endif
 
-#if defined(__F16C__) && (!defined(EIGEN_GPUCC) && (!EIGEN_COMP_CLANG || EIGEN_COMP_CLANG>=380))
+#if defined(__F16C__) && !defined(EIGEN_GPUCC) && (!EIGEN_COMP_CLANG_STRICT || EIGEN_CLANG_STRICT_AT_LEAST(3,8,0))
   // We can use the optimized fp16 to float and float to fp16 conversion routines
   #define EIGEN_HAS_FP16_C
 

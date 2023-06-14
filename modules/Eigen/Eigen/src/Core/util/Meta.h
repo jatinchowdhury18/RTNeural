@@ -27,9 +27,6 @@
 
 #endif
 
-// Recent versions of ICC require <cstdint> for pointer types below.
-#define EIGEN_ICC_NEEDS_CSTDINT (EIGEN_COMP_ICC>=1600)
-
 // Define portable (u)int{32,64} types
 #include <cstdint>
 
@@ -43,6 +40,32 @@ typedef std::uint32_t uint32_t;
 typedef std::int32_t  int32_t;
 typedef std::uint64_t uint64_t;
 typedef std::int64_t  int64_t;
+
+template <size_t Size>
+struct get_integer_by_size {
+    typedef void signed_type;
+    typedef void unsigned_type;
+};
+template <>
+struct get_integer_by_size<1> {
+    typedef int8_t signed_type;
+    typedef uint8_t unsigned_type;
+};
+template <>
+struct get_integer_by_size<2> {
+    typedef int16_t signed_type;
+    typedef uint16_t unsigned_type;
+};
+template <>
+struct get_integer_by_size<4> {
+    typedef int32_t signed_type;
+    typedef uint32_t unsigned_type;
+};
+template <>
+struct get_integer_by_size<8> {
+    typedef int64_t signed_type;
+    typedef uint64_t unsigned_type;
+};
 }
 }
 
@@ -67,17 +90,6 @@ namespace internal {
   * we however don't want to add a dependency to Boost.
   */
 
-// Only recent versions of ICC complain about using ptrdiff_t to hold pointers,
-// and older versions do not provide *intptr_t types.
-#if EIGEN_ICC_NEEDS_CSTDINT
-typedef std::intptr_t  IntPtr;
-typedef std::uintptr_t UIntPtr;
-#else
-typedef std::ptrdiff_t IntPtr;
-typedef std::size_t UIntPtr;
-#endif
-#undef EIGEN_ICC_NEEDS_CSTDINT
-
 struct true_type {  enum { value = 1 }; };
 struct false_type { enum { value = 0 }; };
 
@@ -90,23 +102,11 @@ struct bool_constant<true> : true_type {};
 template<>
 struct bool_constant<false> : false_type {};
 
-template<bool Condition, typename Then, typename Else>
-struct conditional { typedef Then type; };
-
-template<typename Then, typename Else>
-struct conditional <false, Then, Else> { typedef Else type; };
-
-template<typename T> struct remove_reference { typedef T type; };
-template<typename T> struct remove_reference<T&> { typedef T type; };
-
-template<typename T> struct remove_pointer { typedef T type; };
-template<typename T> struct remove_pointer<T*> { typedef T type; };
-template<typename T> struct remove_pointer<T*const> { typedef T type; };
-
-template <class T> struct remove_const { typedef T type; };
-template <class T> struct remove_const<const T> { typedef T type; };
-template <class T> struct remove_const<const T[]> { typedef T type[]; };
-template <class T, unsigned int Size> struct remove_const<const T[Size]> { typedef T type[Size]; };
+// Third-party libraries rely on these.
+using std::conditional;
+using std::remove_reference;
+using std::remove_pointer;
+using std::remove_const;
 
 template<typename T> struct remove_all { typedef T type; };
 template<typename T> struct remove_all<const T>   { typedef typename remove_all<T>::type type; };
@@ -115,10 +115,16 @@ template<typename T> struct remove_all<T&>        { typedef typename remove_all<
 template<typename T> struct remove_all<T const*>  { typedef typename remove_all<T>::type type; };
 template<typename T> struct remove_all<T*>        { typedef typename remove_all<T>::type type; };
 
+template<typename T>
+using remove_all_t = typename remove_all<T>::type;
+
 template<typename T> struct is_arithmetic      { enum { value = false }; };
 template<> struct is_arithmetic<float>         { enum { value = true }; };
 template<> struct is_arithmetic<double>        { enum { value = true }; };
+// GPU devices treat `long double` as `double`.
+#ifndef EIGEN_GPU_COMPILE_PHASE
 template<> struct is_arithmetic<long double>   { enum { value = true }; };
+#endif
 template<> struct is_arithmetic<bool>          { enum { value = true }; };
 template<> struct is_arithmetic<char>          { enum { value = true }; };
 template<> struct is_arithmetic<signed char>   { enum { value = true }; };
@@ -134,16 +140,28 @@ template<typename T, typename U> struct is_same { enum { value = 0 }; };
 template<typename T> struct is_same<T,T> { enum { value = 1 }; };
 
 template< class T >
-struct is_void : is_same<void, typename remove_const<T>::type> {};
+struct is_void : is_same<void, std::remove_const_t<T>> {};
+
+/** \internal
+  * Implementation of std::void_t for SFINAE.
+  *
+  * Pre C++17:
+  * Custom implementation.
+  *
+  * Post C++17: Uses std::void_t
+  */
+#if EIGEN_COMP_CXXVER >= 17
+using std::void_t;
+#else
+template<typename...>
+using void_t = void;
+#endif
 
 template<> struct is_arithmetic<signed long long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long long> { enum { value = true }; };
 using std::is_integral;
 
 using std::make_unsigned;
-
-template <typename T> struct add_const { typedef const T type; };
-template <typename T> struct add_const<T&> { typedef T& type; };
 
 template <typename T> struct is_const { enum { value = 0 }; };
 template <typename T> struct is_const<T const> { enum { value = 1 }; };
@@ -154,15 +172,10 @@ template<typename T> struct add_const_on_value_type<T*>        { typedef T const
 template<typename T> struct add_const_on_value_type<T* const>  { typedef T const* const type; };
 template<typename T> struct add_const_on_value_type<T const* const>  { typedef T const* const type; };
 
+template<typename T>
+using add_const_on_value_type_t = typename add_const_on_value_type<T>::type;
+
 using std::is_convertible;
-
-/** \internal Allows to enable/disable an overload
-  * according to a compile time condition.
-  */
-template<bool Condition, typename T=void> struct enable_if;
-
-template<typename T> struct enable_if<true,T>
-{ typedef T type; };
 
 /** \internal
   * A base class do disable default copy ctor and copy assignment operator.
@@ -194,7 +207,7 @@ template<typename T, typename EnableIf = void> struct array_size {
   enum { value = Dynamic };
 };
 
-template<typename T> struct array_size<T,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
+template<typename T> struct array_size<T, std::enable_if_t<((T::SizeAtCompileTime&0)==0)>> {
   enum { value = T::SizeAtCompileTime };
 };
 
@@ -223,7 +236,7 @@ template<typename T, std::size_t N> struct array_size<std::array<T,N> > {
   *
   * For C++20, this function just forwards to `std::ssize`, or any ADL discoverable `ssize` function.
   */
-#if EIGEN_COMP_CXXVER < 20
+#if EIGEN_COMP_CXXVER < 20 || EIGEN_GNUC_STRICT_LESS_THAN(10,0,0)
 template <typename T>
 EIGEN_CONSTEXPR auto index_list_size(const T& x) {
   using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(x.size())>>;
@@ -243,17 +256,12 @@ EIGEN_CONSTEXPR auto index_list_size(T&& x) {
 /** \internal
   * Convenient struct to get the result type of a nullary, unary, binary, or
   * ternary functor.
-  * 
-  * Pre C++11:
-  * Supports both a Func::result_type member and templated
-  * Func::result<Func(ArgTypes...)>::type member.
-  * 
-  * If none of these members is provided, then the type of the first
-  * argument is returned.
-  * 
-  * Post C++11:
+  *
+  * Pre C++17:
   * This uses std::result_of. However, note the `type` member removes
   * const and converts references/pointers to their corresponding value type.
+  *
+  * Post C++17: Uses std::invoke_result
   */
 #if EIGEN_HAS_STD_INVOKE_RESULT
 template<typename T> struct result_of;
@@ -261,181 +269,36 @@ template<typename T> struct result_of;
 template<typename F, typename... ArgTypes>
 struct result_of<F(ArgTypes...)> {
   typedef typename std::invoke_result<F, ArgTypes...>::type type1;
-  typedef typename remove_all<type1>::type type;
-};
-#elif EIGEN_HAS_STD_RESULT_OF
-template<typename T> struct result_of {
-  typedef typename std::result_of<T>::type type1;
-  typedef typename remove_all<type1>::type type;
-};
-#else
-template<typename T> struct result_of { };
-
-struct has_none {int a[1];};
-struct has_std_result_type {int a[2];};
-struct has_tr1_result {int a[3];};
-
-template<typename Func, int SizeOf>
-struct nullary_result_of_select {};
-
-template<typename Func>
-struct nullary_result_of_select<Func, sizeof(has_std_result_type)> {typedef typename Func::result_type type;};
-
-template<typename Func>
-struct nullary_result_of_select<Func, sizeof(has_tr1_result)> {typedef typename Func::template result<Func()>::type type;};
-
-template<typename Func>
-struct result_of<Func()> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T()>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename nullary_result_of_select<Func, FunctorType>::type type;
+  typedef remove_all_t<type1> type;
 };
 
-template<typename Func, typename ArgType, int SizeOf=sizeof(has_none)>
-struct unary_result_of_select {typedef typename internal::remove_all<ArgType>::type type;};
-
-template<typename Func, typename ArgType>
-struct unary_result_of_select<Func, ArgType, sizeof(has_std_result_type)> {typedef typename Func::result_type type;};
-
-template<typename Func, typename ArgType>
-struct unary_result_of_select<Func, ArgType, sizeof(has_tr1_result)> {typedef typename Func::template result<Func(ArgType)>::type type;};
-
-template<typename Func, typename ArgType>
-struct result_of<Func(ArgType)> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType)>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename unary_result_of_select<Func, ArgType, FunctorType>::type type;
-};
-
-template<typename Func, typename ArgType0, typename ArgType1, int SizeOf=sizeof(has_none)>
-struct binary_result_of_select {typedef typename internal::remove_all<ArgType0>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1>
-struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_std_result_type)>
-{typedef typename Func::result_type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1>
-struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_tr1_result)>
-{typedef typename Func::template result<Func(ArgType0,ArgType1)>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1>
-struct result_of<Func(ArgType0,ArgType1)> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1)>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
-};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2, int SizeOf=sizeof(has_none)>
-struct ternary_result_of_select {typedef typename internal::remove_all<ArgType0>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
-struct ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, sizeof(has_std_result_type)>
-{typedef typename Func::result_type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
-struct ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, sizeof(has_tr1_result)>
-{typedef typename Func::template result<Func(ArgType0,ArgType1,ArgType2)>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
-struct result_of<Func(ArgType0,ArgType1,ArgType2)> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1,ArgType2)>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, FunctorType>::type type;
-};
-
-#endif
-
-#if EIGEN_HAS_STD_INVOKE_RESULT
 template<typename F, typename... ArgTypes>
 struct invoke_result {
   typedef typename std::invoke_result<F, ArgTypes...>::type type1;
-  typedef typename remove_all<type1>::type type;
+  typedef remove_all_t<type1> type;
 };
 #else
+template<typename T> struct result_of {
+  typedef typename std::result_of<T>::type type1;
+  typedef remove_all_t<type1> type;
+};
+
 template<typename F, typename... ArgTypes>
 struct invoke_result {
-  typedef typename result_of<F(ArgTypes...)>::type type1;
-  typedef typename remove_all<type1>::type type;
+    typedef typename result_of<F(ArgTypes...)>::type type1;
+    typedef remove_all_t<type1> type;
 };
-#endif
-
-// C++14 integer/index_sequence.
-#if defined(__cpp_lib_integer_sequence) && __cpp_lib_integer_sequence >= 201304L
-
-using std::integer_sequence;
-using std::make_integer_sequence;
-
-using std::index_sequence;
-using std::make_index_sequence;
-
-#else 
-
-template <typename T, T... Ints>
-struct integer_sequence {
-  static EIGEN_CONSTEXPR size_t size() EIGEN_NOEXCEPT { return sizeof...(Ints); }
-};
-
-template <typename T, typename Sequence, T N>
-struct append_integer;
-
-template<typename T, T... Ints, T N>
-struct append_integer<T, integer_sequence<T, Ints...>, N> {
-  using type = integer_sequence<T, Ints..., N>;
-};
-
-template<typename T, size_t N>
-struct generate_integer_sequence {
-  using type = typename append_integer<T, typename generate_integer_sequence<T, N-1>::type, N-1>::type;
-};
-
-template<typename T>
-struct generate_integer_sequence<T, 0> {
-  using type = integer_sequence<T>;
-};
-
-template <typename T, size_t N>
-using make_integer_sequence = typename generate_integer_sequence<T, N>::type;
-
-template<size_t... Ints>
-using index_sequence = integer_sequence<size_t, Ints...>;
-
-template<size_t N>
-using make_index_sequence = make_integer_sequence<size_t, N>;
-
 #endif
 
 // Reduces a sequence of bools to true if all are true, false otherwise.
 template<bool... values>
-using reduce_all = std::is_same<integer_sequence<bool, values..., true>, integer_sequence<bool, true, values...> >;
+using reduce_all = std::is_same<std::integer_sequence<bool, values..., true>,
+    std::integer_sequence<bool, true, values...> >;
 
 // Reduces a sequence of bools to true if any are true, false if all false.
 template<bool... values>
 using reduce_any = std::integral_constant<bool,
-    !std::is_same<integer_sequence<bool, values..., false>, integer_sequence<bool, false, values...> >::value>;
+    !std::is_same<std::integer_sequence<bool, values..., false>, std::integer_sequence<bool, false, values...> >::value>;
 
 struct meta_yes { char a[1]; };
 struct meta_no  { char a[2]; };
@@ -455,7 +318,7 @@ template<typename T> const T* return_ptr();
 template <typename T, typename IndexType=Index>
 struct has_nullary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()())>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,std::enable_if_t<(sizeof(return_ptr<C>()->operator()())>0)> * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
@@ -464,7 +327,7 @@ struct has_nullary_operator
 template <typename T, typename IndexType=Index>
 struct has_unary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()(IndexType(0)))>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,std::enable_if_t<(sizeof(return_ptr<C>()->operator()(IndexType(0)))>0)> * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
@@ -473,7 +336,7 @@ struct has_unary_operator
 template <typename T, typename IndexType=Index>
 struct has_binary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()(IndexType(0),IndexType(0)))>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,std::enable_if_t<(sizeof(return_ptr<C>()->operator()(IndexType(0),IndexType(0)))>0)> * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
@@ -485,8 +348,7 @@ struct has_binary_operator
 template<int Y,
          int InfX = 0,
          int SupX = ((Y==1) ? 1 : Y/2),
-         bool Done = ((SupX-InfX)<=1 ? true : ((SupX*SupX <= Y) && ((SupX+1)*(SupX+1) > Y))) >
-                                // use ?: instead of || just to shut up a stupid gcc 4.3 warning
+         bool Done = ((SupX - InfX) <= 1 || ((SupX * SupX <= Y) && ((SupX + 1) * (SupX + 1) > Y)))>
 class meta_sqrt
 {
     enum {
@@ -532,7 +394,7 @@ template<typename T, typename U> struct scalar_product_traits
 // FIXME quick workaround around current limitation of result_of
 // template<typename Scalar, typename ArgType0, typename ArgType1>
 // struct result_of<scalar_product_op<Scalar>(ArgType0,ArgType1)> {
-// typedef typename scalar_product_traits<typename remove_all<ArgType0>::type, typename remove_all<ArgType1>::type>::ReturnType type;
+// typedef typename scalar_product_traits<remove_all_t<ArgType0>, remove_all_t<ArgType1>>::ReturnType type;
 // };
 
 /** \internal Obtains a POD type suitable to use as storage for an object of a size
@@ -546,6 +408,8 @@ struct aligned_storage {
 };
 
 } // end namespace internal
+
+template<typename T> struct NumTraits;
 
 namespace numext {
 
@@ -579,6 +443,20 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool equal_strict(const double& x,const double& y) { return std::equal_to<double>()(x,y); }
 #endif
 
+/**
+ * \internal Performs an exact comparison of x to zero, e.g. to decide whether a term can be ignored.
+ * Use this to to bypass -Wfloat-equal warnings when exact zero is what needs to be tested.
+*/
+template<typename X> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
+bool is_exactly_zero(const X& x) { return equal_strict(x, typename NumTraits<X>::Literal{0}); }
+
+/**
+ * \internal Performs an exact comparison of x to one, e.g. to decide whether a factor needs to be multiplied.
+ * Use this to to bypass -Wfloat-equal warnings when exact one is what needs to be tested.
+*/
+template<typename X> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
+bool is_exactly_one(const X& x) { return equal_strict(x, typename NumTraits<X>::Literal{1}); }
+
 template<typename X, typename Y> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool not_equal_strict(const X& x,const Y& y) { return x != y; }
 
@@ -593,6 +471,17 @@ bool not_equal_strict(const double& x,const double& y) { return std::not_equal_t
 } // end namespace numext
 
 namespace internal {
+
+template<typename Scalar>
+struct is_identically_zero_impl {
+  static inline bool run(const Scalar& s) {
+    return numext::is_exactly_zero(s);
+  }
+};
+
+template<typename Scalar> EIGEN_STRONG_INLINE
+bool is_identically_zero(const Scalar& s) { return is_identically_zero_impl<Scalar>::run(s); }
+
 /// \internal Returns true if its argument is of integer or enum type.
 /// FIXME this has the same purpose as `is_valid_index_type` in XprHelper.h
 template<typename A>
@@ -666,6 +555,14 @@ inline constexpr bool logical_xor(bool a, bool b) {
 inline constexpr bool check_implication(bool a, bool b) {
   return !a || b;
 }
+
+/// \internal Provide fallback for std::is_constant_evaluated for pre-C++20.
+#if EIGEN_COMP_CXXVER >= 20
+using std::is_constant_evaluated;
+#else
+constexpr bool is_constant_evaluated() { return false; }
+#endif
+
 } // end namespace internal
 
 } // end namespace Eigen

@@ -77,8 +77,6 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
   // Identify the relaxed supernodes by postorder traversal of the etree
   Index snode_start; // beginning of a snode 
   StorageIndex k;
-  Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
-  Index nsuper_et = 0; // Number of relaxed snodes in the original etree 
   StorageIndex l; 
   for (j = 0; j < n; )
   {
@@ -90,7 +88,6 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
       parent = et(j);
     }
     // Found a supernode in postordered etree, j is the last column 
-    ++nsuper_et_post;
     k = StorageIndex(n);
     for (Index i = snode_start; i <= j; ++i)
       k = (std::min)(k, inv_post(i));
@@ -99,7 +96,6 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
     {
       // This is also a supernode in the original etree
       relax_end(k) = l; // Record last column 
-      ++nsuper_et; 
     }
     else 
     {
@@ -109,7 +105,6 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
         if (descendants(i) == 0) 
         {
           relax_end(l) = l;
-          ++nsuper_et;
         }
       }
     }

@@ -20,10 +20,10 @@ namespace internal {
 // struct gemm_pack_lhs_triangular
 // {
 //   Matrix<Scalar,mr,mr,
-//   void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int depth, int rows)
+//   void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* lhs_, int lhsStride, int depth, int rows)
 //   {
 //     conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
-//     const_blas_data_mapper<Scalar, StorageOrder> lhs(_lhs,lhsStride);
+//     const_blas_data_mapper<Scalar, StorageOrder> lhs(lhs_,lhsStride);
 //     int count = 0;
 //     const int peeled_mc = (rows/mr)*mr;
 //     for(int i=0; i<peeled_mc; i+=mr)
@@ -98,8 +98,8 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
 
   static EIGEN_DONT_INLINE void run(
     Index _rows, Index _cols, Index _depth,
-    const Scalar* _lhs, Index lhsStride,
-    const Scalar* _rhs, Index rhsStride,
+    const Scalar* lhs_, Index lhsStride,
+    const Scalar* rhs_, Index rhsStride,
     Scalar* res,        Index resIncr, Index resStride,
     const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking);
 };
@@ -112,9 +112,9 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,true,
                                                         LhsStorageOrder,ConjugateLhs,
                                                         RhsStorageOrder,ConjugateRhs,ColMajor,ResInnerStride,Version>::run(
     Index _rows, Index _cols, Index _depth,
-    const Scalar* _lhs, Index lhsStride,
-    const Scalar* _rhs, Index rhsStride,
-    Scalar* _res,       Index resIncr, Index resStride,
+    const Scalar* lhs_, Index lhsStride,
+    const Scalar* rhs_, Index rhsStride,
+    Scalar* res_,       Index resIncr, Index resStride,
     const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     // strip zeros
@@ -126,9 +126,9 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     typedef const_blas_data_mapper<Scalar, Index, LhsStorageOrder> LhsMapper;
     typedef const_blas_data_mapper<Scalar, Index, RhsStorageOrder> RhsMapper;
     typedef blas_data_mapper<typename Traits::ResScalar, Index, ColMajor, Unaligned, ResInnerStride> ResMapper;
-    LhsMapper lhs(_lhs,lhsStride);
-    RhsMapper rhs(_rhs,rhsStride);
-    ResMapper res(_res, resStride, resIncr);
+    LhsMapper lhs(lhs_,lhsStride);
+    RhsMapper rhs(rhs_,rhsStride);
+    ResMapper res(res_, resStride, resIncr);
 
     Index kc = blocking.kc();                   // cache block size along the K direction
     Index mc = (std::min)(rows,blocking.mc());  // cache block size along the M direction
@@ -256,8 +256,8 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
 
   static EIGEN_DONT_INLINE void run(
     Index _rows, Index _cols, Index _depth,
-    const Scalar* _lhs, Index lhsStride,
-    const Scalar* _rhs, Index rhsStride,
+    const Scalar* lhs_, Index lhsStride,
+    const Scalar* rhs_, Index rhsStride,
     Scalar* res,        Index resIncr, Index resStride,
     const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking);
 };
@@ -270,9 +270,9 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
                                                         LhsStorageOrder,ConjugateLhs,
                                                         RhsStorageOrder,ConjugateRhs,ColMajor,ResInnerStride,Version>::run(
     Index _rows, Index _cols, Index _depth,
-    const Scalar* _lhs, Index lhsStride,
-    const Scalar* _rhs, Index rhsStride,
-    Scalar* _res,       Index resIncr, Index resStride,
+    const Scalar* lhs_, Index lhsStride,
+    const Scalar* rhs_, Index rhsStride,
+    Scalar* res_,       Index resIncr, Index resStride,
     const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     const Index PacketBytes = packet_traits<Scalar>::size*sizeof(Scalar);
@@ -285,9 +285,9 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     typedef const_blas_data_mapper<Scalar, Index, LhsStorageOrder> LhsMapper;
     typedef const_blas_data_mapper<Scalar, Index, RhsStorageOrder> RhsMapper;
     typedef blas_data_mapper<typename Traits::ResScalar, Index, ColMajor, Unaligned, ResInnerStride> ResMapper;
-    LhsMapper lhs(_lhs,lhsStride);
-    RhsMapper rhs(_rhs,rhsStride);
-    ResMapper res(_res, resStride, resIncr);
+    LhsMapper lhs(lhs_,lhsStride);
+    RhsMapper rhs(rhs_,rhsStride);
+    ResMapper res(res_, resStride, resIncr);
 
     Index kc = blocking.kc();                   // cache block size along the K direction
     Index mc = (std::min)(rows,blocking.mc());  // cache block size along the M direction
@@ -414,13 +414,13 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
     
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-    typedef typename internal::remove_all<ActualLhsType>::type ActualLhsTypeCleaned;
+    typedef internal::remove_all_t<ActualLhsType> ActualLhsTypeCleaned;
     typedef internal::blas_traits<Rhs> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-    typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
-    
-    typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
-    typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);
+    typedef internal::remove_all_t<ActualRhsType> ActualRhsTypeCleaned;
+
+    internal::add_const_on_value_type_t<ActualLhsType> lhs = LhsBlasTraits::extract(a_lhs);
+    internal::add_const_on_value_type_t<ActualRhsType> rhs = RhsBlasTraits::extract(a_rhs);
 
     LhsScalar lhs_alpha = LhsBlasTraits::extractScalarFactor(a_lhs);
     RhsScalar rhs_alpha = RhsBlasTraits::extractScalarFactor(a_rhs);
@@ -453,12 +453,12 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
     // Apply correction if the diagonal is unit and a scalar factor was nested:
     if ((Mode&UnitDiag)==UnitDiag)
     {
-      if (LhsIsTriangular && lhs_alpha!=LhsScalar(1))
+      if (LhsIsTriangular && !numext::is_exactly_one(lhs_alpha))
       {
         Index diagSize = (std::min)(lhs.rows(),lhs.cols());
         dst.topRows(diagSize) -= ((lhs_alpha-LhsScalar(1))*a_rhs).topRows(diagSize);
       }
-      else if ((!LhsIsTriangular) && rhs_alpha!=RhsScalar(1))
+      else if ((!LhsIsTriangular) && !numext::is_exactly_one(rhs_alpha))
       {
         Index diagSize = (std::min)(rhs.rows(),rhs.cols());
         dst.leftCols(diagSize) -= (rhs_alpha-RhsScalar(1))*a_lhs.leftCols(diagSize);

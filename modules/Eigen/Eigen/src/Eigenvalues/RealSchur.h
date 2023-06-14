@@ -314,7 +314,7 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
   Scalar considerAsZero = numext::maxi<Scalar>( norm * numext::abs2(NumTraits<Scalar>::epsilon()),
                                                 (std::numeric_limits<Scalar>::min)() );
 
-  if(norm!=Scalar(0))
+  if(!numext::is_exactly_zero(norm))
   {
     while (iu >= 0)
     {
@@ -517,7 +517,7 @@ inline void RealSchur<MatrixType>::performFrancisQRStep(Index il, Index im, Inde
     Matrix<Scalar, 2, 1> ess;
     v.makeHouseholder(ess, tau, beta);
     
-    if (beta != Scalar(0)) // if v is not zero
+    if (!numext::is_exactly_zero(beta)) // if v is not zero
     {
       if (firstIteration && k > il)
         m_matT.coeffRef(k,k-1) = -m_matT.coeff(k,k-1);
@@ -537,7 +537,7 @@ inline void RealSchur<MatrixType>::performFrancisQRStep(Index il, Index im, Inde
   Matrix<Scalar, 1, 1> ess;
   v.makeHouseholder(ess, tau, beta);
 
-  if (beta != Scalar(0)) // if v is not zero
+  if (!numext::is_exactly_zero(beta)) // if v is not zero
   {
     m_matT.coeffRef(iu-1, iu-2) = beta;
     m_matT.block(iu-1, iu-1, 2, size-iu+1).applyHouseholderOnTheLeft(ess, tau, workspace);

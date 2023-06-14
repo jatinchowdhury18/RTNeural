@@ -440,7 +440,7 @@ template<> struct ldlt_inplace<Lower>
       // Update the terms of L
       Index rs = size-j-1;
       w.tail(rs) -= wj * mat.col(j).tail(rs);
-      if(gamma != 0)
+      if(!numext::is_exactly_zero(gamma))
         mat.col(j).tail(rs) += (sigma*numext::conj(wj)/gamma)*w.tail(rs);
     }
     return true;
