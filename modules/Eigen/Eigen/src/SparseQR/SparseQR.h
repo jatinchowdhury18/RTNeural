@@ -323,7 +323,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
 {
   eigen_assert(mat.isCompressed() && "SparseQR requires a sparse matrix in compressed mode. Call .makeCompressed() before passing it to SparseQR");
   // Copy to a column major matrix if the input is rowmajor
-  typename internal::conditional<MatrixType::IsRowMajor,QRMatrixType,const MatrixType&>::type matCpy(mat);
+  std::conditional_t<MatrixType::IsRowMajor,QRMatrixType,const MatrixType&> matCpy(mat);
   // Compute the column fill reducing ordering
   OrderingType ord; 
   ord(matCpy, m_perm_c); 

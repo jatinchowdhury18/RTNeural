@@ -162,6 +162,11 @@ template<typename Derived>
 inline const DiagonalWrapper<const Derived> Scaling(const MatrixBase<Derived>& coeffs)
 { return coeffs.asDiagonal(); }
 
+/** Constructs an axis aligned scaling expression from vector \a coeffs when passed as an rvalue reference */
+template<typename Derived>
+inline typename DiagonalWrapper<const Derived>::PlainObject Scaling(MatrixBase<Derived>&& coeffs)
+{ return typename DiagonalWrapper<const Derived>::PlainObject(std::move(coeffs.derived())); }
+
 /** \deprecated */
 typedef DiagonalMatrix<float, 2> AlignedScaling2f;
 /** \deprecated */

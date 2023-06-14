@@ -169,11 +169,11 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,0,true>
   
   typedef internal::blas_traits<Lhs> LhsBlasTraits;
   typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-  typedef typename internal::remove_all<ActualLhsType>::type ActualLhsTypeCleaned;
+  typedef internal::remove_all_t<ActualLhsType> ActualLhsTypeCleaned;
   
   typedef internal::blas_traits<Rhs> RhsBlasTraits;
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-  typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
+  typedef internal::remove_all_t<ActualRhsType> ActualRhsTypeCleaned;
 
   enum { LhsUpLo = LhsMode&(Upper|Lower) };
 
@@ -187,8 +187,8 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,0,true>
     
     eigen_assert(dest.rows()==a_lhs.rows() && dest.cols()==a_rhs.cols());
 
-    typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
-    typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);
+    add_const_on_value_type_t<ActualLhsType> lhs = LhsBlasTraits::extract(a_lhs);
+    add_const_on_value_type_t<ActualRhsType> rhs = RhsBlasTraits::extract(a_rhs);
 
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(a_lhs)
                                * RhsBlasTraits::extractScalarFactor(a_rhs);

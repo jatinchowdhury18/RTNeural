@@ -139,7 +139,7 @@ class SPQR : public SparseSolverBase<SPQR<MatrixType_> >
       {
         RealScalar max2Norm = 0.0;
         for (int j = 0; j < mat.cols(); j++) max2Norm = numext::maxi(max2Norm, mat.col(j).norm());
-        if(max2Norm==RealScalar(0))
+        if(numext::is_exactly_zero(max2Norm))
           max2Norm = RealScalar(1);
         pivotThreshold = 20 * (mat.rows() + mat.cols()) * max2Norm * NumTraits<RealScalar>::epsilon();
       }
@@ -260,12 +260,12 @@ class SPQR : public SparseSolverBase<SPQR<MatrixType_> >
     int m_ordering; // Ordering method to use, see SPQR's manual
     int m_allow_tol; // Allow to use some tolerance during numerical factorization.
     RealScalar m_tolerance; // treat columns with 2-norm below this tolerance as zero
-    mutable cholmod_sparse *m_cR; // The sparse R factor in cholmod format
+    mutable cholmod_sparse *m_cR = nullptr; // The sparse R factor in cholmod format
     mutable MatrixType m_R; // The sparse matrix R in Eigen format
-    mutable StorageIndex *m_E; // The permutation applied to columns
-    mutable cholmod_sparse *m_H;  //The householder vectors
-    mutable StorageIndex *m_HPinv; // The row permutation of H
-    mutable cholmod_dense *m_HTau; // The Householder coefficients
+    mutable StorageIndex *m_E = nullptr; // The permutation applied to columns
+    mutable cholmod_sparse *m_H = nullptr;  //The householder vectors
+    mutable StorageIndex *m_HPinv = nullptr; // The row permutation of H
+    mutable cholmod_dense *m_HTau = nullptr; // The Householder coefficients
     mutable Index m_rank; // The rank of the matrix
     mutable cholmod_common m_cc; // Workspace and parameters
     bool m_useDefaultThreshold;     // Use default threshold

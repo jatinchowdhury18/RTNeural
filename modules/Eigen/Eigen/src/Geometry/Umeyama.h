@@ -37,7 +37,7 @@ struct umeyama_transform_matrix_type
     MinRowsAtCompileTime = internal::min_size_prefer_dynamic(MatrixType::RowsAtCompileTime, OtherMatrixType::RowsAtCompileTime),
 
     // When possible we want to choose some small fixed size value since the result
-    // is likely to fit on the stack. So here, EIGEN_SIZE_MIN_PREFER_DYNAMIC is not what we want.
+    // is likely to fit on the stack. So here, min_size_prefer_dynamic is not what we want.
     HomogeneousDimension = int(MinRowsAtCompileTime) == Dynamic ? Dynamic : int(MinRowsAtCompileTime)+1
   };
 
@@ -127,7 +127,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   // Eq. (38)
   const MatrixType sigma = one_over_n * dst_demean * src_demean.transpose();
 
-  JacobiSVD<MatrixType> svd(sigma, ComputeFullU | ComputeFullV);
+  JacobiSVD<MatrixType, ComputeFullU | ComputeFullV> svd(sigma);
 
   // Initialize the resulting transformation with an identity matrix...
   TransformationMatrixType Rt = TransformationMatrixType::Identity(m+1,m+1);
@@ -135,8 +135,10 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   // Eq. (39)
   VectorType S = VectorType::Ones(m);
 
-  if  ( svd.matrixU().determinant() * svd.matrixV().determinant() < 0 )
-    S(m-1) = -1;
+  if  ( svd.matrixU().determinant() * svd.matrixV().determinant() < 0 ) {
+    Index tmp = m - 1;  
+    S(tmp) = -1;
+  }
 
   // Eq. (40) and (43)
   Rt.block(0,0,m,m).noalias() = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();

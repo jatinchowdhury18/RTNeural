@@ -26,9 +26,11 @@ if(CMAKE_VERSION VERSION_LESS 3.21.0)
   endif()
 endif()
 
-set(CMAKE_CXX_STANDARD 14 CACHE STRING "Default C++ standard")
-set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard")
-set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Allow C++ extensions")
+if(PROJECT_IS_TOP_LEVEL)
+  set(CMAKE_CXX_STANDARD 14 CACHE STRING "Default C++ standard")
+  set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard")
+  set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Allow C++ extensions")
+endif()
 
 # guard against in-source builds
 
@@ -97,6 +99,20 @@ macro(ei_add_cxx_compiler_flag FLAG)
   endif()
 endmacro()
 
+function(ei_maybe_separate_arguments variable mode args)
+  # Use separate_arguments if the input is a single string containing a space.
+  # Otherwise, if it is already a list or doesn't have a space, just propagate
+  # the original value.  This is to better support multi-argument lists.
+  list(LENGTH args list_length)
+  if (${list_length} EQUAL 1)
+    string(FIND "${args}" " " has_space)
+    if (${has_space} GREATER -1)
+      separate_arguments(args ${mode} "${args}")
+    endif()
+  endif()
+  set(${variable} ${args} PARENT_SCOPE)
+endfunction(ei_maybe_separate_arguments)
+
 # Determine if we should build shared libraries on this platform.
 get_cmake_property(EIGEN_BUILD_SHARED_LIBS TARGET_SUPPORTS_SHARED_LIBS)
 
@@ -109,8 +125,11 @@ find_package(StandardMathLibrary)
 
 set(EIGEN_TEST_CUSTOM_LINKER_FLAGS  "" CACHE STRING "Additional linker flags when linking unit tests.")
 set(EIGEN_TEST_CUSTOM_CXX_FLAGS     "" CACHE STRING "Additional compiler flags when compiling unit tests.")
-# convert space separated argument into CMake lists for downstream consumption
-separate_arguments(EIGEN_TEST_CUSTOM_CXX_FLAGS NATIVE_COMMAND ${EIGEN_TEST_CUSTOM_CXX_FLAGS})
+
+# Convert space-separated arguments into CMake lists for downstream consumption.
+ei_maybe_separate_arguments(EIGEN_TEST_CUSTOM_LINKER_FLAGS NATIVE_COMMAND "${EIGEN_TEST_CUSTOM_LINKER_FLAGS}")
+ei_maybe_separate_arguments(EIGEN_TEST_CUSTOM_CXX_FLAGS NATIVE_COMMAND "${EIGEN_TEST_CUSTOM_CXX_FLAGS}")
+
 
 set(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO "")
 
@@ -134,6 +153,7 @@ else()
 endif()
 
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
+option(EIGEN_BUILD_SPBENCH "Build sparse benchmark suite" OFF)
 
 # Disable pkgconfig only for native Windows builds
 if(NOT WIN32 OR NOT CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
@@ -258,6 +278,12 @@ if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512dq -mfma")
     message(STATUS "Enabling AVX512DQ in tests/examples")
   endif()
+  
+  option(EIGEN_TEST_AVX512FP16 "Enable/Disable AVX512-FP16 in tests/examples" OFF)
+  if(EIGEN_TEST_AVX512FP16)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -mfma -mavx512vl -mavx512fp16")
+	message(STATUS "Enabling AVX512-FP16 in tests/examples")
+  endif()
 
   option(EIGEN_TEST_F16C "Enable/Disable F16C in tests/examples" OFF)
   if(EIGEN_TEST_F16C)
@@ -360,9 +386,17 @@ else()
   endif()
 
   option(EIGEN_TEST_FMA "Enable/Disable FMA/AVX2 in tests/examples" OFF)
-  if(EIGEN_TEST_FMA AND NOT EIGEN_TEST_NEON)
+  option(EIGEN_TEST_AVX2 "Enable/Disable FMA/AVX2 in tests/examples" OFF)
+  if((EIGEN_TEST_FMA AND NOT EIGEN_TEST_NEON) OR EIGEN_TEST_AVX2)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
     message(STATUS "Enabling FMA/AVX2 in tests/examples")
+  endif()
+
+  option(EIGEN_TEST_AVX512 "Enable/Disable AVX512 in tests/examples" OFF)
+  option(EIGEN_TEST_AVX512DQ "Enable/Disable AVX512DQ in tests/examples" OFF)
+  if(EIGEN_TEST_AVX512 OR EIGEN_TEST_AVX512DQ)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX512")
+    message(STATUS "Enabling AVX512 in tests/examples")
   endif()
 
 endif()
@@ -477,6 +511,9 @@ if(EIGEN_BUILD_TESTING)
   add_subdirectory(failtest)
 endif()
 
+include(CMakeDetermineFortranCompiler)
+option(EIGEN_BUILD_BLAS "Toggles the building of the Eigen Blas library" ${CMAKE_Fortran_COMPILER})
+option(EIGEN_BUILD_LAPACK "Toggles the building of the included Eigen LAPACK library" ${CMAKE_Fortran_COMPILER})
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
   add_subdirectory(blas)
   add_subdirectory(lapack)
@@ -487,14 +524,19 @@ endif()
 
 # add SYCL
 option(EIGEN_TEST_SYCL "Add Sycl support." OFF)
-option(EIGEN_SYCL_TRISYCL "Use the triSYCL Sycl implementation (ComputeCPP by default)." OFF)
 if(EIGEN_TEST_SYCL)
+  option(EIGEN_SYCL_DPCPP "Use the DPCPP Sycl implementation (DPCPP is default SYCL-Compiler)." ON)
+  option(EIGEN_SYCL_TRISYCL "Use the triSYCL Sycl implementation." OFF)
+  option(EIGEN_SYCL_ComputeCpp "Use the DPCPP Sycl implementation." OFF)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-shorten-64-to-32 -Wno-cast-align") 
+  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-deprecated-copy-with-user-provided-copy -Wno-unused-variable")
   set (CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules" "cmake/Modules/" "${CMAKE_MODULE_PATH}")
   find_package(Threads REQUIRED)
   if(EIGEN_SYCL_TRISYCL)
     message(STATUS "Using triSYCL")
     include(FindTriSYCL)
-  else()
+  elseif(EIGEN_SYCL_ComputeCpp)
     message(STATUS "Using ComputeCPP SYCL")
     include(FindComputeCpp)
     set(COMPUTECPP_DRIVER_DEFAULT_VALUE OFF)
@@ -505,8 +547,12 @@ if(EIGEN_TEST_SYCL)
       "Use ComputeCpp driver instead of a 2 steps compilation"
       ${COMPUTECPP_DRIVER_DEFAULT_VALUE}
     )
+  else() #Default SYCL compiler is DPCPP (EIGEN_SYCL_DPCPP)
+    set(DPCPP_SYCL_TARGET "spir64" CACHE STRING "Defualt target for Intel CPU/GPU")
+    message(STATUS "Using DPCPP")
+    find_package(DPCPP)
+    add_definitions(-DSYCL_COMPILER_IS_DPCPP)
   endif(EIGEN_SYCL_TRISYCL)
-  option(EIGEN_DONT_VECTORIZE_SYCL "Don't use vectorisation in the SYCL tests." OFF)
   if(EIGEN_DONT_VECTORIZE_SYCL)
     message(STATUS "Disabling SYCL vectorization in tests/examples")
     # When disabling SYCL vectorization, also disable Eigen default vectorization
@@ -544,7 +590,7 @@ foreach(DIR ${FORMAT_SUBDIRS})
     DEPENDS ${FORMAT_SOURCES})
 endif()
 
-if(NOT WIN32)
+if(NOT WIN32 AND EIGEN_BUILD_SPBENCH)
   add_subdirectory(bench/spbench EXCLUDE_FROM_ALL)
 endif()
 
@@ -611,6 +657,8 @@ set_target_properties (eigen PROPERTIES EXPORT_NAME Eigen)
 
 install (TARGETS eigen EXPORT Eigen3Targets)
 
+option(EIGEN_BUILD_CMAKE_PACKAGE "Enables the creation of EigenConfig.cmake and related files" ON)
+if(EIGEN_BUILD_CMAKE_PACKAGE)
 configure_package_config_file (
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
@@ -653,8 +701,11 @@ install (FILES ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
          DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
 
 # Add uninstall target
-add_custom_target ( uninstall
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/EigenUninstall.cmake)
+if(NOT TARGET uninstall)
+  add_custom_target ( uninstall
+      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/EigenUninstall.cmake)
+endif()
+endif()
 
 if (EIGEN_SPLIT_TESTSUITE)
   ei_split_testsuite("${EIGEN_SPLIT_TESTSUITE}")

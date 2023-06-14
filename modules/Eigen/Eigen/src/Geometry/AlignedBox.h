@@ -58,18 +58,18 @@ namespace Eigen {
   * \brief An axis aligned box
   *
   * \tparam Scalar_ the type of the scalar coefficients
-  * \tparam _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
+  * \tparam AmbientDim_ the dimension of the ambient space, can be a compile time value or Dynamic.
   *
   * This class represents an axis aligned box as a pair of the minimal and maximal corners.
   * \warning The result of most methods is undefined when applied to an empty box. You can check for empty boxes using isEmpty().
   * \sa alignedboxtypedefs
   */
-template <typename Scalar_, int _AmbientDim>
+template <typename Scalar_, int AmbientDim_>
 class AlignedBox
 {
 public:
-EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar_,_AmbientDim)
-  enum { AmbientDimAtCompileTime = _AmbientDim };
+EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar_,AmbientDim_)
+  enum { AmbientDimAtCompileTime = AmbientDim_ };
   typedef Scalar_                                   Scalar;
   typedef NumTraits<Scalar>                         ScalarTraits;
   typedef Eigen::Index                              Index; ///< \deprecated since Eigen 3.3
@@ -183,7 +183,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar_,_AmbientDim)
     */
   EIGEN_DEVICE_FUNC inline VectorType corner(CornerType corner) const
   {
-    EIGEN_STATIC_ASSERT(_AmbientDim <= 3, THIS_METHOD_IS_ONLY_FOR_VECTORS_OF_A_SPECIFIC_SIZE);
+    EIGEN_STATIC_ASSERT(AmbientDim_ <= 3, THIS_METHOD_IS_ONLY_FOR_VECTORS_OF_A_SPECIFIC_SIZE);
 
     VectorType res;
 

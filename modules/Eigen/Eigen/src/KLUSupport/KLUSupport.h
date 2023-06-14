@@ -265,16 +265,16 @@ class KLU : public SparseSolverBase<KLU<MatrixType_> >
     template<typename MatrixDerived>
     void grab(const EigenBase<MatrixDerived> &A)
     {
-      mp_matrix.~KLUMatrixRef();
-      ::new (&mp_matrix) KLUMatrixRef(A.derived());
+      internal::destroy_at(&mp_matrix);
+      internal::construct_at(&mp_matrix, A.derived());
     }
 
     void grab(const KLUMatrixRef &A)
     {
       if(&(A.derived()) != &mp_matrix)
       {
-        mp_matrix.~KLUMatrixRef();
-        ::new (&mp_matrix) KLUMatrixRef(A);
+        internal::destroy_at(&mp_matrix);
+        internal::construct_at(&mp_matrix, A);
       }
     }
 

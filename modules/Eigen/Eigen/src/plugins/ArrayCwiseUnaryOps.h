@@ -2,12 +2,14 @@
 
 typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnType;
 typedef CwiseUnaryOp<internal::scalar_arg_op<Scalar>, const Derived> ArgReturnType;
+typedef CwiseUnaryOp<internal::scalar_carg_op<Scalar>, const Derived> CArgReturnType;
 typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
 typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_rsqrt_op<Scalar>, const Derived> RsqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_sign_op<Scalar>, const Derived> SignReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> InverseReturnType;
 typedef CwiseUnaryOp<internal::scalar_boolean_not_op<Scalar>, const Derived> BooleanNotReturnType;
+typedef CwiseUnaryOp<internal::scalar_bitwise_not_op<Scalar>, const Derived> BitwiseNotReturnType;
 
 typedef CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived> ExpReturnType;
 typedef CwiseUnaryOp<internal::scalar_expm1_op<Scalar>, const Derived> Expm1ReturnType;
@@ -24,11 +26,9 @@ typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturn
 typedef CwiseUnaryOp<internal::scalar_tanh_op<Scalar>, const Derived> TanhReturnType;
 typedef CwiseUnaryOp<internal::scalar_logistic_op<Scalar>, const Derived> LogisticReturnType;
 typedef CwiseUnaryOp<internal::scalar_sinh_op<Scalar>, const Derived> SinhReturnType;
-#if EIGEN_HAS_CXX11_MATH
 typedef CwiseUnaryOp<internal::scalar_atanh_op<Scalar>, const Derived> AtanhReturnType;
 typedef CwiseUnaryOp<internal::scalar_asinh_op<Scalar>, const Derived> AsinhReturnType;
 typedef CwiseUnaryOp<internal::scalar_acosh_op<Scalar>, const Derived> AcoshReturnType;
-#endif
 typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
@@ -67,6 +67,10 @@ arg() const
 {
   return ArgReturnType(derived());
 }
+
+EIGEN_DEVICE_FUNC
+EIGEN_STRONG_INLINE const CArgReturnType
+carg() const { return CArgReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
   *
@@ -355,7 +359,6 @@ cosh() const
   return CoshReturnType(derived());
 }
 
-#if EIGEN_HAS_CXX11_MATH
 /** \returns an expression of the coefficient-wise inverse hyperbolic tan of *this.
   *
   * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_atanh">Math functions</a>, atanh(), asinh(), acosh()
@@ -388,7 +391,6 @@ acosh() const
 {
   return AcoshReturnType(derived());
 }
-#endif
 
 /** \returns an expression of the coefficient-wise logistic of *this.
   */
@@ -580,8 +582,6 @@ isFinite() const
 
 /** \returns an expression of the coefficient-wise ! operator of *this
   *
-  * \warning this operator is for expression of bool only.
-  *
   * Example: \include Cwise_boolean_not.cpp
   * Output: \verbinclude Cwise_boolean_not.out
   *
@@ -591,9 +591,16 @@ EIGEN_DEVICE_FUNC
 inline const BooleanNotReturnType
 operator!() const
 {
-  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value),
-                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
   return BooleanNotReturnType(derived());
+}
+
+/** \returns an expression of the bitwise ~ operator of *this
+  */
+EIGEN_DEVICE_FUNC
+inline const BitwiseNotReturnType
+operator~() const
+{
+  return BitwiseNotReturnType(derived());
 }
 
 
@@ -693,4 +700,33 @@ inline const NdtriReturnType
 ndtri() const
 {
   return NdtriReturnType(derived());
+}
+
+template <typename ScalarExponent>
+using UnaryPowReturnType =
+    std::enable_if_t<internal::is_arithmetic<typename NumTraits<ScalarExponent>::Real>::value,
+                     CwiseUnaryOp<internal::scalar_unary_pow_op<Scalar, ScalarExponent>, const Derived>>;
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template <typename ScalarExponent>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const UnaryPowReturnType<ScalarExponent> pow(
+    const ScalarExponent& exponent) const {
+  return UnaryPowReturnType<ScalarExponent>(derived(), internal::scalar_unary_pow_op<Scalar, ScalarExponent>(exponent));
+#else
+/** \returns an expression of the coefficients of \c *this rasied to the constant power \a exponent
+ *
+ * \tparam T is the scalar type of \a exponent. It must be compatible with the scalar type of the given expression.
+ *
+ * This function computes the coefficient-wise power. The function MatrixBase::pow() in the
+ * unsupported module MatrixFunctions computes the matrix power.
+ *
+ * Example: \include Cwise_pow.cpp
+ * Output: \verbinclude Cwise_pow.out
+ *
+ * \sa ArrayBase::pow(ArrayBase), square(), cube(), exp(), log()
+ */
+template <typename ScalarExponent>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const UnaryPowReturnType<ScalarExponent> pow(
+    const ScalarExponent& exponent) const;
+#endif
 }

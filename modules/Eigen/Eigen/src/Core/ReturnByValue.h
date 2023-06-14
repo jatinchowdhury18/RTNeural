@@ -106,7 +106,7 @@ struct evaluator<ReturnByValue<Derived> >
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
-    ::new (static_cast<Base*>(this)) Base(m_result);
+    internal::construct_at<Base>(this, m_result);
     xpr.evalTo(m_result);
   }
 

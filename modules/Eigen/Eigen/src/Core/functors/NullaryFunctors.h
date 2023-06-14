@@ -31,7 +31,6 @@ struct functor_traits<scalar_constant_op<Scalar> >
          PacketAccess = packet_traits<Scalar>::Vectorizable, IsRepeatable = true }; };
 
 template<typename Scalar> struct scalar_identity_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_identity_op)
   template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType row, IndexType col) const { return row==col ? Scalar(1) : Scalar(0); }
 };
@@ -144,6 +143,39 @@ template <typename Scalar> struct linspaced_op
   // This proxy object handles the actual required temporaries and the different
   // implementations (integer vs. floating point).
   const linspaced_op_impl<Scalar,NumTraits<Scalar>::IsInteger> impl;
+};
+
+template <typename Scalar>
+struct equalspaced_op {
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+
+  EIGEN_DEVICE_FUNC equalspaced_op(const Scalar& start, const Scalar& step) : m_start(start), m_step(step) {}
+  template <typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(IndexType i) const {
+    return m_start + m_step * static_cast<Scalar>(i);
+  }
+  template <typename Packet, typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(IndexType i) const {
+    const Packet cst_start = pset1<Packet>(m_start);
+    const Packet cst_step = pset1<Packet>(m_step);
+    const Packet cst_lin0 = plset<Packet>(Scalar(0));
+    const Packet cst_offset = pmadd(cst_lin0, cst_step, cst_start);
+
+    Packet i_packet = pset1<Packet>(static_cast<Scalar>(i));
+    return pmadd(i_packet, cst_step, cst_offset);
+  }
+  const Scalar m_start;
+  const Scalar m_step;
+};
+
+template <typename Scalar>
+struct functor_traits<equalspaced_op<Scalar> > {
+  enum {
+    Cost = NumTraits<Scalar>::AddCost + NumTraits<Scalar>::MulCost,
+    PacketAccess =
+        packet_traits<Scalar>::HasSetLinear && packet_traits<Scalar>::HasMul && packet_traits<Scalar>::HasAdd,
+    IsRepeatable = true
+  };
 };
 
 // Linear access is automatically determined from the operator() prototypes available for the given functor.

@@ -7,202 +7,297 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 #if !defined(EIGEN_PARSED_BY_DOXYGEN)
 
-// This file is automatically included twice to generate const and non-const versions
-
-#ifndef EIGEN_INDEXED_VIEW_METHOD_2ND_PASS
-#define EIGEN_INDEXED_VIEW_METHOD_CONST const
-#define EIGEN_INDEXED_VIEW_METHOD_TYPE  ConstIndexedViewType
-#else
-#define EIGEN_INDEXED_VIEW_METHOD_CONST
-#define EIGEN_INDEXED_VIEW_METHOD_TYPE IndexedViewType
-#endif
-
-#ifndef EIGEN_INDEXED_VIEW_METHOD_2ND_PASS
 protected:
-
 // define some aliases to ease readability
 
-template<typename Indices>
-struct IvcRowType : public internal::IndexedViewCompatibleType<Indices,RowsAtCompileTime> {};
+template <typename Indices>
+using IvcRowType = typename internal::IndexedViewCompatibleType<Indices, RowsAtCompileTime>::type;
 
-template<typename Indices>
-struct IvcColType : public internal::IndexedViewCompatibleType<Indices,ColsAtCompileTime> {};
+template <typename Indices>
+using IvcColType = typename internal::IndexedViewCompatibleType<Indices, ColsAtCompileTime>::type;
 
-template<typename Indices>
-struct IvcType : public internal::IndexedViewCompatibleType<Indices,SizeAtCompileTime> {};
+template <typename Indices>
+using IvcType = typename internal::IndexedViewCompatibleType<Indices, SizeAtCompileTime>::type;
 
-typedef typename internal::IndexedViewCompatibleType<Index,1>::type IvcIndex;
+typedef typename internal::IndexedViewCompatibleType<Index, 1>::type IvcIndex;
 
-template<typename Indices>
-typename IvcRowType<Indices>::type
-ivcRow(const Indices& indices) const {
-  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,RowsAtCompileTime>(derived().rows()),Specialized);
+template <typename Indices>
+inline IvcRowType<Indices> ivcRow(const Indices& indices) const {
+  return internal::makeIndexedViewCompatible(
+      indices, internal::variable_if_dynamic<Index, RowsAtCompileTime>(derived().rows()), Specialized);
 }
 
-template<typename Indices>
-typename IvcColType<Indices>::type
-ivcCol(const Indices& indices) const {
-  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,ColsAtCompileTime>(derived().cols()),Specialized);
+template <typename Indices>
+inline IvcColType<Indices> ivcCol(const Indices& indices) const {
+  return internal::makeIndexedViewCompatible(
+      indices, internal::variable_if_dynamic<Index, ColsAtCompileTime>(derived().cols()), Specialized);
 }
 
-template<typename Indices>
-typename IvcColType<Indices>::type
-ivcSize(const Indices& indices) const {
-  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,SizeAtCompileTime>(derived().size()),Specialized);
+template <typename Indices>
+inline IvcColType<Indices> ivcSize(const Indices& indices) const {
+  return internal::makeIndexedViewCompatible(
+      indices, internal::variable_if_dynamic<Index, SizeAtCompileTime>(derived().size()), Specialized);
 }
+
+// this helper class assumes internal::valid_indexed_view_overload<RowIndices, ColIndices>::value == true
+template <typename RowIndices, typename ColIndices,
+          bool UseSymbolic = internal::traits<IndexedView<Derived, IvcRowType<RowIndices>, IvcColType<ColIndices>>>::ReturnAsScalar,
+          bool UseBlock = internal::traits<IndexedView<Derived, IvcRowType<RowIndices>, IvcColType<ColIndices>>>::ReturnAsBlock,
+          bool UseGeneric = internal::traits<IndexedView<Derived, IvcRowType<RowIndices>, IvcColType<ColIndices>>>::ReturnAsIndexedView>
+struct IndexedViewSelector;
+
+// Generic
+template <typename RowIndices, typename ColIndices>
+struct IndexedViewSelector<RowIndices, ColIndices, false, false, true> {
+  using ReturnType = IndexedView<Derived, IvcRowType<RowIndices>, IvcColType<ColIndices>>;
+  using ConstReturnType = IndexedView<const Derived, IvcRowType<RowIndices>, IvcColType<ColIndices>>;
+
+  static inline ReturnType run(Derived& derived, const RowIndices& rowIndices, const ColIndices& colIndices) {
+    return ReturnType(derived, derived.ivcRow(rowIndices), derived.ivcCol(colIndices));
+  }
+  static inline ConstReturnType run(const Derived& derived, const RowIndices& rowIndices,
+                                    const ColIndices& colIndices) {
+    return ConstReturnType(derived, derived.ivcRow(rowIndices), derived.ivcCol(colIndices));
+  }
+};
+
+// Block
+template <typename RowIndices, typename ColIndices>
+struct IndexedViewSelector<RowIndices, ColIndices, false, true, false> {
+  using IndexedViewType = IndexedView<Derived, IvcRowType<RowIndices>, IvcColType<ColIndices>>;
+  using ConstIndexedViewType = IndexedView<const Derived, IvcRowType<RowIndices>, IvcColType<ColIndices>>;
+  using ReturnType = typename internal::traits<IndexedViewType>::BlockType;
+  using ConstReturnType = typename internal::traits<ConstIndexedViewType>::BlockType;
+
+  static inline ReturnType run(Derived& derived, const RowIndices& rowIndices, const ColIndices& colIndices) {
+    IvcRowType<RowIndices> actualRowIndices = derived.ivcRow(rowIndices);
+    IvcColType<ColIndices> actualColIndices = derived.ivcCol(colIndices);
+    return ReturnType(derived, internal::first(actualRowIndices), internal::first(actualColIndices),
+                      internal::index_list_size(actualRowIndices), internal::index_list_size(actualColIndices));
+  }
+  static inline ConstReturnType run(const Derived& derived, const RowIndices& rowIndices,
+                                    const ColIndices& colIndices) {
+    IvcRowType<RowIndices> actualRowIndices = derived.ivcRow(rowIndices);
+    IvcColType<ColIndices> actualColIndices = derived.ivcCol(colIndices);
+    return ConstReturnType(derived, internal::first(actualRowIndices), internal::first(actualColIndices),
+                           internal::index_list_size(actualRowIndices), internal::index_list_size(actualColIndices));
+  }
+};
+
+// Symbolic
+template <typename RowIndices, typename ColIndices>
+struct IndexedViewSelector<RowIndices, ColIndices, true, false, false> {
+  using ReturnType = typename DenseBase<Derived>::Scalar&;
+  using ConstReturnType = typename DenseBase<Derived>::CoeffReturnType;
+
+  static inline ReturnType run(Derived& derived, const RowIndices& rowIndices, const ColIndices& colIndices) {
+    return derived(internal::eval_expr_given_size(rowIndices, derived.rows()),
+                   internal::eval_expr_given_size(colIndices, derived.cols()));
+  }
+  static inline ConstReturnType run(const Derived& derived, const RowIndices& rowIndices,
+                                    const ColIndices& colIndices) {
+    return derived(internal::eval_expr_given_size(rowIndices, derived.rows()),
+                   internal::eval_expr_given_size(colIndices, derived.cols()));
+  }
+};
+
+// this helper class assumes internal::is_valid_index_type<Indices>::value == false
+template <typename Indices, 
+          bool UseSymbolic = symbolic::is_symbolic<Indices>::value,
+          bool UseBlock = !UseSymbolic && internal::get_compile_time_incr<IvcType<Indices>>::value == 1,
+          bool UseGeneric = !UseSymbolic && !UseBlock>
+struct VectorIndexedViewSelector;
+
+// Generic
+template <typename Indices>
+struct VectorIndexedViewSelector<Indices, false, false, true> {
+
+  static constexpr bool IsRowMajor = DenseBase<Derived>::IsRowMajor;
+
+  using RowMajorReturnType = IndexedView<Derived, IvcIndex, IvcType<Indices>>;
+  using ConstRowMajorReturnType = IndexedView<const Derived, IvcIndex, IvcType<Indices>>;
+
+  using ColMajorReturnType = IndexedView<Derived, IvcType<Indices>, IvcIndex>;
+  using ConstColMajorReturnType = IndexedView<const Derived, IvcType<Indices>, IvcIndex>;
+
+  using ReturnType = typename internal::conditional<IsRowMajor, RowMajorReturnType, ColMajorReturnType>::type;
+  using ConstReturnType =
+      typename internal::conditional<IsRowMajor, ConstRowMajorReturnType, ConstColMajorReturnType>::type;
+
+  template <bool UseRowMajor = IsRowMajor, std::enable_if_t<UseRowMajor, bool> = true>
+  static inline RowMajorReturnType run(Derived& derived, const Indices& indices) {
+    return RowMajorReturnType(derived, IvcIndex(0), derived.ivcCol(indices));
+  }
+  template <bool UseRowMajor = IsRowMajor, std::enable_if_t<UseRowMajor, bool> = true>
+  static inline ConstRowMajorReturnType run(const Derived& derived, const Indices& indices) {
+    return ConstRowMajorReturnType(derived, IvcIndex(0), derived.ivcCol(indices));
+  }
+  template <bool UseRowMajor = IsRowMajor, std::enable_if_t<!UseRowMajor, bool> = true>
+  static inline ColMajorReturnType run(Derived& derived, const Indices& indices) {
+    return ColMajorReturnType(derived, derived.ivcRow(indices), IvcIndex(0));
+  }
+  template <bool UseRowMajor = IsRowMajor, std::enable_if_t<!UseRowMajor, bool> = true>
+  static inline ConstColMajorReturnType run(const Derived& derived, const Indices& indices) {
+    return ConstColMajorReturnType(derived, derived.ivcRow(indices), IvcIndex(0));
+  }
+};
+
+// Block
+template <typename Indices>
+struct VectorIndexedViewSelector<Indices, false, true, false> {
+
+  using ReturnType = VectorBlock<Derived, internal::array_size<Indices>::value>;
+  using ConstReturnType = VectorBlock<const Derived, internal::array_size<Indices>::value>;
+
+  static inline ReturnType run(Derived& derived, const Indices& indices) {
+    IvcType<Indices> actualIndices = derived.ivcSize(indices);
+    return ReturnType(derived, internal::first(actualIndices), internal::index_list_size(actualIndices));
+  }
+  static inline ConstReturnType run(const Derived& derived, const Indices& indices) {
+    IvcType<Indices> actualIndices = derived.ivcSize(indices);
+    return ConstReturnType(derived, internal::first(actualIndices), internal::index_list_size(actualIndices));
+  }
+};
+
+// Symbolic
+template <typename Indices>
+struct VectorIndexedViewSelector<Indices, true, false, false> {
+
+  using ReturnType = typename DenseBase<Derived>::Scalar&;
+  using ConstReturnType = typename DenseBase<Derived>::CoeffReturnType;
+
+  static inline ReturnType run(Derived& derived, const Indices& id) {
+    return derived(internal::eval_expr_given_size(id, derived.size()));
+  }
+  static inline ConstReturnType run(const Derived& derived, const Indices& id) {
+    return derived(internal::eval_expr_given_size(id, derived.size()));
+  }
+};
+
+// SFINAE dummy types
+
+template <typename RowIndices, typename ColIndices>
+using EnableOverload = std::enable_if_t<
+    internal::valid_indexed_view_overload<RowIndices, ColIndices>::value && internal::is_lvalue<Derived>::value, bool>;
+
+template <typename RowIndices, typename ColIndices>
+using EnableConstOverload =
+    std::enable_if_t<internal::valid_indexed_view_overload<RowIndices, ColIndices>::value, bool>;
+
+template <typename Indices>
+using EnableVectorOverload =
+    std::enable_if_t<!internal::is_valid_index_type<Indices>::value && internal::is_lvalue<Derived>::value, bool>;
+
+template <typename Indices>
+using EnableConstVectorOverload = std::enable_if_t<!internal::is_valid_index_type<Indices>::value, bool>;
 
 public:
 
-#endif
+// Public API for 2D matrices/arrays
 
-template<typename RowIndices, typename ColIndices>
-struct EIGEN_INDEXED_VIEW_METHOD_TYPE {
-  typedef IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,
-                      typename IvcRowType<RowIndices>::type,
-                      typename IvcColType<ColIndices>::type> type;
-};
+// non-const versions
 
-// This is the generic version
+template <typename RowIndices, typename ColIndices>
+using IndexedViewType = typename IndexedViewSelector<RowIndices, ColIndices>::ReturnType;
 
-template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<internal::valid_indexed_view_overload<RowIndices,ColIndices>::value
-  && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsIndexedView,
-  typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type >::type
-operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  return typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type
-            (derived(), ivcRow(rowIndices), ivcCol(colIndices));
+template <typename RowIndices, typename ColIndices, EnableOverload<RowIndices, ColIndices> = true>
+IndexedViewType<RowIndices, ColIndices> operator()(const RowIndices& rowIndices, const ColIndices& colIndices) {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), rowIndices, colIndices);
 }
 
-// The following overload returns a Block<> object
-
-template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<internal::valid_indexed_view_overload<RowIndices,ColIndices>::value
-  && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsBlock,
-  typename internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::BlockType>::type
-operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  typedef typename internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::BlockType BlockType;
-  typename IvcRowType<RowIndices>::type actualRowIndices = ivcRow(rowIndices);
-  typename IvcColType<ColIndices>::type actualColIndices = ivcCol(colIndices);
-  return BlockType(derived(),
-                   internal::first(actualRowIndices),
-                   internal::first(actualColIndices),
-                   internal::index_list_size(actualRowIndices),
-                   internal::index_list_size(actualColIndices));
+template <typename RowType, size_t RowSize, typename ColIndices, typename RowIndices = Array<RowType, RowSize, 1>,
+          EnableOverload<RowIndices, ColIndices> = true>
+IndexedViewType<RowIndices, ColIndices> operator()(const RowType (&rowIndices)[RowSize], const ColIndices& colIndices) {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), RowIndices{rowIndices}, colIndices);
 }
 
-// The following overload returns a Scalar
-
-template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<internal::valid_indexed_view_overload<RowIndices,ColIndices>::value
-  && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsScalar,
-  CoeffReturnType >::type
-operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  return Base::operator()(internal::eval_expr_given_size(rowIndices,rows()),internal::eval_expr_given_size(colIndices,cols()));
+template <typename RowIndices, typename ColType, size_t ColSize, typename ColIndices = Array<ColType, ColSize, 1>,
+          EnableOverload<RowIndices, ColIndices> = true>
+IndexedViewType<RowIndices, ColIndices> operator()(const RowIndices& rowIndices, const ColType (&colIndices)[ColSize]) {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), rowIndices, ColIndices{colIndices});
 }
 
-// The following three overloads are needed to handle raw Index[N] arrays.
-
-template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndices>
-IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const RowIndicesT (&)[RowIndicesN],typename IvcColType<ColIndices>::type>
-operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const RowIndicesT (&)[RowIndicesN],typename IvcColType<ColIndices>::type>
-                    (derived(), rowIndices, ivcCol(colIndices));
+template <typename RowType, size_t RowSize, typename ColType, size_t ColSize,
+          typename RowIndices = Array<RowType, RowSize, 1>, typename ColIndices = Array<ColType, ColSize, 1>,
+          EnableOverload<RowIndices, ColIndices> = true>
+IndexedViewType<RowIndices, ColIndices> operator()(const RowType (&rowIndices)[RowSize],
+                                                   const ColType (&colIndices)[ColSize]) {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), RowIndices{rowIndices}, ColIndices{colIndices});
 }
 
-template<typename RowIndices, typename ColIndicesT, std::size_t ColIndicesN>
-IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,typename IvcRowType<RowIndices>::type, const ColIndicesT (&)[ColIndicesN]>
-operator()(const RowIndices& rowIndices, const ColIndicesT (&colIndices)[ColIndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,typename IvcRowType<RowIndices>::type,const ColIndicesT (&)[ColIndicesN]>
-                    (derived(), ivcRow(rowIndices), colIndices);
+// const versions
+
+template <typename RowIndices, typename ColIndices>
+using ConstIndexedViewType = typename IndexedViewSelector<RowIndices, ColIndices>::ConstReturnType;
+
+template <typename RowIndices, typename ColIndices, EnableConstOverload<RowIndices, ColIndices> = true>
+ConstIndexedViewType<RowIndices, ColIndices> operator()(const RowIndices& rowIndices,
+                                                        const ColIndices& colIndices) const {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), rowIndices, colIndices);
 }
 
-template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndicesT, std::size_t ColIndicesN>
-IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const RowIndicesT (&)[RowIndicesN], const ColIndicesT (&)[ColIndicesN]>
-operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndicesT (&colIndices)[ColIndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const RowIndicesT (&)[RowIndicesN],const ColIndicesT (&)[ColIndicesN]>
-                    (derived(), rowIndices, colIndices);
+template <typename RowType, size_t RowSize, typename ColIndices, typename RowIndices = Array<RowType, RowSize, 1>,
+          EnableConstOverload<RowIndices, ColIndices> = true>
+ConstIndexedViewType<RowIndices, ColIndices> operator()(const RowType (&rowIndices)[RowSize],
+                                                        const ColIndices& colIndices) const {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), RowIndices{rowIndices}, colIndices);
 }
 
+template <typename RowIndices, typename ColType, size_t ColSize, typename ColIndices = Array<ColType, ColSize, 1>,
+          EnableConstOverload<RowIndices, ColIndices> = true>
+ConstIndexedViewType<RowIndices, ColIndices> operator()(const RowIndices& rowIndices,
+                                                        const ColType (&colIndices)[ColSize]) const {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), rowIndices, ColIndices{colIndices});
+}
 
-// Overloads for 1D vectors/arrays
+template <typename RowType, size_t RowSize, typename ColType, size_t ColSize,
+          typename RowIndices = Array<RowType, RowSize, 1>, typename ColIndices = Array<ColType, ColSize, 1>,
+          EnableConstOverload<RowIndices, ColIndices> = true>
+ConstIndexedViewType<RowIndices, ColIndices> operator()(const RowType (&rowIndices)[RowSize],
+                                                        const ColType (&colIndices)[ColSize]) const {
+  return IndexedViewSelector<RowIndices, ColIndices>::run(derived(), RowIndices{rowIndices}, ColIndices{colIndices});
+}
 
-template<typename Indices>
-typename internal::enable_if<
-  IsRowMajor && (!(internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1 || internal::is_valid_index_type<Indices>::value)),
-  IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,IvcIndex,typename IvcType<Indices>::type> >::type
-operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
+// Public API for 1D vectors/arrays
+
+// non-const versions
+
+template <typename Indices>
+using VectorIndexedViewType = typename VectorIndexedViewSelector<Indices>::ReturnType;
+
+template <typename Indices, EnableVectorOverload<Indices> = true>
+VectorIndexedViewType<Indices> operator()(const Indices& indices) {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,IvcIndex,typename IvcType<Indices>::type>
-            (derived(), IvcIndex(0), ivcCol(indices));
+  return VectorIndexedViewSelector<Indices>::run(derived(), indices);
 }
 
-template<typename Indices>
-typename internal::enable_if<
-  (!IsRowMajor) && (!(internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1 || internal::is_valid_index_type<Indices>::value)),
-  IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,typename IvcType<Indices>::type,IvcIndex> >::type
-operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
+template <typename IndexType, size_t Size, typename Indices = Array<IndexType, Size, 1>,
+          EnableVectorOverload<Indices> = true>
+VectorIndexedViewType<Indices> operator()(const IndexType (&indices)[Size]) {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,typename IvcType<Indices>::type,IvcIndex>
-            (derived(), ivcRow(indices), IvcIndex(0));
+  return VectorIndexedViewSelector<Indices>::run(derived(), Indices{indices});
 }
 
-template<typename Indices>
-typename internal::enable_if<
-  (internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1) && (!internal::is_valid_index_type<Indices>::value) && (!symbolic::is_symbolic<Indices>::value),
-  VectorBlock<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,internal::array_size<Indices>::value> >::type
-operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
+// const versions
+
+template <typename Indices>
+using ConstVectorIndexedViewType = typename VectorIndexedViewSelector<Indices>::ConstReturnType;
+
+template <typename Indices, EnableConstVectorOverload<Indices> = true>
+ConstVectorIndexedViewType<Indices> operator()(const Indices& indices) const {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  typename IvcType<Indices>::type actualIndices = ivcSize(indices);
-  return VectorBlock<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,internal::array_size<Indices>::value>
-            (derived(), internal::first(actualIndices), internal::index_list_size(actualIndices));
+  return VectorIndexedViewSelector<Indices>::run(derived(), indices);
 }
 
-template<typename IndexType>
-typename internal::enable_if<symbolic::is_symbolic<IndexType>::value, CoeffReturnType >::type
-operator()(const IndexType& id) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  return Base::operator()(internal::eval_expr_given_size(id,size()));
-}
-
-template<typename IndicesT, std::size_t IndicesN>
-typename internal::enable_if<IsRowMajor,
-  IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,IvcIndex,const IndicesT (&)[IndicesN]> >::type
-operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
+template <typename IndexType, size_t Size, typename Indices = Array<IndexType, Size, 1>,
+          EnableConstVectorOverload<Indices> = true>
+ConstVectorIndexedViewType<Indices> operator()(const IndexType (&indices)[Size]) const {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,IvcIndex,const IndicesT (&)[IndicesN]>
-            (derived(), IvcIndex(0), indices);
+  return VectorIndexedViewSelector<Indices>::run(derived(), Indices{indices});
 }
-
-template<typename IndicesT, std::size_t IndicesN>
-typename internal::enable_if<!IsRowMajor,
-  IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const IndicesT (&)[IndicesN],IvcIndex> >::type
-operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
-{
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return IndexedView<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,const IndicesT (&)[IndicesN],IvcIndex>
-            (derived(), indices, IvcIndex(0));
-}
-
-#undef EIGEN_INDEXED_VIEW_METHOD_CONST
-#undef EIGEN_INDEXED_VIEW_METHOD_TYPE
-
-#ifndef EIGEN_INDEXED_VIEW_METHOD_2ND_PASS
-#define EIGEN_INDEXED_VIEW_METHOD_2ND_PASS
-#include "IndexedViewMethods.h"
-#undef EIGEN_INDEXED_VIEW_METHOD_2ND_PASS
-#endif
 
 #else // EIGEN_PARSED_BY_DOXYGEN
 

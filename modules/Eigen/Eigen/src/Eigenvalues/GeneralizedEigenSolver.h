@@ -121,8 +121,8 @@ template<typename MatrixType_> class GeneralizedEigenSolver
       : m_eivec(),
         m_alphas(),
         m_betas(),
-        m_valuesOkay(false),
-        m_vectorsOkay(false),
+        m_computeEigenvectors(false),
+        m_isInitialized(false),
         m_realQZ()
     {}
 
@@ -136,8 +136,8 @@ template<typename MatrixType_> class GeneralizedEigenSolver
       : m_eivec(size, size),
         m_alphas(size),
         m_betas(size),
-        m_valuesOkay(false),
-        m_vectorsOkay(false),
+        m_computeEigenvectors(false),
+        m_isInitialized(false),
         m_realQZ(size),
         m_tmp(size)
     {}
@@ -158,8 +158,8 @@ template<typename MatrixType_> class GeneralizedEigenSolver
       : m_eivec(A.rows(), A.cols()),
         m_alphas(A.cols()),
         m_betas(A.cols()),
-        m_valuesOkay(false),
-        m_vectorsOkay(false),
+        m_computeEigenvectors(false),
+        m_isInitialized(false),
         m_realQZ(A.cols()),
         m_tmp(A.cols())
     {
@@ -179,7 +179,8 @@ template<typename MatrixType_> class GeneralizedEigenSolver
       * \sa eigenvalues()
       */
     EigenvectorsType eigenvectors() const {
-      eigen_assert(m_vectorsOkay && "Eigenvectors for GeneralizedEigenSolver were not calculated.");
+      eigen_assert(info() == Success && "GeneralizedEigenSolver failed to compute eigenvectors");
+      eigen_assert(m_computeEigenvectors && "Eigenvectors for GeneralizedEigenSolver were not calculated");
       return m_eivec;
     }
 
@@ -203,7 +204,7 @@ template<typename MatrixType_> class GeneralizedEigenSolver
       */
     EigenvalueType eigenvalues() const
     {
-      eigen_assert(m_valuesOkay && "GeneralizedEigenSolver is not initialized.");
+      eigen_assert(info() == Success && "GeneralizedEigenSolver failed to compute eigenvalues.");
       return EigenvalueType(m_alphas,m_betas);
     }
 
@@ -212,9 +213,9 @@ template<typename MatrixType_> class GeneralizedEigenSolver
       * This vector permits to reconstruct the j-th eigenvalues as alphas(i)/betas(j).
       *
       * \sa betas(), eigenvalues() */
-    ComplexVectorType alphas() const
+    const ComplexVectorType& alphas() const
     {
-      eigen_assert(m_valuesOkay && "GeneralizedEigenSolver is not initialized.");
+      eigen_assert(info() == Success && "GeneralizedEigenSolver failed to compute alphas.");
       return m_alphas;
     }
 
@@ -223,9 +224,9 @@ template<typename MatrixType_> class GeneralizedEigenSolver
       * This vector permits to reconstruct the j-th eigenvalues as alphas(i)/betas(j).
       *
       * \sa alphas(), eigenvalues() */
-    VectorType betas() const
+    const VectorType& betas() const
     {
-      eigen_assert(m_valuesOkay && "GeneralizedEigenSolver is not initialized.");
+      eigen_assert(info() == Success && "GeneralizedEigenSolver failed to compute betas.");
       return m_betas;
     }
 
@@ -256,7 +257,7 @@ template<typename MatrixType_> class GeneralizedEigenSolver
 
     ComputationInfo info() const
     {
-      eigen_assert(m_valuesOkay && "EigenSolver is not initialized.");
+      eigen_assert(m_isInitialized && "EigenSolver is not initialized.");
       return m_realQZ.info();
     }
 
@@ -276,7 +277,8 @@ template<typename MatrixType_> class GeneralizedEigenSolver
     EigenvectorsType m_eivec;
     ComplexVectorType m_alphas;
     VectorType m_betas;
-    bool m_valuesOkay, m_vectorsOkay;
+    bool m_computeEigenvectors;
+    bool m_isInitialized;
     RealQZ<MatrixType> m_realQZ;
     ComplexVectorType m_tmp;
 };
@@ -289,8 +291,6 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
   using std::abs;
   eigen_assert(A.cols() == A.rows() && B.cols() == A.rows() && B.cols() == B.rows());
   Index size = A.cols();
-  m_valuesOkay = false;
-  m_vectorsOkay = false;
   // Reduce to generalized real Schur form:
   // A = Q S Z and B = Q T Z
   m_realQZ.compute(A, B, computeEigenvectors);
@@ -403,10 +403,9 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
         i += 2;
       }
     }
-
-    m_valuesOkay = true;
-    m_vectorsOkay = computeEigenvectors;
   }
+  m_computeEigenvectors = computeEigenvectors;
+  m_isInitialized = true;
   return *this;
 }
 

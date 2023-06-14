@@ -21,192 +21,45 @@
 #ifndef EIGEN_PACKET_MATH_SYCL_H
 #define EIGEN_PACKET_MATH_SYCL_H
 #include <type_traits>
+
 #include "../../InternalHeaderCheck.h"
 
 namespace Eigen {
 
 namespace internal {
 #ifdef SYCL_DEVICE_ONLY
-
-#define SYCL_PLOADT_RO(address_space_target)                                 \
-  template <typename packet_type, int Alignment>                             \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type ploadt_ro(               \
-      typename cl::sycl::multi_ptr<                                          \
-          const typename unpacket_traits<packet_type>::type,                 \
-          cl::sycl::access::address_space::address_space_target>::pointer_t  \
-          from) {                                                            \
-    typedef typename unpacket_traits<packet_type>::type scalar;              \
-    typedef cl::sycl::multi_ptr<                                             \
-        scalar, cl::sycl::access::address_space::address_space_target>       \
-        multi_ptr;                                                           \
-    auto res = packet_type(                                                  \
-        static_cast<typename unpacket_traits<packet_type>::type>(0));        \
-    res.load(0, multi_ptr(const_cast<typename multi_ptr::pointer_t>(from))); \
-    return res;                                                              \
+#define SYCL_PLOAD(packet_type, AlignedType)                          \
+  template <>                                                         \
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type                   \
+      pload##AlignedType<packet_type>(                                \
+          const typename unpacket_traits<packet_type>::type* from) {  \
+   auto ptr = cl::sycl::address_space_cast<cl::sycl::access::address_space::generic_space, cl::sycl::access::decorated::no>(from);\
+    packet_type res{};                                                \
+    res.load(0, ptr);                                     \
+    return res;                                                       \
   }
 
-SYCL_PLOADT_RO(global_space)
-SYCL_PLOADT_RO(local_space)
-#undef SYCL_PLOADT_RO
-#endif
-
-template <typename packet_type, int Alignment, typename T>
-EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type
-ploadt_ro(const Eigen::TensorSycl::internal::RangeAccess<
-          cl::sycl::access::mode::read_write, T>& from) {
-  return ploadt_ro<packet_type, Alignment>(from.get_pointer());
-}
-
-#ifdef SYCL_DEVICE_ONLY
-#define SYCL_PLOAD(address_space_target, Alignment, AlignedType)            \
-  template <typename packet_type>                                           \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type pload##AlignedType(     \
-      typename cl::sycl::multi_ptr<                                         \
-          const typename unpacket_traits<packet_type>::type,                \
-          cl::sycl::access::address_space::address_space_target>::pointer_t \
-          from) {                                                           \
-    return ploadt_ro<packet_type, Alignment>(from);                         \
-  }
-
-// global space
-SYCL_PLOAD(global_space, Unaligned, u)
-SYCL_PLOAD(global_space, Aligned, )
-// local space
-SYCL_PLOAD(local_space, Unaligned, u)
-SYCL_PLOAD(local_space, Aligned, )
+SYCL_PLOAD(cl::sycl::cl_float4, u)
+SYCL_PLOAD(cl::sycl::cl_float4, )
+SYCL_PLOAD(cl::sycl::cl_double2, u)
+SYCL_PLOAD(cl::sycl::cl_double2, )
 
 #undef SYCL_PLOAD
-#endif
 
-#define SYCL_PLOAD(Alignment, AlignedType)                              \
-  template <typename packet_type>                                       \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type pload##AlignedType( \
-      const Eigen::TensorSycl::internal::RangeAccess<                   \
-          cl::sycl::access::mode::read_write,                           \
-          typename unpacket_traits<packet_type>::type>                  \
-          from) {                                                       \
-    return ploadt_ro<packet_type, Alignment>(from);                     \
-  }
-SYCL_PLOAD(Unaligned, u)
-SYCL_PLOAD(Aligned, )
-#undef SYCL_PLOAD
-
-#ifdef SYCL_DEVICE_ONLY
-/** \internal \returns a packet version of \a *from.
- * The pointer \a from must be aligned on a \a Alignment bytes boundary. */
-#define SYCL_PLOADT(address_space_target)                                   \
-  template <typename packet_type, int Alignment>                            \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type ploadt(                 \
-      typename cl::sycl::multi_ptr<                                         \
-          const typename unpacket_traits<packet_type>::type,                \
-          cl::sycl::access::address_space::address_space_target>::pointer_t \
-          from) {                                                           \
-    if (Alignment >= unpacket_traits<packet_type>::alignment)               \
-      return pload<packet_type>(from);                                      \
-    else                                                                    \
-      return ploadu<packet_type>(from);                                     \
+#define SYCL_PSTORE(scalar, packet_type, alignment)             \
+  template <>                                                   \
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstore##alignment( \
+      scalar* to, const packet_type& from) {                    \
+    auto ptr = cl::sycl::address_space_cast<cl::sycl::access::address_space::generic_space, cl::sycl::access::decorated::no>(to);\
+    from.store(0, ptr);                               \
   }
 
-// global space
-SYCL_PLOADT(global_space)
-// local space
-SYCL_PLOADT(local_space)
-#undef SYCL_PLOADT
-#endif
+SYCL_PSTORE(float, cl::sycl::cl_float4, )
+SYCL_PSTORE(float, cl::sycl::cl_float4, u)
+SYCL_PSTORE(double, cl::sycl::cl_double2, )
+SYCL_PSTORE(double, cl::sycl::cl_double2, u)
 
-template <typename packet_type, int Alignment>
-EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type
-ploadt(const Eigen::TensorSycl::internal::RangeAccess<
-       cl::sycl::access::mode::read_write,
-       typename unpacket_traits<packet_type>::type>& from) {
-  return ploadt<packet_type, Alignment>(from.get_pointer());
-}
-#ifdef SYCL_DEVICE_ONLY
-
-// private_space
-#define SYCL_PLOADT_RO_SPECIAL(packet_type, Alignment)                 \
-  template <>                                                          \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type                    \
-  ploadt_ro<packet_type, Alignment>(                                   \
-      const typename unpacket_traits<packet_type>::type* from) {       \
-    typedef typename unpacket_traits<packet_type>::type scalar;        \
-    auto res = packet_type(static_cast<scalar>(0));                    \
-    res.template load<cl::sycl::access::address_space::private_space>( \
-        0, const_cast<scalar*>(from));                                 \
-    return res;                                                        \
-  }
-
-SYCL_PLOADT_RO_SPECIAL(cl::sycl::cl_float4, Aligned)
-SYCL_PLOADT_RO_SPECIAL(cl::sycl::cl_double2, Aligned)
-SYCL_PLOADT_RO_SPECIAL(cl::sycl::cl_float4, Unaligned)
-SYCL_PLOADT_RO_SPECIAL(cl::sycl::cl_double2, Unaligned)
-
-#define SYCL_PLOAD_SPECIAL(packet_type, alignment_type)                    \
-  template <>                                                              \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE packet_type pload##alignment_type( \
-      const typename unpacket_traits<packet_type>::type* from) {           \
-    typedef typename unpacket_traits<packet_type>::type scalar;            \
-    auto res = packet_type(static_cast<scalar>(0));                        \
-    res.template load<cl::sycl::access::address_space::private_space>(     \
-        0, const_cast<scalar*>(from));                                     \
-    return res;                                                            \
-  }
-SYCL_PLOAD_SPECIAL(cl::sycl::cl_float4, )
-SYCL_PLOAD_SPECIAL(cl::sycl::cl_double2, )
-SYCL_PLOAD_SPECIAL(cl::sycl::cl_float4, u)
-SYCL_PLOAD_SPECIAL(cl::sycl::cl_double2, u)
-
-#undef SYCL_PLOAD_SPECIAL
-
-#define SYCL_PSTORE(scalar, packet_type, address_space_target, alignment)   \
-  template <>                                                               \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstore##alignment(             \
-      typename cl::sycl::multi_ptr<                                         \
-          scalar,                                                           \
-          cl::sycl::access::address_space::address_space_target>::pointer_t \
-          to,                                                               \
-      const packet_type& from) {                                            \
-    typedef cl::sycl::multi_ptr<                                            \
-        scalar, cl::sycl::access::address_space::address_space_target>      \
-        multi_ptr;                                                          \
-    from.store(0, multi_ptr(to));                                           \
-  }
-
-// global space
-SYCL_PSTORE(float, cl::sycl::cl_float4, global_space, )
-SYCL_PSTORE(float, cl::sycl::cl_float4, global_space, u)
-SYCL_PSTORE(double, cl::sycl::cl_double2, global_space, )
-SYCL_PSTORE(double, cl::sycl::cl_double2, global_space, u)
-SYCL_PSTORE(float, cl::sycl::cl_float4, local_space, )
-SYCL_PSTORE(float, cl::sycl::cl_float4, local_space, u)
-SYCL_PSTORE(double, cl::sycl::cl_double2, local_space, )
-SYCL_PSTORE(double, cl::sycl::cl_double2, local_space, u)
-
-SYCL_PSTORE(float, cl::sycl::cl_float4, private_space, )
-SYCL_PSTORE(float, cl::sycl::cl_float4, private_space, u)
-SYCL_PSTORE(double, cl::sycl::cl_double2, private_space, )
-SYCL_PSTORE(double, cl::sycl::cl_double2, private_space, u)
 #undef SYCL_PSTORE
-
-#define SYCL_PSTORE_T(address_space_target)                                 \
-  template <typename scalar, typename packet_type, int Alignment>           \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstoret(                       \
-      typename cl::sycl::multi_ptr<                                         \
-          scalar,                                                           \
-          cl::sycl::access::address_space::address_space_target>::pointer_t \
-          to,                                                               \
-      const packet_type& from) {                                            \
-    if (Alignment)                                                          \
-      pstore(to, from);                                                     \
-    else                                                                    \
-      pstoreu(to, from);                                                    \
-  }
-
-SYCL_PSTORE_T(global_space)
-
-SYCL_PSTORE_T(local_space)
-
-#undef SYCL_PSTORE_T
 
 #define SYCL_PSET1(packet_type)                                         \
   template <>                                                           \
@@ -291,22 +144,6 @@ struct get_base_packet<cl::sycl::cl_double2> {
   }
 };
 
-#define SYCL_PLOAD_DUP(address_space_target)                                \
-  template <typename packet_type>                                           \
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE packet_type ploaddup(               \
-      typename cl::sycl::multi_ptr<                                         \
-          const typename unpacket_traits<packet_type>::type,                \
-          cl::sycl::access::address_space::address_space_target>::pointer_t \
-          from) {                                                           \
-    return get_base_packet<packet_type>::get_ploaddup(from);                \
-  }
-
-// global space
-SYCL_PLOAD_DUP(global_space)
-// local_space
-SYCL_PLOAD_DUP(local_space)
-#undef SYCL_PLOAD_DUP
-
 #define SYCL_PLOAD_DUP_SPECILIZE(packet_type)                              \
   template <>                                                              \
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE packet_type ploaddup<packet_type>( \
@@ -325,29 +162,10 @@ SYCL_PLOAD_DUP_SPECILIZE(cl::sycl::cl_double2)
       const typename unpacket_traits<packet_type>::type& a) {           \
     return get_base_packet<packet_type>::set_plset(a);                  \
   }
-
 SYCL_PLSET(cl::sycl::cl_float4)
 SYCL_PLSET(cl::sycl::cl_double2)
 
 #undef SYCL_PLSET
-
-#define SYCL_PGATHER(address_space_target)                                  \
-  template <typename Scalar, typename packet_type>                          \
-  EIGEN_DEVICE_FUNC inline packet_type pgather(                             \
-      typename cl::sycl::multi_ptr<                                         \
-          const typename unpacket_traits<packet_type>::type,                \
-          cl::sycl::access::address_space::address_space_target>::pointer_t \
-          from,                                                             \
-      Index stride) {                                                       \
-    return get_base_packet<packet_type>::get_pgather(from, stride);         \
-  }
-
-// global space
-SYCL_PGATHER(global_space)
-// local space
-SYCL_PGATHER(local_space)
-
-#undef SYCL_PGATHER
 
 #define SYCL_PGATHER_SPECILIZE(scalar, packet_type)                            \
   template <>                                                                  \
@@ -361,24 +179,6 @@ SYCL_PGATHER_SPECILIZE(float, cl::sycl::cl_float4)
 SYCL_PGATHER_SPECILIZE(double, cl::sycl::cl_double2)
 
 #undef SYCL_PGATHER_SPECILIZE
-
-#define SYCL_PSCATTER(address_space_target)                                 \
-  template <typename Scalar, typename packet_type>                          \
-  EIGEN_DEVICE_FUNC inline void pscatter(                                   \
-      typename cl::sycl::multi_ptr<                                         \
-          typename unpacket_traits<packet_type>::type,                      \
-          cl::sycl::access::address_space::address_space_target>::pointer_t \
-          to,                                                               \
-      const packet_type& from, Index stride) {                              \
-    get_base_packet<packet_type>::set_pscatter(to, from, stride);           \
-  }
-
-// global space
-SYCL_PSCATTER(global_space)
-// local space
-SYCL_PSCATTER(local_space)
-
-#undef SYCL_PSCATTER
 
 #define SYCL_PSCATTER_SPECILIZE(scalar, packet_type)                        \
   template <>                                                               \
@@ -477,25 +277,19 @@ pabs<cl::sycl::cl_double2>(const cl::sycl::cl_double2& a) {
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet sycl_pcmp_le(const Packet &a,
                                                           const Packet &b) {
-  return ((a <= b)
-              .template convert<typename unpacket_traits<Packet>::type,
-                                cl::sycl::rounding_mode::automatic>());
+  return (a <= b).template as<Packet>();
 }
 
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet sycl_pcmp_lt(const Packet &a,
                                                           const Packet &b) {
-  return ((a < b)
-              .template convert<typename unpacket_traits<Packet>::type,
-                                cl::sycl::rounding_mode::automatic>());
+  return (a < b).template as<Packet>();
 }
 
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet sycl_pcmp_eq(const Packet &a,
                                                           const Packet &b) {
-  return ((a == b)
-              .template convert<typename unpacket_traits<Packet>::type,
-                                cl::sycl::rounding_mode::automatic>());
+  return (a == b).template as<Packet>();
 }
 
 #define SYCL_PCMP(OP, TYPE)                                                    \
@@ -512,76 +306,6 @@ SYCL_PCMP(le, cl::sycl::cl_double2)
 SYCL_PCMP(lt, cl::sycl::cl_double2)
 SYCL_PCMP(eq, cl::sycl::cl_double2)
 #undef SYCL_PCMP
-
-template <typename T> struct convert_to_integer;
-
-template <> struct convert_to_integer<float> {
-  using type = std::int32_t;
-  using packet_type = cl::sycl::cl_int4;
-};
-template <> struct convert_to_integer<double> {
-  using type = std::int64_t;
-  using packet_type = cl::sycl::cl_long2;
-};
-
-template <typename PacketIn>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename convert_to_integer<
-    typename unpacket_traits<PacketIn>::type>::packet_type
-vector_as_int(const PacketIn &p) {
-  return (
-      p.template convert<typename convert_to_integer<
-                             typename unpacket_traits<PacketIn>::type>::type,
-                         cl::sycl::rounding_mode::automatic>());
-}
-
-template <typename packetOut, typename PacketIn>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE packetOut
-convert_vector(const PacketIn &p) {
-  return (p.template convert<typename unpacket_traits<packetOut>::type,
-                             cl::sycl::rounding_mode::automatic>());
-}
-
-#define SYCL_PAND(TYPE)                                                        \
-  template <>                                                                  \
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TYPE pand<TYPE>(const TYPE &a,         \
-                                                        const TYPE &b) {       \
-    return convert_vector<TYPE>(vector_as_int(a) & vector_as_int(b));          \
-  }
-SYCL_PAND(cl::sycl::cl_float4)
-SYCL_PAND(cl::sycl::cl_double2)
-#undef SYCL_PAND
-
-#define SYCL_POR(TYPE)                                                         \
-  template <>                                                                  \
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TYPE por<TYPE>(const TYPE &a,          \
-                                                       const TYPE &b) {        \
-    return convert_vector<TYPE>(vector_as_int(a) | vector_as_int(b));          \
-  }
-
-SYCL_POR(cl::sycl::cl_float4)
-SYCL_POR(cl::sycl::cl_double2)
-#undef SYCL_POR
-
-#define SYCL_PXOR(TYPE)                                                        \
-  template <>                                                                  \
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TYPE pxor<TYPE>(const TYPE &a,         \
-                                                        const TYPE &b) {       \
-    return convert_vector<TYPE>(vector_as_int(a) ^ vector_as_int(b));          \
-  }
-
-SYCL_PXOR(cl::sycl::cl_float4)
-SYCL_PXOR(cl::sycl::cl_double2)
-#undef SYCL_PXOR
-
-#define SYCL_PANDNOT(TYPE)                                                     \
-  template <>                                                                  \
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TYPE pandnot<TYPE>(const TYPE &a,      \
-                                                           const TYPE &b) {    \
-    return convert_vector<TYPE>(vector_as_int(a) & (~vector_as_int(b)));       \
-  }
-SYCL_PANDNOT(cl::sycl::cl_float4)
-SYCL_PANDNOT(cl::sycl::cl_double2)
-#undef SYCL_PANDNOT
 
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void ptranspose(
     PacketBlock<cl::sycl::cl_float4, 4>& kernel) {
@@ -638,32 +362,6 @@ inline cl::sycl::cl_double2 pblend(
   return cl::sycl::select(thenPacket, elsePacket, condition);
 }
 #endif  // SYCL_DEVICE_ONLY
-
-#define SYCL_PSTORE(alignment)                                  \
-  template <typename packet_type>                               \
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstore##alignment( \
-      const Eigen::TensorSycl::internal::RangeAccess<           \
-          cl::sycl::access::mode::read_write,                   \
-          typename unpacket_traits<packet_type>::type>& to,     \
-      const packet_type& from) {                                \
-    pstore##alignment(to.get_pointer(), from);                  \
-  }
-
-// global space
-SYCL_PSTORE()
-SYCL_PSTORE(u)
-
-#undef SYCL_PSTORE
-
-template <typename scalar, typename packet_type, int Alignment>
-EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstoret(
-    Eigen::TensorSycl::internal::RangeAccess<
-        cl::sycl::access::mode::read_write,
-        typename unpacket_traits<packet_type>::type>
-        to,
-    const packet_type& from) {
-  pstoret<scalar, packet_type, Alignment>(to.get_pointer(), from);
-}
 
 }  // end namespace internal
 

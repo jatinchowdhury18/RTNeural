@@ -57,30 +57,24 @@ using translated_type = typename translate_type_imp<Scalar>::type;
 /// These functions convert their arguments from Eigen to Lapack types
 /// This function performs conversion for any of the translations defined above.
 template<typename Source, typename Target=translated_type<Source>>
-auto to_lapack(Source value) { return static_cast<Target>(value); }
+EIGEN_ALWAYS_INLINE auto to_lapack(Source value) { return static_cast<Target>(value); }
 
 /// This function performs conversions for pointer types corresponding to the translations abovce.
 /// This is valid because the translations are between layout-compatible types.
 template<typename Source, typename Target=translated_type<Source>>
-auto to_lapack(Source *value) { return reinterpret_cast<Target*>(value); }
+EIGEN_ALWAYS_INLINE auto to_lapack(Source *value) { return reinterpret_cast<Target*>(value); }
 
 /// This function converts the Eigen Index to a lapack index, with possible range checks
 /// \sa internal::convert_index
-lapack_int to_lapack(Index index) {
+EIGEN_ALWAYS_INLINE lapack_int to_lapack(Index index) {
   return convert_index<lapack_int>(index);
 }
 
 /// translates storage order of the given Eigen object to the corresponding lapack constant
 template<typename Derived>
-EIGEN_CONSTEXPR lapack_int lapack_storage_of(const EigenBase<Derived> &) {
+EIGEN_ALWAYS_INLINE EIGEN_CONSTEXPR lapack_int lapack_storage_of(const EigenBase<Derived> &) {
   return Derived::IsRowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR;
 }
-
-/// translate UpLo type to the corresponding letter code
-template<UpLoType mode> char translate_mode;
-template<> EIGEN_CONSTEXPR const char translate_mode<Lower> = 'L';
-template<> EIGEN_CONSTEXPR const char translate_mode<Upper> = 'U';
-
 
 // ---------------------------------------------------------------------------------------------------------------------
 //              Automatic generation of low-level wrappers
@@ -129,7 +123,7 @@ struct WrappingHelper {
  * \sa EIGEN_MAKE_LAPACKE_WRAPPER
  */
 template<typename DoubleFn, typename SingleFn, typename DoubleCpxFn, typename SingleCpxFn, typename... Args>
-auto call_wrapper(DoubleFn df, SingleFn sf, DoubleCpxFn dcf, SingleCpxFn scf, Args&&... args) {
+EIGEN_ALWAYS_INLINE auto call_wrapper(DoubleFn df, SingleFn sf, DoubleCpxFn dcf, SingleCpxFn scf, Args&&... args) {
   WrappingHelper<DoubleFn, SingleFn, DoubleCpxFn, SingleCpxFn> helper{df, sf, dcf, scf};
   return helper.call(std::forward<Args>(args)...);
 }
@@ -141,7 +135,7 @@ auto call_wrapper(DoubleFn df, SingleFn sf, DoubleCpxFn dcf, SingleCpxFn scf, Ar
  */
 #define EIGEN_MAKE_LAPACKE_WRAPPER(FUNCTION) \
 template<typename... Args> \
-auto FUNCTION(Args&&... args) { return call_wrapper(LAPACKE_d##FUNCTION, LAPACKE_s##FUNCTION, LAPACKE_z##FUNCTION, LAPACKE_c##FUNCTION, std::forward<Args>(args)...); }
+EIGEN_ALWAYS_INLINE auto FUNCTION(Args&&... args) { return call_wrapper(LAPACKE_d##FUNCTION, LAPACKE_s##FUNCTION, LAPACKE_z##FUNCTION, LAPACKE_c##FUNCTION, std::forward<Args>(args)...); }
 
 // Now with this macro and the helper wrappers, we can generate the dispatch for all the lapacke functions that are
 // used in Eigen.
@@ -150,6 +144,7 @@ auto FUNCTION(Args&&... args) { return call_wrapper(LAPACKE_d##FUNCTION, LAPACKE
 EIGEN_MAKE_LAPACKE_WRAPPER(potrf)
 EIGEN_MAKE_LAPACKE_WRAPPER(getrf)
 EIGEN_MAKE_LAPACKE_WRAPPER(geqrf)
+EIGEN_MAKE_LAPACKE_WRAPPER(gesdd)
 
 #undef EIGEN_MAKE_LAPACKE_WRAPPER
 }

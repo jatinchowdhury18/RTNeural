@@ -308,7 +308,7 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
   // In this case, det==0, and all we have to do is checking that eival2_norm!=0
   if(eival1_norm > eival2_norm)
     eival2 = det / eival1;
-  else if(eival2_norm!=RealScalar(0))
+  else if(!numext::is_exactly_zero(eival2_norm))
     eival1 = det / eival2;
 
   // choose the eigenvalue closest to the bottom entry of the diagonal

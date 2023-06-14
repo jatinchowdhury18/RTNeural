@@ -99,7 +99,7 @@ template<> struct get_compile_time_incr<SingleRange> {
 
 // Turn a single index into something that looks like an array (i.e., that exposes a .size(), and operator[](int) methods)
 template<typename T, int XprSize>
-struct IndexedViewCompatibleType<T,XprSize,typename internal::enable_if<internal::is_integral<T>::value>::type> {
+struct IndexedViewCompatibleType<T,XprSize,std::enable_if_t<internal::is_integral<T>::value>> {
   // Here we could simply use Array, but maybe it's less work for the compiler to use
   // a simpler wrapper as SingleRange
   //typedef Eigen::Array<Index,1,1> type;
@@ -107,13 +107,13 @@ struct IndexedViewCompatibleType<T,XprSize,typename internal::enable_if<internal
 };
 
 template<typename T, int XprSize>
-struct IndexedViewCompatibleType<T, XprSize, typename enable_if<symbolic::is_symbolic<T>::value>::type> {
+struct IndexedViewCompatibleType<T, XprSize, std::enable_if_t<symbolic::is_symbolic<T>::value>> {
   typedef SingleRange type;
 };
 
 
 template<typename T>
-typename enable_if<symbolic::is_symbolic<T>::value,SingleRange>::type
+std::enable_if_t<symbolic::is_symbolic<T>::value,SingleRange>
 makeIndexedViewCompatible(const T& id, Index size, SpecializedType) {
   return eval_expr_given_size(id,size);
 }

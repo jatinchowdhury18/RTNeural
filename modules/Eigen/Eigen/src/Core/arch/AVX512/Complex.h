@@ -32,7 +32,6 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 8,
-    HasHalfPacket = 1,
 
     HasAdd    = 1,
     HasSub    = 1,
@@ -185,7 +184,6 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
     Vectorizable = 1,
     AlignedOnScalar = 0,
     size = 4,
-    HasHalfPacket = 1,
 
     HasAdd    = 1,
     HasSub    = 1,
@@ -253,11 +251,7 @@ template<> EIGEN_STRONG_INLINE Packet4cd ploadu<Packet4cd>(const std::complex<do
 
 template<> EIGEN_STRONG_INLINE Packet4cd pset1<Packet4cd>(const std::complex<double>& from)
 {
-  #ifdef EIGEN_VECTORIZE_AVX512DQ
-  return Packet4cd(_mm512_broadcast_f64x2(pset1<Packet1cd>(from).v));
-  #else
   return Packet4cd(_mm512_castps_pd(_mm512_broadcast_f32x4( _mm_castpd_ps(pset1<Packet1cd>(from).v))));
-  #endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cd ploaddup<Packet4cd>(const std::complex<double>* from) {

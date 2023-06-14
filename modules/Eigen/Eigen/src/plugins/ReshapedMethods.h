@@ -105,13 +105,13 @@ EIGEN_DEVICE_FUNC
 inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
                 internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
                 internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value,
-                internal::get_compiletime_reshape_order<Flags,Order>::value>
+                internal::get_compiletime_reshape_order(Flags, Order)>
 reshaped(NRowsType nRows, NColsType nCols) EIGEN_RESHAPED_METHOD_CONST
 {
   return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived,
                   internal::get_compiletime_reshape_size<NRowsType,NColsType,SizeAtCompileTime>::value,
                   internal::get_compiletime_reshape_size<NColsType,NRowsType,SizeAtCompileTime>::value,
-                  internal::get_compiletime_reshape_order<Flags,Order>::value>
+                  internal::get_compiletime_reshape_order(Flags, Order)>
                 (derived(),
                  internal::get_runtime_reshape_size(nRows,internal::get_runtime_value(nCols),size()),
                  internal::get_runtime_reshape_size(nCols,internal::get_runtime_value(nRows),size()));
@@ -129,12 +129,12 @@ reshaped() EIGEN_RESHAPED_METHOD_CONST
 template<int Order>
 EIGEN_DEVICE_FUNC
 inline Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived, SizeAtCompileTime, 1,
-                internal::get_compiletime_reshape_order<Flags,Order>::value>
+                internal::get_compiletime_reshape_order(Flags, Order)>
 reshaped() EIGEN_RESHAPED_METHOD_CONST
 {
   EIGEN_STATIC_ASSERT(Order==RowMajor || Order==ColMajor || Order==AutoOrder, INVALID_TEMPLATE_PARAMETER);
   return Reshaped<EIGEN_RESHAPED_METHOD_CONST Derived, SizeAtCompileTime, 1,
-                  internal::get_compiletime_reshape_order<Flags,Order>::value>
+                  internal::get_compiletime_reshape_order(Flags, Order)>
                 (derived(), size(), 1);
 }
 

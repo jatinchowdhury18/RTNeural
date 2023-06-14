@@ -53,9 +53,9 @@ typedef v4f32 Packet4f;
 typedef v4i32 Packet4i;
 typedef v4u32 Packet4ui;
 
-#define _EIGEN_DECLARE_CONST_Packet4f(NAME, X) const Packet4f p4f_##NAME = { X, X, X, X }
-#define _EIGEN_DECLARE_CONST_Packet4i(NAME, X) const Packet4i p4i_##NAME = { X, X, X, X }
-#define _EIGEN_DECLARE_CONST_Packet4ui(NAME, X) const Packet4ui p4ui_##NAME = { X, X, X, X }
+#define EIGEN_DECLARE_CONST_Packet4f(NAME, X) const Packet4f p4f_##NAME = { X, X, X, X }
+#define EIGEN_DECLARE_CONST_Packet4i(NAME, X) const Packet4i p4i_##NAME = { X, X, X, X }
+#define EIGEN_DECLARE_CONST_Packet4ui(NAME, X) const Packet4ui p4ui_##NAME = { X, X, X, X }
 
 inline std::ostream& operator<<(std::ostream& os, const Packet4f& value) {
   os << "[ " << value[0] << ", " << value[1] << ", " << value[2] << ", " << value[3] << " ]";
@@ -80,7 +80,6 @@ struct packet_traits<float> : default_packet_traits {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 4,
-    HasHalfPacket = 0,  // Packet2f intrinsics not implemented yet
     // FIXME check the Has*
     HasDiv = 1,
     HasSin = EIGEN_FAST_MATH,
@@ -106,7 +105,6 @@ struct packet_traits<int32_t> : default_packet_traits {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 4,
-    HasHalfPacket = 0,  // Packet2i intrinsics not implemented yet
     // FIXME check the Has*
     HasDiv = 1,
     HasBlend = 1
@@ -823,9 +821,9 @@ typedef v2f64 Packet2d;
 typedef v2i64 Packet2l;
 typedef v2u64 Packet2ul;
 
-#define _EIGEN_DECLARE_CONST_Packet2d(NAME, X) const Packet2d p2d_##NAME = { X, X }
-#define _EIGEN_DECLARE_CONST_Packet2l(NAME, X) const Packet2l p2l_##NAME = { X, X }
-#define _EIGEN_DECLARE_CONST_Packet2ul(NAME, X) const Packet2ul p2ul_##NAME = { X, X }
+#define EIGEN_DECLARE_CONST_Packet2d(NAME, X) const Packet2d p2d_##NAME = { X, X }
+#define EIGEN_DECLARE_CONST_Packet2l(NAME, X) const Packet2l p2l_##NAME = { X, X }
+#define EIGEN_DECLARE_CONST_Packet2ul(NAME, X) const Packet2ul p2ul_##NAME = { X, X }
 
 inline std::ostream& operator<<(std::ostream& os, const Packet2d& value) {
   os << "[ " << value[0] << ", " << value[1] << " ]";
@@ -850,7 +848,6 @@ struct packet_traits<double> : default_packet_traits {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 2,
-    HasHalfPacket = 0,
     // FIXME check the Has*
     HasDiv = 1,
     HasExp = 1,

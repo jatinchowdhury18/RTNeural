@@ -36,31 +36,31 @@ class gemv_traits
 {
   typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
-#define PACKET_DECL_COND_PREFIX(prefix, name, packet_size)                        \
+#define PACKET_DECL_COND_POSTFIX(postfix, name, packet_size)                        \
   typedef typename gemv_packet_cond<packet_size,                                  \
                                     typename packet_traits<name ## Scalar>::type, \
                                     typename packet_traits<name ## Scalar>::half, \
                                     typename unpacket_traits<typename packet_traits<name ## Scalar>::half>::half>::type \
-  prefix ## name ## Packet
+  name ## Packet ## postfix
 
-  PACKET_DECL_COND_PREFIX(_, Lhs, PacketSize_);
-  PACKET_DECL_COND_PREFIX(_, Rhs, PacketSize_);
-  PACKET_DECL_COND_PREFIX(_, Res, PacketSize_);
-#undef PACKET_DECL_COND_PREFIX
+  PACKET_DECL_COND_POSTFIX(_, Lhs, PacketSize_);
+  PACKET_DECL_COND_POSTFIX(_, Rhs, PacketSize_);
+  PACKET_DECL_COND_POSTFIX(_, Res, PacketSize_);
+#undef PACKET_DECL_COND_POSTFIX
 
 public:
   enum {
-        Vectorizable = unpacket_traits<_LhsPacket>::vectorizable &&
-        unpacket_traits<_RhsPacket>::vectorizable &&
-        int(unpacket_traits<_LhsPacket>::size)==int(unpacket_traits<_RhsPacket>::size),
-        LhsPacketSize = Vectorizable ? unpacket_traits<_LhsPacket>::size : 1,
-        RhsPacketSize = Vectorizable ? unpacket_traits<_RhsPacket>::size : 1,
-        ResPacketSize = Vectorizable ? unpacket_traits<_ResPacket>::size : 1
+        Vectorizable = unpacket_traits<LhsPacket_>::vectorizable &&
+        unpacket_traits<RhsPacket_>::vectorizable &&
+        int(unpacket_traits<LhsPacket_>::size)==int(unpacket_traits<RhsPacket_>::size),
+        LhsPacketSize = Vectorizable ? unpacket_traits<LhsPacket_>::size : 1,
+        RhsPacketSize = Vectorizable ? unpacket_traits<RhsPacket_>::size : 1,
+        ResPacketSize = Vectorizable ? unpacket_traits<ResPacket_>::size : 1
   };
 
-  typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
-  typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
-  typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
+  typedef std::conditional_t<Vectorizable,LhsPacket_,LhsScalar> LhsPacket;
+  typedef std::conditional_t<Vectorizable,RhsPacket_,RhsScalar> RhsPacket;
+  typedef std::conditional_t<Vectorizable,ResPacket_,ResScalar> ResPacket;
 };
 
 

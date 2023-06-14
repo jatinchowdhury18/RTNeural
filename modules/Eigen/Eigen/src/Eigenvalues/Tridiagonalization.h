@@ -85,21 +85,21 @@ template<typename MatrixType_> class Tridiagonalization
     typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
     typedef typename internal::plain_col_type<MatrixType, RealScalar>::type DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> SubDiagonalType;
-    typedef typename internal::remove_all<typename MatrixType::RealReturnType>::type MatrixTypeRealView;
+    typedef internal::remove_all_t<typename MatrixType::RealReturnType> MatrixTypeRealView;
     typedef internal::TridiagonalizationMatrixTReturnType<MatrixTypeRealView> MatrixTReturnType;
 
-    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              typename internal::add_const_on_value_type<typename Diagonal<const MatrixType>::RealReturnType>::type,
+    typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
+              internal::add_const_on_value_type_t<typename Diagonal<const MatrixType>::RealReturnType>,
               const Diagonal<const MatrixType>
-            >::type DiagonalReturnType;
+            > DiagonalReturnType;
 
-    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              typename internal::add_const_on_value_type<typename Diagonal<const MatrixType, -1>::RealReturnType>::type,
+    typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
+              internal::add_const_on_value_type_t<typename Diagonal<const MatrixType, -1>::RealReturnType>,
               const Diagonal<const MatrixType, -1>
-            >::type SubDiagonalReturnType;
+            > SubDiagonalReturnType;
 
     /** \brief Return type of matrixQ() */
-    typedef HouseholderSequence<MatrixType,typename internal::remove_all<typename CoeffVectorType::ConjugateReturnType>::type> HouseholderSequenceType;
+    typedef HouseholderSequence<MatrixType,internal::remove_all_t<typename CoeffVectorType::ConjugateReturnType>> HouseholderSequenceType;
 
     /** \brief Default constructor.
       *
@@ -427,13 +427,13 @@ struct tridiagonalization_inplace_selector;
   *
   * \sa class Tridiagonalization
   */
-template<typename MatrixType, typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType>
+template<typename MatrixType, typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType, typename WorkSpaceType>
 EIGEN_DEVICE_FUNC
 void tridiagonalization_inplace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag,
-                                CoeffVectorType& hcoeffs, bool extractQ)
+                                CoeffVectorType& hcoeffs, WorkSpaceType& workspace, bool extractQ)
 {
   eigen_assert(mat.cols()==mat.rows() && diag.size()==mat.rows() && subdiag.size()==mat.rows()-1);
-  tridiagonalization_inplace_selector<MatrixType>::run(mat, diag, subdiag, hcoeffs, extractQ);
+  tridiagonalization_inplace_selector<MatrixType>::run(mat, diag, subdiag, hcoeffs, workspace, extractQ);
 }
 
 /** \internal
@@ -443,17 +443,19 @@ template<typename MatrixType, int Size, bool IsComplex>
 struct tridiagonalization_inplace_selector
 {
   typedef typename Tridiagonalization<MatrixType>::HouseholderSequenceType HouseholderSequenceType;
-  template<typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType>
+  template<typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType, typename WorkSpaceType>
   static EIGEN_DEVICE_FUNC
-      void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, CoeffVectorType& hCoeffs, bool extractQ)
+      void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, CoeffVectorType& hCoeffs, WorkSpaceType& workspace, bool extractQ)
   {
     tridiagonalization_inplace(mat, hCoeffs);
     diag = mat.diagonal().real();
     subdiag = mat.template diagonal<-1>().real();
-    if(extractQ)
-      mat = HouseholderSequenceType(mat, hCoeffs.conjugate())
-            .setLength(mat.rows() - 1)
-            .setShift(1);
+    if (extractQ) {
+      HouseholderSequenceType(mat, hCoeffs.conjugate())
+          .setLength(mat.rows() - 1)
+          .setShift(1)
+          .evalTo(mat, workspace);
+    }
   }
 };
 
@@ -467,8 +469,8 @@ struct tridiagonalization_inplace_selector<MatrixType,3,false>
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
 
-  template<typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType>
-  static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, CoeffVectorType&, bool extractQ)
+  template<typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType, typename WorkSpaceType>
+  static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, CoeffVectorType&, WorkSpaceType&, bool extractQ)
   {
     using std::sqrt;
     const RealScalar tol = (std::numeric_limits<RealScalar>::min)();
@@ -512,9 +514,9 @@ struct tridiagonalization_inplace_selector<MatrixType,1,IsComplex>
 {
   typedef typename MatrixType::Scalar Scalar;
 
-  template<typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType>
+  template<typename DiagonalType, typename SubDiagonalType, typename CoeffVectorType, typename WorkSpaceType>
   static EIGEN_DEVICE_FUNC
-  void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType&, CoeffVectorType&, bool extractQ)
+  void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType&, CoeffVectorType&, WorkSpaceType&, bool extractQ)
   {
     diag(0,0) = numext::real(mat(0,0));
     if(extractQ)

@@ -42,7 +42,7 @@ public:
 template<typename MatrixType>
 struct is_ref_compatible
 {
-  enum { value = is_ref_compatible_impl<typename remove_all<MatrixType>::type>::value };
+  enum { value = is_ref_compatible_impl<remove_all_t<MatrixType>>::value };
 };
 
 template<typename MatrixType, bool MatrixFree = !internal::is_ref_compatible<MatrixType>::value>
@@ -79,16 +79,16 @@ public:
   template<typename MatrixDerived>
   void grab(const EigenBase<MatrixDerived> &mat)
   {
-    m_matrix.~Ref<const MatrixType>();
-    ::new (&m_matrix) Ref<const MatrixType>(mat.derived());
+    internal::destroy_at(&m_matrix);
+    internal::construct_at(&m_matrix, mat.derived());
   }
 
   void grab(const Ref<const MatrixType> &mat)
   {
     if(&(mat.derived()) != &m_matrix)
     {
-      m_matrix.~Ref<const MatrixType>();
-      ::new (&m_matrix) Ref<const MatrixType>(mat);
+      internal::destroy_at(&m_matrix);
+      internal::construct_at(&m_matrix, mat);
     }
   }
 
@@ -187,6 +187,9 @@ public:
     init();
     compute(matrix());
   }
+
+
+  IterativeSolverBase(IterativeSolverBase&&) = default;
 
   ~IterativeSolverBase() {}
 
@@ -366,7 +369,7 @@ public:
   }
 
   template<typename Rhs, typename DestDerived>
-  typename internal::enable_if<Rhs::ColsAtCompileTime!=1 && DestDerived::ColsAtCompileTime!=1>::type
+  std::enable_if_t<Rhs::ColsAtCompileTime!=1 && DestDerived::ColsAtCompileTime!=1>
   _solve_with_guess_impl(const Rhs& b, MatrixBase<DestDerived> &aDest) const
   {
     eigen_assert(rows()==b.rows());
@@ -391,7 +394,7 @@ public:
   }
 
   template<typename Rhs, typename DestDerived>
-  typename internal::enable_if<Rhs::ColsAtCompileTime==1 || DestDerived::ColsAtCompileTime==1>::type
+  std::enable_if_t<Rhs::ColsAtCompileTime==1 || DestDerived::ColsAtCompileTime==1>
   _solve_with_guess_impl(const Rhs& b, MatrixBase<DestDerived> &dest) const
   {
     derived()._solve_vector_with_guess_impl(b,dest.derived());

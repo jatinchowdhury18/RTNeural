@@ -201,11 +201,11 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
 
 
 namespace internal {
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex_, int _PacketAccess>
-struct traits<Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,StorageIndex_>,_PacketAccess> >
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex_, int PacketAccess_>
+struct traits<Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,StorageIndex_>,PacketAccess_> >
  : traits<PermutationMatrix<SizeAtCompileTime,MaxSizeAtCompileTime,StorageIndex_> >
 {
-  typedef Map<const Matrix<StorageIndex_,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1>, _PacketAccess> IndicesType;
+  typedef Map<const Matrix<StorageIndex_,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1>, PacketAccess_> IndicesType;
   typedef StorageIndex_ StorageIndex;
   typedef TranspositionsStorage StorageKind;
 };

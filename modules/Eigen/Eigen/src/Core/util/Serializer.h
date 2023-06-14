@@ -28,9 +28,9 @@ class Serializer;
 
 // Specialization for POD types.
 template<typename T>
-class Serializer<T, typename std::enable_if<
+class Serializer<T, typename std::enable_if_t<
                       std::is_trivial<T>::value 
-                      && std::is_standard_layout<T>::value>::type > {
+                      && std::is_standard_layout<T>::value>> {
  public:
  
   /**

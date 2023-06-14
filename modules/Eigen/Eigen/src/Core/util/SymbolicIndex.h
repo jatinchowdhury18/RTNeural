@@ -32,9 +32,6 @@ namespace Eigen {
   * // And evaluate it: (c++14)
   * std::cout << expr.eval(x=6,y=3,z=-13) << "\n";
   *
-  * // In c++98/11, only one symbol per expression is supported for now:
-  * auto expr98 = (3-x)/2;
-  * std::cout << expr98.eval(x=6) << "\n";
   * \endcode
   *
   * It is currently only used internally to define and manipulate the

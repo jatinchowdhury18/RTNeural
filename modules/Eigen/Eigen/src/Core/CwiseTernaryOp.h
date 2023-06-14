@@ -21,7 +21,7 @@ template <typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
 struct traits<CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> > {
   // we must not inherit from traits<Arg1> since it has
   // the potential to cause problems with MSVC
-  typedef typename remove_all<Arg1>::type Ancestor;
+  typedef remove_all_t<Arg1> Ancestor;
   typedef typename traits<Ancestor>::XprKind XprKind;
   enum {
     RowsAtCompileTime = traits<Ancestor>::RowsAtCompileTime,
@@ -43,10 +43,10 @@ struct traits<CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> > {
   typedef typename Arg1::Nested Arg1Nested;
   typedef typename Arg2::Nested Arg2Nested;
   typedef typename Arg3::Nested Arg3Nested;
-  typedef typename remove_reference<Arg1Nested>::type _Arg1Nested;
-  typedef typename remove_reference<Arg2Nested>::type _Arg2Nested;
-  typedef typename remove_reference<Arg3Nested>::type _Arg3Nested;
-  enum { Flags = _Arg1Nested::Flags & RowMajorBit };
+  typedef std::remove_reference_t<Arg1Nested> Arg1Nested_;
+  typedef std::remove_reference_t<Arg2Nested> Arg2Nested_;
+  typedef std::remove_reference_t<Arg3Nested> Arg3Nested_;
+  enum { Flags = Arg1Nested_::Flags & RowMajorBit };
 };
 }  // end namespace internal
 
@@ -89,9 +89,9 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
                        internal::no_assignment_operator
 {
  public:
-  typedef typename internal::remove_all<Arg1Type>::type Arg1;
-  typedef typename internal::remove_all<Arg2Type>::type Arg2;
-  typedef typename internal::remove_all<Arg3Type>::type Arg3;
+  typedef internal::remove_all_t<Arg1Type> Arg1;
+  typedef internal::remove_all_t<Arg2Type> Arg2;
+  typedef internal::remove_all_t<Arg3Type> Arg3;
 
   // require the sizes to match
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Arg1, Arg2)
@@ -115,9 +115,9 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
   typedef typename internal::ref_selector<Arg1Type>::type Arg1Nested;
   typedef typename internal::ref_selector<Arg2Type>::type Arg2Nested;
   typedef typename internal::ref_selector<Arg3Type>::type Arg3Nested;
-  typedef typename internal::remove_reference<Arg1Nested>::type _Arg1Nested;
-  typedef typename internal::remove_reference<Arg2Nested>::type _Arg2Nested;
-  typedef typename internal::remove_reference<Arg3Nested>::type _Arg3Nested;
+  typedef std::remove_reference_t<Arg1Nested> Arg1Nested_;
+  typedef std::remove_reference_t<Arg2Nested> Arg2Nested_;
+  typedef std::remove_reference_t<Arg3Nested> Arg3Nested_;
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE CwiseTernaryOp(const Arg1& a1, const Arg2& a2,
@@ -132,14 +132,14 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
   EIGEN_STRONG_INLINE Index rows() const {
     // return the fixed size type if available to enable compile time
     // optimizations
-    if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
+    if (internal::traits<internal::remove_all_t<Arg1Nested>>::
                 RowsAtCompileTime == Dynamic &&
-        internal::traits<typename internal::remove_all<Arg2Nested>::type>::
+        internal::traits<internal::remove_all_t<Arg2Nested>>::
                 RowsAtCompileTime == Dynamic)
       return m_arg3.rows();
-    else if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
+    else if (internal::traits<internal::remove_all_t<Arg1Nested>>::
                      RowsAtCompileTime == Dynamic &&
-             internal::traits<typename internal::remove_all<Arg3Nested>::type>::
+             internal::traits<internal::remove_all_t<Arg3Nested>>::
                      RowsAtCompileTime == Dynamic)
       return m_arg2.rows();
     else
@@ -149,14 +149,14 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
   EIGEN_STRONG_INLINE Index cols() const {
     // return the fixed size type if available to enable compile time
     // optimizations
-    if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
+    if (internal::traits<internal::remove_all_t<Arg1Nested>>::
                 ColsAtCompileTime == Dynamic &&
-        internal::traits<typename internal::remove_all<Arg2Nested>::type>::
+        internal::traits<internal::remove_all_t<Arg2Nested>>::
                 ColsAtCompileTime == Dynamic)
       return m_arg3.cols();
-    else if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
+    else if (internal::traits<internal::remove_all_t<Arg1Nested>>::
                      ColsAtCompileTime == Dynamic &&
-             internal::traits<typename internal::remove_all<Arg3Nested>::type>::
+             internal::traits<internal::remove_all_t<Arg3Nested>>::
                      ColsAtCompileTime == Dynamic)
       return m_arg2.cols();
     else
@@ -165,13 +165,13 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
 
   /** \returns the first argument nested expression */
   EIGEN_DEVICE_FUNC
-  const _Arg1Nested& arg1() const { return m_arg1; }
+  const Arg1Nested_& arg1() const { return m_arg1; }
   /** \returns the first argument nested expression */
   EIGEN_DEVICE_FUNC
-  const _Arg2Nested& arg2() const { return m_arg2; }
+  const Arg2Nested_& arg2() const { return m_arg2; }
   /** \returns the third argument nested expression */
   EIGEN_DEVICE_FUNC
-  const _Arg3Nested& arg3() const { return m_arg3; }
+  const Arg3Nested_& arg3() const { return m_arg3; }
   /** \returns the functor representing the ternary operation */
   EIGEN_DEVICE_FUNC
   const TernaryOp& functor() const { return m_functor; }

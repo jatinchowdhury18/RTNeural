@@ -21,8 +21,8 @@ namespace internal {
 template<typename Lhs, typename Rhs, int Option>
 struct traits<Product<Lhs, Rhs, Option> >
 {
-  typedef typename remove_all<Lhs>::type LhsCleaned;
-  typedef typename remove_all<Rhs>::type RhsCleaned;
+  typedef remove_all_t<Lhs> LhsCleaned;
+  typedef remove_all_t<Rhs> RhsCleaned;
   typedef traits<LhsCleaned> LhsTraits;
   typedef traits<RhsCleaned> RhsTraits;
 
@@ -89,8 +89,8 @@ class Product : public ProductImpl<Lhs_,Rhs_,Option,
 
     typedef typename internal::ref_selector<Lhs>::type LhsNested;
     typedef typename internal::ref_selector<Rhs>::type RhsNested;
-    typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;
-    typedef typename internal::remove_all<RhsNested>::type RhsNestedCleaned;
+    typedef internal::remove_all_t<LhsNested> LhsNestedCleaned;
+    typedef internal::remove_all_t<RhsNested> RhsNestedCleaned;
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Product(const Lhs& lhs, const Rhs& rhs) : m_lhs(lhs), m_rhs(rhs)

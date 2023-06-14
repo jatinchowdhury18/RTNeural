@@ -39,10 +39,10 @@ template<typename MatrixType_> class UpperBidiagonalization
     typedef Matrix<Scalar, ColsAtCompileTimeMinusOne, 1> SuperDiagVectorType;
     typedef HouseholderSequence<
               const MatrixType,
-              const typename internal::remove_all<typename Diagonal<const MatrixType,0>::ConjugateReturnType>::type
+              const internal::remove_all_t<typename Diagonal<const MatrixType,0>::ConjugateReturnType>
             > HouseholderUSequenceType;
     typedef HouseholderSequence<
-              const typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type,
+              const internal::remove_all_t<typename MatrixType::ConjugateReturnType>,
               Diagonal<const MatrixType,1>,
               OnTheRight
             > HouseholderVSequenceType;
@@ -53,7 +53,7 @@ template<typename MatrixType_> class UpperBidiagonalization
     * The default constructor is useful in cases in which the user intends to
     * perform decompositions via Bidiagonalization::compute(const MatrixType&).
     */
-    UpperBidiagonalization() : m_householder(), m_bidiagonal(), m_isInitialized(false) {}
+    UpperBidiagonalization() : m_householder(), m_bidiagonal(0, 0), m_isInitialized(false) {}
 
     explicit UpperBidiagonalization(const MatrixType& matrix)
       : m_householder(matrix.rows(), matrix.cols()),
@@ -62,7 +62,13 @@ template<typename MatrixType_> class UpperBidiagonalization
     {
       compute(matrix);
     }
-    
+
+    UpperBidiagonalization(Index rows, Index cols)
+      : m_householder(rows, cols),
+        m_bidiagonal(cols, cols),
+        m_isInitialized(false)
+    {}
+
     UpperBidiagonalization& compute(const MatrixType& matrix);
     UpperBidiagonalization& computeUnblocked(const MatrixType& matrix);
     
@@ -163,13 +169,13 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename NumTraits<RealScalar>::Literal Literal;
-  enum { StorageOrder = traits<MatrixType>::Flags & RowMajorBit };
-  typedef InnerStride<int(StorageOrder) == int(ColMajor) ? 1 : Dynamic> ColInnerStride;
-  typedef InnerStride<int(StorageOrder) == int(ColMajor) ? Dynamic : 1> RowInnerStride;
+  static constexpr int StorageOrder = (traits<MatrixType>::Flags & RowMajorBit) ? RowMajor : ColMajor;
+  typedef InnerStride<StorageOrder == ColMajor ? 1 : Dynamic> ColInnerStride;
+  typedef InnerStride<StorageOrder == ColMajor ? Dynamic : 1> RowInnerStride;
   typedef Ref<Matrix<Scalar, Dynamic, 1>, 0, ColInnerStride>    SubColumnType;
   typedef Ref<Matrix<Scalar, 1, Dynamic>, 0, RowInnerStride>    SubRowType;
   typedef Ref<Matrix<Scalar, Dynamic, Dynamic, StorageOrder > > SubMatType;
-  
+
   Index brows = A.rows();
   Index bcols = A.cols();
 
@@ -295,7 +301,7 @@ void upperbidiagonalization_inplace_blocked(MatrixType& A, BidiagType& bidiagona
   Index size = (std::min)(rows, cols);
 
   // X and Y are work space
-  enum { StorageOrder = traits<MatrixType>::Flags & RowMajorBit };
+  static constexpr int StorageOrder = (traits<MatrixType>::Flags & RowMajorBit) ? RowMajor : ColMajor;
   Matrix<Scalar,
          MatrixType::RowsAtCompileTime,
          Dynamic,

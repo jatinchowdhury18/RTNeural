@@ -42,7 +42,6 @@ struct packet_traits<numext::int32_t> : default_packet_traits {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = sve_packet_size_selector<numext::int32_t, EIGEN_ARM64_SVE_VL>::size,
-    HasHalfPacket = 0,
 
     HasAdd = 1,
     HasSub = 1,
@@ -151,7 +150,7 @@ EIGEN_STRONG_INLINE PacketXi pmax<PacketXi>(const PacketXi& a, const PacketXi& b
 template <>
 EIGEN_STRONG_INLINE PacketXi pcmp_le<PacketXi>(const PacketXi& a, const PacketXi& b)
 {
-  return svdup_n_s32_z(svcmplt_s32(svptrue_b32(), a, b), 0xffffffffu);
+  return svdup_n_s32_z(svcmple_s32(svptrue_b32(), a, b), 0xffffffffu);
 }
 
 template <>
@@ -211,13 +210,13 @@ EIGEN_STRONG_INLINE PacketXi parithmetic_shift_right(PacketXi a)
 template <int N>
 EIGEN_STRONG_INLINE PacketXi plogical_shift_right(PacketXi a)
 {
-  return svreinterpret_s32_u32(svlsr_u32_z(svptrue_b32(), svreinterpret_u32_s32(a), svdup_n_u32_z(svptrue_b32(), N)));
+  return svreinterpret_s32_u32(svlsr_n_u32_z(svptrue_b32(), svreinterpret_u32_s32(a), N));
 }
 
 template <int N>
 EIGEN_STRONG_INLINE PacketXi plogical_shift_left(PacketXi a)
 {
-  return svlsl_s32_z(svptrue_b32(), a, svdup_n_u32_z(svptrue_b32(), N));
+  return svlsl_n_s32_z(svptrue_b32(), a, N);
 }
 
 template <>
@@ -377,7 +376,6 @@ struct packet_traits<float> : default_packet_traits {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = sve_packet_size_selector<float, EIGEN_ARM64_SVE_VL>::size,
-    HasHalfPacket = 0,
 
     HasAdd = 1,
     HasSub = 1,
@@ -525,7 +523,7 @@ EIGEN_STRONG_INLINE PacketXf pmax<PropagateNumbers, PacketXf>(const PacketXf& a,
 template <>
 EIGEN_STRONG_INLINE PacketXf pcmp_le<PacketXf>(const PacketXf& a, const PacketXf& b)
 {
-  return svreinterpret_f32_u32(svdup_n_u32_z(svcmplt_f32(svptrue_b32(), a, b), 0xffffffffu));
+  return svreinterpret_f32_u32(svdup_n_u32_z(svcmple_f32(svptrue_b32(), a, b), 0xffffffffu));
 }
 
 template <>

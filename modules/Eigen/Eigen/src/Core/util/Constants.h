@@ -136,7 +136,7 @@ const unsigned int LinearAccessBit = 0x10;
   * Means the expression has a coeffRef() method, i.e. is writable as its individual coefficients are directly addressable.
   * This rules out read-only expressions.
   *
-  * Note that DirectAccessBit and LvalueBit are mutually orthogonal, as there are examples of expression having one but note
+  * Note that DirectAccessBit and LvalueBit are mutually orthogonal, as there are examples of expression having one but not
   * the other:
   *   \li writable expressions that don't have a very simple memory layout as a strided array, have LvalueBit but not DirectAccessBit
   *   \li Map-to-const expressions, for example Map<const Matrix>, have DirectAccessBit but not LvalueBit
@@ -423,14 +423,16 @@ enum DecompositionOptions {
 /** \ingroup enums
   * Possible values for the \p QRPreconditioner template parameter of JacobiSVD. */
 enum QRPreconditioners {
-  /** Do not specify what is to be done if the SVD of a non-square matrix is asked for. */
-  NoQRPreconditioner,
-  /** Use a QR decomposition without pivoting as the first step. */
-  HouseholderQRPreconditioner,
   /** Use a QR decomposition with column pivoting as the first step. */
-  ColPivHouseholderQRPreconditioner,
+  ColPivHouseholderQRPreconditioner = 0x0,
+  /** Do not specify what is to be done if the SVD of a non-square matrix is asked for. */
+  NoQRPreconditioner = 0x40,
+  /** Use a QR decomposition without pivoting as the first step. */
+  HouseholderQRPreconditioner = 0x80,
   /** Use a QR decomposition with full pivoting as the first step. */
-  FullPivHouseholderQRPreconditioner
+  FullPivHouseholderQRPreconditioner = 0xC0,
+  /** Used to disable the QR Preconditioner in BDCSVD. */
+  DisableQRDecomposition = NoQRPreconditioner
 };
 
 #ifdef Success
@@ -531,6 +533,7 @@ struct DenseShape             { static std::string debugName() { return "DenseSh
 struct SolverShape            { static std::string debugName() { return "SolverShape"; } };
 struct HomogeneousShape       { static std::string debugName() { return "HomogeneousShape"; } };
 struct DiagonalShape          { static std::string debugName() { return "DiagonalShape"; } };
+struct SkewSymmetricShape     { static std::string debugName() { return "SkewSymmetricShape"; } };
 struct BandShape              { static std::string debugName() { return "BandShape"; } };
 struct TriangularShape        { static std::string debugName() { return "TriangularShape"; } };
 struct SelfAdjointShape       { static std::string debugName() { return "SelfAdjointShape"; } };
@@ -549,7 +552,7 @@ struct IteratorBased {};
 /** \internal
  * Constants for comparison functors
  */
-enum ComparisonName {
+enum ComparisonName : unsigned int {
   cmp_EQ = 0,
   cmp_LT = 1,
   cmp_LE = 2,

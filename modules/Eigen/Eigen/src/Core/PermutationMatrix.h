@@ -391,20 +391,20 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
 
 namespace internal {
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex_, int _PacketAccess>
-struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex_>,_PacketAccess> >
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex_, int PacketAccess_>
+struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex_>,PacketAccess_> >
  : traits<Matrix<StorageIndex_,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
   typedef PermutationStorage StorageKind;
-  typedef Map<const Matrix<StorageIndex_, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, _PacketAccess> IndicesType;
+  typedef Map<const Matrix<StorageIndex_, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, PacketAccess_> IndicesType;
   typedef StorageIndex_ StorageIndex;
   typedef void Scalar;
 };
 }
 
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex_, int _PacketAccess>
-class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex_>,_PacketAccess>
-  : public PermutationBase<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex_>,_PacketAccess> >
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex_, int PacketAccess_>
+class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex_>,PacketAccess_>
+  : public PermutationBase<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex_>,PacketAccess_> >
 {
     typedef PermutationBase<Map> Base;
     typedef internal::traits<Map> Traits;
@@ -500,7 +500,7 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<IndicesType
     {}
 
     /** const version of indices(). */
-    const typename internal::remove_all<typename IndicesType::Nested>::type&
+    const internal::remove_all_t<typename IndicesType::Nested>&
     indices() const { return m_indices; }
 
   protected:

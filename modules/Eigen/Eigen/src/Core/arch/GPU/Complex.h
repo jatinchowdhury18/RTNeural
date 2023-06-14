@@ -39,7 +39,7 @@
 // To allow std::complex operator use on device, define _OVERRIDE_COMPLEX_SPECIALIZATION_
 // prior to first inclusion of <complex>.  This prevents ICC from adding
 // its own specializations, so our custom ones below can be used instead.
-#if !(defined(EIGEN_COMP_ICC) && defined(_USE_COMPLEX_SPECIALIZATION_))
+#if !(EIGEN_COMP_ICC && defined(_USE_COMPLEX_SPECIALIZATION_))
 
 // Import Eigen's internal operator specializations.
 #define EIGEN_USING_STD_COMPLEX_OPERATORS           \

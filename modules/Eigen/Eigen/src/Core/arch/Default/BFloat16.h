@@ -125,11 +125,12 @@ struct bfloat16 : public bfloat16_impl::bfloat16_base {
     return bfloat16_impl::bfloat16_to_float(*this);
   }
 };
-} // namespace Eigen
 
-namespace std {
-template<>
-struct numeric_limits<Eigen::bfloat16> {
+// TODO(majnemer): Get rid of this once we can rely on C++17 inline variables do
+// solve the ODR issue.
+namespace bfloat16_impl {
+template <typename = void>
+struct numeric_limits_bfloat16_impl {
   static EIGEN_CONSTEXPR const bool is_specialized = true;
   static EIGEN_CONSTEXPR const bool is_signed = true;
   static EIGEN_CONSTEXPR const bool is_integer = false;
@@ -137,9 +138,9 @@ struct numeric_limits<Eigen::bfloat16> {
   static EIGEN_CONSTEXPR const bool has_infinity = true;
   static EIGEN_CONSTEXPR const bool has_quiet_NaN = true;
   static EIGEN_CONSTEXPR const bool has_signaling_NaN = true;
-  static EIGEN_CONSTEXPR const float_denorm_style has_denorm = std::denorm_present;
+  static EIGEN_CONSTEXPR const std::float_denorm_style has_denorm = std::denorm_present;
   static EIGEN_CONSTEXPR const bool has_denorm_loss = false;
-  static EIGEN_CONSTEXPR const std::float_round_style round_style = numeric_limits<float>::round_style;
+  static EIGEN_CONSTEXPR const std::float_round_style round_style = std::numeric_limits<float>::round_style;
   static EIGEN_CONSTEXPR const bool is_iec559 = true;
   // The C++ standard defines this as "true if the set of values representable
   // by the type is finite." BFloat16 has finite precision.
@@ -148,15 +149,15 @@ struct numeric_limits<Eigen::bfloat16> {
   static EIGEN_CONSTEXPR const int digits = 8;
   static EIGEN_CONSTEXPR const int digits10 = 2;
   static EIGEN_CONSTEXPR const int max_digits10 = 4;
-  static EIGEN_CONSTEXPR const int radix = numeric_limits<float>::radix;
-  static EIGEN_CONSTEXPR const int min_exponent = numeric_limits<float>::min_exponent;
-  static EIGEN_CONSTEXPR const int min_exponent10 = numeric_limits<float>::min_exponent10;
-  static EIGEN_CONSTEXPR const int max_exponent = numeric_limits<float>::max_exponent;
-  static EIGEN_CONSTEXPR const int max_exponent10 = numeric_limits<float>::max_exponent10;
-  static EIGEN_CONSTEXPR const bool traps = numeric_limits<float>::traps;
+  static EIGEN_CONSTEXPR const int radix = std::numeric_limits<float>::radix;
+  static EIGEN_CONSTEXPR const int min_exponent = std::numeric_limits<float>::min_exponent;
+  static EIGEN_CONSTEXPR const int min_exponent10 = std::numeric_limits<float>::min_exponent10;
+  static EIGEN_CONSTEXPR const int max_exponent = std::numeric_limits<float>::max_exponent;
+  static EIGEN_CONSTEXPR const int max_exponent10 = std::numeric_limits<float>::max_exponent10;
+  static EIGEN_CONSTEXPR const bool traps = std::numeric_limits<float>::traps;
   // IEEE754: "The implementer shall choose how tininess is detected, but shall
   // detect tininess in the same way for all operations in radix two"
-  static EIGEN_CONSTEXPR const bool tinyness_before = numeric_limits<float>::tinyness_before;
+  static EIGEN_CONSTEXPR const bool tinyness_before = std::numeric_limits<float>::tinyness_before;
 
   static EIGEN_CONSTEXPR Eigen::bfloat16 (min)() { return Eigen::bfloat16_impl::raw_uint16_to_bfloat16(0x0080); }
   static EIGEN_CONSTEXPR Eigen::bfloat16 lowest() { return Eigen::bfloat16_impl::raw_uint16_to_bfloat16(0xff7f); }
@@ -169,17 +170,69 @@ struct numeric_limits<Eigen::bfloat16> {
   static EIGEN_CONSTEXPR Eigen::bfloat16 denorm_min() { return Eigen::bfloat16_impl::raw_uint16_to_bfloat16(0x0001); }
 };
 
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::is_specialized;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::is_signed;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::is_integer;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::is_exact;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::has_infinity;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::has_quiet_NaN;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::has_signaling_NaN;
+template<typename T>
+EIGEN_CONSTEXPR const std::float_denorm_style numeric_limits_bfloat16_impl<T>::has_denorm;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::has_denorm_loss;
+template<typename T>
+EIGEN_CONSTEXPR const std::float_round_style numeric_limits_bfloat16_impl<T>::round_style;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::is_iec559;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::is_bounded;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::is_modulo;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::digits;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::digits10;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::max_digits10;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::radix;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::min_exponent;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::min_exponent10;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::max_exponent;
+template<typename T>
+EIGEN_CONSTEXPR const int numeric_limits_bfloat16_impl<T>::max_exponent10;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::traps;
+template<typename T>
+EIGEN_CONSTEXPR const bool numeric_limits_bfloat16_impl<T>::tinyness_before;
+}  // end namespace bfloat16_impl
+}  // end namespace Eigen
+
+namespace std {
 // If std::numeric_limits<T> is specialized, should also specialize
 // std::numeric_limits<const T>, std::numeric_limits<volatile T>, and
 // std::numeric_limits<const volatile T>
 // https://stackoverflow.com/a/16519653/
 template<>
-struct numeric_limits<const Eigen::bfloat16> : numeric_limits<Eigen::bfloat16> {};
+class numeric_limits<Eigen::bfloat16> : public Eigen::bfloat16_impl::numeric_limits_bfloat16_impl<> {};
 template<>
-struct numeric_limits<volatile Eigen::bfloat16> : numeric_limits<Eigen::bfloat16> {};
+class numeric_limits<const Eigen::bfloat16> : public numeric_limits<Eigen::bfloat16> {};
 template<>
-struct numeric_limits<const volatile Eigen::bfloat16> : numeric_limits<Eigen::bfloat16> {};
-} // namespace std
+class numeric_limits<volatile Eigen::bfloat16> : public numeric_limits<Eigen::bfloat16> {};
+template<>
+class numeric_limits<const volatile Eigen::bfloat16> : public numeric_limits<Eigen::bfloat16> {};
+}  // end namespace std
 
 namespace Eigen {
 
@@ -573,6 +626,9 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 sqrt(const bfloat16& a) {
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 pow(const bfloat16& a, const bfloat16& b) {
   return bfloat16(::powf(float(a), float(b)));
 }
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 atan2(const bfloat16& a, const bfloat16& b) {
+  return bfloat16(::atan2f(float(a), float(b)));
+}
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 sin(const bfloat16& a) {
   return bfloat16(::sinf(float(a)));
 }
@@ -600,7 +656,6 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 cosh(const bfloat16& a) {
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 tanh(const bfloat16& a) {
   return bfloat16(::tanhf(float(a)));
 }
-#if EIGEN_HAS_CXX11_MATH
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 asinh(const bfloat16& a) {
   return bfloat16(::asinhf(float(a)));
 }
@@ -610,7 +665,6 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 acosh(const bfloat16& a) {
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 atanh(const bfloat16& a) {
   return bfloat16(::atanhf(float(a)));
 }
-#endif
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 floor(const bfloat16& a) {
   return bfloat16(::floorf(float(a)));
 }

@@ -133,7 +133,7 @@ public:
 
   /** Applies translation to vector */
   template<typename Derived>
-  inline typename internal::enable_if<Derived::IsVectorAtCompileTime,VectorType>::type
+  inline std::enable_if_t<Derived::IsVectorAtCompileTime,VectorType>
   operator* (const MatrixBase<Derived>& vec) const
   { return m_coeffs + vec.derived(); }
 

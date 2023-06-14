@@ -511,8 +511,8 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,RhsMode,false>
   {
     eigen_assert(dst.rows()==a_lhs.rows() && dst.cols()==a_rhs.cols());
 
-    typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
-    typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);
+    add_const_on_value_type_t<ActualLhsType> lhs = LhsBlasTraits::extract(a_lhs);
+    add_const_on_value_type_t<ActualRhsType> rhs = RhsBlasTraits::extract(a_rhs);
 
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(a_lhs)
                                * RhsBlasTraits::extractScalarFactor(a_rhs);
