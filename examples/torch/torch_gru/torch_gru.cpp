@@ -34,9 +34,9 @@ std::string getOutputFile(fs::path path)
     return path.string();
 }
 
-const int gru_input_size = 1;
-const int gru_hidden_size = 8;
-const int n_output_neurons = 1;
+constexpr int gru_input_size = 1;
+constexpr int gru_hidden_size = 8;
+constexpr int n_output_neurons = 1;
 
 using ModelType = RTNeural::ModelT<float, gru_input_size, n_output_neurons,
     RTNeural::GRULayerT<float, gru_input_size, gru_hidden_size>,
