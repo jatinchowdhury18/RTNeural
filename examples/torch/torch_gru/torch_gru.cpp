@@ -34,7 +34,14 @@ std::string getOutputFile(fs::path path)
     return path.string();
 }
 
-using ModelType = RTNeural::ModelT<float, 1, 1, RTNeural::GRULayerT<float, 1, 8>, RTNeural::DenseT<float, 8, 1>>;
+constexpr int gru_input_size = 1;
+constexpr int gru_hidden_size = 8;
+constexpr int n_output_neurons = 1;
+
+using ModelType = RTNeural::ModelT<float, gru_input_size, n_output_neurons,
+    RTNeural::GRULayerT<float, gru_input_size, gru_hidden_size>,
+    RTNeural::DenseT<float, gru_hidden_size, n_output_neurons>>;
+
 
 void loadModel(std::ifstream& jsonStream, ModelType& model)
 {
@@ -50,7 +57,7 @@ void loadModel(std::ifstream& jsonStream, ModelType& model)
 
 int main([[maybe_unused]] int argc, char* argv[])
 {
-    std::cout << "Running \"torch conv1d\" example..." << std::endl;
+    std::cout << "Running \"torch gru\" example..." << std::endl;
 
     auto executablePath = fs::weakly_canonical(fs::path(argv[0]));
     auto modelFilePath = getModelFile(executablePath);
