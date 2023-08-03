@@ -30,6 +30,8 @@ public:
     void reset() override
     {
         std::fill(ht1.data(), ht1.data() + Layer<T>::out_size, (T)0);
+        std::fill(ht1_temp.data(), ht1_temp.data() + Layer<T>::out_size, (T)0);
+        std::fill(xVec.data() + Layer<T>::in_size, xVec.data() + Layer<T>::in_size + Layer<T>::out_size, (T)0);
     }
 
     /** Returns the name of this layer. */
@@ -38,19 +40,28 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            input, Layer<T>::in_size, 1);
+//        memcpy(inVec.data(), input, Layer<T>::in_size);
+//        memcpy(xVec.data(),  input, Layer<T>::in_size);
 
-        zVec.noalias() = wVec_z * inVec + uVec_z * ht1 + bVec_z.col(0) + bVec_z.col(1);
-        rVec.noalias() = wVec_r * inVec + uVec_r * ht1 + bVec_r.col(0) + bVec_r.col(1);
-        sigmoid(zVec);
-        sigmoid(rVec);
+        // No need to copy h(t-1) because it's already in xVec from the previous iteration or from instantiation/reset
+        for (int i = 0; i < Layer<T>::in_size; ++i)
+        {
+            xVec(i) = inVec(i) = input[i];
+        }
 
-        cVec.noalias() = wVec_c * inVec + rVec.cwiseProduct(uVec_c * ht1 + bVec_c.col(1)) + bVec_c.col(0);
+        zrVec.noalias() = combinedWeights_rz * xVec;
+        sigmoid(zrVec);
+
+        cVec.noalias() = combinedWeights_cx * inVec +
+                         zrVec.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(combinedWeights_ch * ht1);
         cVec = cVec.array().tanh();
 
-        ht1 = (ones - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(ht1);
-        std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
+        ht1_temp = cVec + zrVec.segment(0, Layer<T>::out_size).cwiseProduct(ht1_temp - cVec);
+
+        for (int i = 0; i < Layer<T>::out_size; ++i)
+        {
+            h[i] = xVec(i + Layer<T>::in_size) = ht1(i) = ht1_temp(i);
+        }
     }
 
     /**
@@ -88,23 +99,19 @@ public:
     T getBVal(int i, int k) const noexcept;
 
 private:
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wVec_z;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wVec_r;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wVec_c;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> uVec_z;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> uVec_r;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> uVec_c;
-    Eigen::Matrix<T, Eigen::Dynamic, 2> bVec_z;
-    Eigen::Matrix<T, Eigen::Dynamic, 2> bVec_r;
-    Eigen::Matrix<T, Eigen::Dynamic, 2> bVec_c;
 
     Eigen::Matrix<T, Eigen::Dynamic, 1> ht1;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> zVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> rVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> ht1_temp;
+
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> combinedWeights_rz;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> combinedWeights_cx;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> combinedWeights_ch;
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> zrVec;
     Eigen::Matrix<T, Eigen::Dynamic, 1> cVec;
 
     Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> ones;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> xVec;
 };
 
 //====================================================
@@ -120,8 +127,13 @@ template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode samp
 class GRULayerT
 {
     using b_type = Eigen::Matrix<T, out_sizet, 1>;
-    using k_type = Eigen::Matrix<T, out_sizet, in_sizet>;
-    using r_type = Eigen::Matrix<T, out_sizet, out_sizet>;
+
+    using zr_mat_type = Eigen::Matrix<T, 2 * out_sizet, in_sizet + out_sizet + 2>;
+    using xh_vec_type = Eigen::Matrix<T, in_sizet + out_sizet + 2, 1>;
+    using zr_vec_type = Eigen::Matrix<T, 2 * out_sizet, 1>;
+
+    using cx_mat_type = Eigen::Matrix<T, out_sizet, in_sizet + 1>;
+    using ch_mat_type = Eigen::Matrix<T, out_sizet, out_sizet + 1>;
 
     using in_type = Eigen::Matrix<T, in_sizet, 1>;
     using out_type = Eigen::Matrix<T, out_sizet, 1>;
@@ -157,7 +169,7 @@ public:
         zVec.noalias() = sigmoid(wVec_z * ins + uVec_z * outs + bVec_z);
         rVec.noalias() = sigmoid(wVec_r * ins + uVec_r * outs + bVec_r);
 
-        cVec.noalias() = wVec_c * ins + rVec.cwiseProduct(uVec_c * outs + bVec_c1) + bVec_c0;
+        cVec.noalias() = wVec_c * ins + bVec_c0 + rVec.cwiseProduct(uVec_c * outs + bVec_c1);
         cVec = cVec.array().tanh();
 
         computeOutput();
@@ -193,14 +205,14 @@ private:
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
     computeOutput() noexcept
     {
-        outs = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
+        outs = cVec + zrVec.segment(0, out_sizet).cwiseProduct(outs - cVec);
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
     computeOutput() noexcept
     {
-        outs_delayed[delayWriteIdx] = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
+        outs_delayed[delayWriteIdx] = cVec + zrVec.segment(0, out_sizet).cwiseProduct(outs - cVec);
 
         processDelay(outs_delayed, outs, delayWriteIdx);
     }
@@ -231,23 +243,13 @@ private:
     }
 
     // kernel weights
-    k_type wVec_z;
-    k_type wVec_r;
-    k_type wVec_c;
+    zr_mat_type wVec_zr;
+    cx_mat_type wVec_cx;
+    ch_mat_type wVec_ch;
 
-    // recurrent weights
-    r_type uVec_z;
-    r_type uVec_r;
-    r_type uVec_c;
-
-    // biases
-    b_type bVec_z;
-    b_type bVec_r;
-    b_type bVec_c0;
-    b_type bVec_c1;
-
-    out_type zVec;
-    out_type rVec;
+    // scratch memory
+    zr_vec_type zrVec;
+    xh_vec_type xVec;
     out_type cVec;
 
     // needed for delays when doing sample rate correction
