@@ -189,7 +189,7 @@ LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(T delaySamples)
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
 {
-    if(sampleRateCorr != SampleRateCorrectionMode::None)
+    if constexpr(sampleRateCorr != SampleRateCorrectionMode::None)
     {
         for(auto& x : ct_delayed)
             std::fill(x.begin(), x.end(), v_type {});
