@@ -314,7 +314,8 @@ private:
             delayVec[j] = delayVec[j + 1];
     }
 
-    static inline auto sigmoid(const auto& x) noexcept
+    template <typename Vector>
+    static inline auto sigmoid(const Vector& x) noexcept
     {
         return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
     }
