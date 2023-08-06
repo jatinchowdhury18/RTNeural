@@ -160,8 +160,6 @@ private:
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
 class GRULayerT
 {
-    using b_type = Eigen::Matrix<T, out_sizet, 1>;
-
     using in_type = Eigen::Matrix<T, in_sizet, 1>;
     using extended_in_type = Eigen::Matrix<T, in_sizet + 1, 1>;
     using out_type = Eigen::Matrix<T, out_sizet, 1>;
