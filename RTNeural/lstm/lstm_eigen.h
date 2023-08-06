@@ -35,26 +35,29 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            input, Layer<T>::in_size, 1);
+        for(int i = 0; i < Layer<T>::in_size; ++i)
+        {
+            extendedInVecHt1(i) = input[i];
+        }
 
-        fVec.noalias() = Wf * inVec + Uf * ht1 + bf;
-        iVec.noalias() = Wi * inVec + Ui * ht1 + bi;
-        oVec.noalias() = Wo * inVec + Uo * ht1 + bo;
+        fioctVecs.noalias() = combinedWeights * extendedInVecHt1;
+        fioVecs = fioctVecs.segment(0, Layer<T>::out_size * 3);
+        ctVec = fioctVecs.segment(Layer<T>::out_size * 3, Layer<T>::out_size)
+                    .array().tanh();
 
-        ctVec.noalias() = Wc * inVec + Uc * ht1 + bc;
-        ctVec = ctVec.array().tanh();
+        sigmoid(fioVecs);
 
-        sigmoid(fVec);
-        sigmoid(iVec);
-        sigmoid(oVec);
+        ct1 = fioVecs.segment(0, Layer<T>::out_size).cwiseProduct(ct1) +
+                fioVecs.segment(Layer<T>::out_size, Layer<T>::out_size)
+                .cwiseProduct(ctVec);
+        cTanhVec = ct1.array().tanh();
 
-        cVec.noalias() = fVec.cwiseProduct(ct1) + iVec.cwiseProduct(ctVec);
-        ht1 = cVec.array().tanh();
-        ht1 = oVec.cwiseProduct(ht1);
+        ht1 = fioVecs.segment(Layer<T>::out_size * 2, Layer<T>::out_size).cwiseProduct(cTanhVec);
 
-        ct1 = cVec;
-        std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
+        for (int i = 0; i < Layer<T>::out_size; ++i)
+        {
+            h[i] = extendedInVecHt1(Layer<T>::in_size + i) = ht1(i);
+        }
     }
 
     /**
@@ -79,26 +82,16 @@ public:
     void setBVals(const std::vector<T>& bVals);
 
 private:
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Wf;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Wi;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Wo;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Wc;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Uf;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Ui;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Uo;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Uc;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> bf;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> bi;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> bo;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> bc;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> combinedWeights;
 
-    Eigen::Matrix<T, Eigen::Dynamic, 1> fVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> iVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> oVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> extendedInVecHt1;
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> fioctVecs;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> fioVecs;
     Eigen::Matrix<T, Eigen::Dynamic, 1> ctVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> cVec;
 
-    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> cTanhVec;
+
     Eigen::Matrix<T, Eigen::Dynamic, 1> ht1;
     Eigen::Matrix<T, Eigen::Dynamic, 1> ct1;
 };
@@ -115,11 +108,12 @@ private:
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
 class LSTMLayerT
 {
-    using b_type = Eigen::Matrix<T, out_sizet, 1>;
-    using k_type = Eigen::Matrix<T, out_sizet, in_sizet>;
-    using r_type = Eigen::Matrix<T, out_sizet, out_sizet>;
+    using weights_combined_type = Eigen::Matrix<T, 4 * out_sizet, in_sizet + out_sizet + 1>;
+    using extended_in_out_type  = Eigen::Matrix<T, in_sizet + out_sizet + 1, 1>;
+    using four_out_type         = Eigen::Matrix<T, 4 * out_sizet, 1>;
+    using three_out_type        = Eigen::Matrix<T, 3 * out_sizet, 1>;
 
-    using in_type = Eigen::Matrix<T, in_sizet, 1>;
+    using in_type  = Eigen::Matrix<T, in_sizet, 1>;
     using out_type = Eigen::Matrix<T, out_sizet, 1>;
 
 public:
@@ -150,23 +144,16 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const in_type& ins) noexcept
     {
-        fVec.noalias() = bf;
-        fVec.noalias() += Uf * outs;
-        fVec.noalias() += Wf * ins;
+        for (int i = 0; i < in_sizet; ++i)
+        {
+            extendedInHt1Vec(i) = ins(i);
+        }
 
-        iVec.noalias() = bi;
-        iVec.noalias() += Ui * outs;
-        iVec.noalias() += Wi * ins;
+        fioctsVecs.noalias() = combinedWeights * extendedInHt1Vec;
+        fioVecs = sigmoid(fioctsVecs.segment(0, 3 * out_sizet));
+        ctVec = fioctsVecs.segment(3 * out_sizet, out_sizet).array().tanh();
 
-        oVec.noalias() = bo;
-        oVec.noalias() += Uo * outs;
-        oVec.noalias() += Wo * ins;
-
-        fVec = sigmoid(fVec);
-        iVec = sigmoid(iVec);
-        oVec = sigmoid(oVec);
-
-        computeOutputs(ins);
+        computeOutputs();
     }
 
     /**
@@ -197,34 +184,37 @@ private:
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
-    computeOutputs(const in_type& ins) noexcept
+    computeOutputs() noexcept
     {
-        computeOutputsInternal(ins, cVec, outs);
+        computeOutputsInternal(cVec, outs);
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
-    computeOutputs(const in_type& ins) noexcept
+    computeOutputs() noexcept
     {
-        computeOutputsInternal(ins, ct_delayed[delayWriteIdx], outs_delayed[delayWriteIdx]);
+        computeOutputsInternal(ct_delayed[delayWriteIdx], outs_delayed[delayWriteIdx]);
 
         processDelay(ct_delayed, cVec, delayWriteIdx);
         processDelay(outs_delayed, outs, delayWriteIdx);
     }
 
     template <typename VecType1, typename VecType2>
-    inline void computeOutputsInternal(const in_type& ins, VecType1& cVecLocal, VecType2& outsVec) noexcept
+    inline void computeOutputsInternal(VecType1& cVecLocal, VecType2& outsVec) noexcept
     {
-        ctVec.noalias() = bc;
-        ctVec.noalias() += Uc * outs;
-        ctVec.noalias() += Wc * ins;
+        cVecLocal.noalias()
+            = fioVecs.segment(0, out_sizet)
+                .cwiseProduct(cVec)
+            + fioVecs.segment(out_sizet, out_sizet)
+                .cwiseProduct(ctVec);
 
-        ctVec = ctVec.array().tanh();
-        cVecLocal = fVec.cwiseProduct(cVec);
-        cVecLocal.noalias() += iVec.cwiseProduct(ctVec);
+        cTanhVec = cVecLocal.array().tanh();
+        outsVec.noalias() = fioVecs.segment(out_sizet * 2, out_sizet).cwiseProduct(cTanhVec);
 
-        outsVec = cVecLocal.array().tanh();
-        outsVec = oVec.cwiseProduct(outsVec);
+        for (int i = 0; i < out_sizet; ++i)
+        {
+            extendedInHt1Vec(in_sizet + i) = outsVec(i);
+        }
     }
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
@@ -247,33 +237,19 @@ private:
             delayVec[j] = delayVec[j + 1];
     }
 
-    static inline out_type sigmoid(const out_type& x) noexcept
+    static inline auto sigmoid(const auto& x) noexcept
     {
         return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
     }
 
     // kernel weights
-    k_type Wf;
-    k_type Wi;
-    k_type Wo;
-    k_type Wc;
-
-    // recurrent weights
-    r_type Uf;
-    r_type Ui;
-    r_type Uo;
-    r_type Uc;
-
-    // biases
-    b_type bf;
-    b_type bi;
-    b_type bo;
-    b_type bc;
+    weights_combined_type combinedWeights;
+    extended_in_out_type  extendedInHt1Vec;
+    four_out_type         fioctsVecs;
+    three_out_type        fioVecs;
+    out_type              cTanhVec;
 
     // intermediate values
-    out_type fVec;
-    out_type iVec;
-    out_type oVec;
     out_type ctVec;
     out_type cVec;
 

@@ -29,7 +29,8 @@ public:
     /** Resets the state of the GRU. */
     void reset() override
     {
-        std::fill(extendedHt1.data(), extendedHt1.data() + Layer<T>::out_size, (T)0);
+        extendedHt1.setZero();
+        extendedHt1(Layer<T>::out_size) = (T)1;
     }
 
     /** Returns the name of this layer. */

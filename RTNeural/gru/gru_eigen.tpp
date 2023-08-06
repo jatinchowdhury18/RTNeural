@@ -193,6 +193,10 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
 
     // reset output state
     outs = out_type::Zero();
+
+    // reset extended internal state
+    extendedHt1.setZero();
+    extendedHt1(out_sizet) = (T)1;
 }
 
 // kernel weights
@@ -225,7 +229,7 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vect
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
-    for(int k = 0; k < out_size; ++k)
+    for(int k = 0; k < out_size * 3; ++k)
     {
         wCombinedWeights(k, in_sizet) = bVals[0][k];
         uCombinedWeights(k, out_sizet) = bVals[1][k];
