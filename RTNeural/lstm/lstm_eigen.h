@@ -40,11 +40,11 @@ public:
             extendedInVecHt1(i) = input[i];
         }
 
-        /*
-         *                 | Wf  Uf  Bf  |   | input |
-         * | f i o ct |t = | Wi  Ui  Bi  | * | ht1   |
-         *                 | Wo  Uo  Bo  |   | 1     |
-         *                 | Wct Uct Bct |
+        /**
+         * | f  |   | Wf  Uf  Bf  |   | input |
+         * | i  | = | Wi  Ui  Bi  | * | ht1   |
+         * | o  |   | Wo  Uo  Bo  |   | 1     |
+         * | ct |   | Wct Uct Bct |
          */
         fioctVecs.noalias() = combinedWeights * extendedInVecHt1;
 
@@ -157,11 +157,11 @@ public:
             extendedInHt1Vec(i) = ins(i);
         }
 
-        /*
-         *                 | Wf  Uf  Bf  |   | input |
-         * | f i o ct |t = | Wi  Ui  Bi  | * | ht1   |
-         *                 | Wo  Uo  Bo  |   | 1     |
-         *                 | Wct Uct Bct |
+        /**
+         * | f  |   | Wf  Uf  Bf  |   | input |
+         * | i  | = | Wi  Ui  Bi  | * | ht1   |
+         * | o  |   | Wo  Uo  Bo  |   | 1     |
+         * | ct |   | Wct Uct Bct |
          */
         fioctsVecs.noalias() = combinedWeights * extendedInHt1Vec;
 
