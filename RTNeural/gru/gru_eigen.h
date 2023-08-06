@@ -44,18 +44,40 @@ public:
             extendedInVec(i) = input[i];
         }
 
+        /**
+         *         | Wz bz[0] |   | input |   | Wz * input + bz[0] |
+         * alpha = | Wr br[0] | * | 1     | = | Wr * input + br[0] |
+         *         | Wc bc[0] |               | Wc * input + bc[0] |
+         *
+         *        | Uz bz[1] |   | h(t-1) |   | Uz * h(t-1) + bz[1] |
+         * beta = | Ur br[1] | * | 1      | = | Ur * h(t-1) + br[1] |
+         *        | Uc bc[1] |                | Uc * h(t-1) + bc[1] |
+         */
         alphaVec.noalias() = wCombinedWeights * extendedInVec;
         betaVec.noalias() = uCombinedWeights * extendedHt1;
 
+        /**
+         * gamma = sigmoid( | z |   = sigmoid(alpha[0 : 2*out_sizet] + beta[0 : 2*out_sizet])
+         *                  | r | )
+         */
         gammaVec.noalias() = alphaVec.segment(0, 2 * Layer<T>::out_size) +
                              betaVec.segment(0, 2 * Layer<T>::out_size);
         sigmoid(gammaVec);
 
+        /**
+         * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
+         * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
+         */
         cVec.noalias() = alphaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size) +
                          gammaVec.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(
                             betaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size));
         cVec = cVec.array().tanh();
 
+        /**
+         * h(t-1) = (1 - z).cwiseProduct(c) + z.cwiseProduct(h(t-1))
+         *        = c - z.cwiseProduct(c) + z.cwiseProduct(ht(t-1))
+         *        = c + z.cwiseProduct(h(t-1) - c)
+         */
         extendedHt1.segment(0, Layer<T>::out_size) =
             cVec + gammaVec.segment(0, Layer<T>::out_size).cwiseProduct(
             extendedHt1.segment(0, Layer<T>::out_size) - cVec);
@@ -184,17 +206,39 @@ public:
             extendedInVec(i) = ins(i);
         }
 
+        /**
+         *         | Wz bz[0] |   | input |   | Wz * input + bz[0] |
+         * alpha = | Wr br[0] | * | 1     | = | Wr * input + br[0] |
+         *         | Wc bc[0] |               | Wc * input + bc[0] |
+         *
+         *        | Uz bz[1] |   | h(t-1) |   | Uz * h(t-1) + bz[1] |
+         * beta = | Ur br[1] | * | 1      | = | Ur * h(t-1) + br[1] |
+         *        | Uc bc[1] |                | Uc * h(t-1) + bc[1] |
+         */
         alphaVec.noalias() = wCombinedWeights * extendedInVec;
         betaVec.noalias() = uCombinedWeights * extendedHt1;
 
+        /**
+         * gamma = sigmoid( | z |   = sigmoid(alpha[0 : 2*out_sizet] + beta[0 : 2*out_sizet])
+         *                  | r | )
+         */
         gammaVec = sigmoid(alphaVec.segment(0, 2 * out_sizet) +
             betaVec.segment(0, 2 * out_sizet));
 
+        /**
+         * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
+         * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
+         */
         cVec.noalias() = alphaVec.segment(2 * out_sizet, out_sizet) +
             gammaVec.segment(out_sizet, out_sizet).cwiseProduct(
                 betaVec.segment(2 * out_sizet, out_sizet));
         cVec = cVec.array().tanh();
 
+        /**
+         * h(t-1) = (1 - z).cwiseProduct(c) + z.cwiseProduct(h(t-1))
+         *        = c - z.cwiseProduct(c) + z.cwiseProduct(ht(t-1))
+         *        = c + z.cwiseProduct(h(t-1) - c)
+         */
         extendedHt1.segment(0, out_sizet) =
             cVec + gammaVec.segment(0, out_sizet).cwiseProduct(
                 extendedHt1.segment(0, out_sizet) - cVec);

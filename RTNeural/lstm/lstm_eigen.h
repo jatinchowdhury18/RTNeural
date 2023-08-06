@@ -40,7 +40,15 @@ public:
             extendedInVecHt1(i) = input[i];
         }
 
+        /*
+         *                 | Wf  Uf  Bf  |   | input |
+         * | f i o ct |t = | Wi  Ui  Bi  | * | ht1   |
+         *                 | Wo  Uo  Bo  |   | 1     |
+         *                 | Wct Uct Bct |
+         */
         fioctVecs.noalias() = combinedWeights * extendedInVecHt1;
+
+
         fioVecs = fioctVecs.segment(0, Layer<T>::out_size * 3);
         ctVec = fioctVecs.segment(Layer<T>::out_size * 3, Layer<T>::out_size)
                     .array().tanh();
@@ -149,7 +157,14 @@ public:
             extendedInHt1Vec(i) = ins(i);
         }
 
+        /*
+         *                 | Wf  Uf  Bf  |   | input |
+         * | f i o ct |t = | Wi  Ui  Bi  | * | ht1   |
+         *                 | Wo  Uo  Bo  |   | 1     |
+         *                 | Wct Uct Bct |
+         */
         fioctsVecs.noalias() = combinedWeights * extendedInHt1Vec;
+
         fioVecs = sigmoid(fioctsVecs.segment(0, 3 * out_sizet));
         ctVec = fioctsVecs.segment(3 * out_sizet, out_sizet).array().tanh();
 

@@ -53,6 +53,10 @@ public:
         for (int i = 0; i < Layer<T>::in_size; ++i)
             inVec(i, 0) = input[i];
 
+        /**
+         * out = | w b | * | input |
+         *                 | 1     |
+         */
         outVec.noalias() = weights * inVec;
 
         for (int i = 0; i < Layer<T>::out_size; ++i)
@@ -147,6 +151,11 @@ public:
     {
         for (int i = 0; i < in_size; ++i)
             ins_internal(i, 0) = ins(i, 0);
+
+        /**
+         * out = | w b | * | input |
+         *                 | 1     |
+         */
         outs.noalias() = weights * ins_internal;
     }
 
