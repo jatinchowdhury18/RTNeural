@@ -202,6 +202,11 @@ private:
     computeOutputs() noexcept
     {
         computeOutputsInternal(cVec, outs);
+
+        for (int i = 0; i < out_sizet; ++i)
+        {
+            extendedInHt1Vec(in_sizet + i) = outs(i);
+        }
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
@@ -212,6 +217,11 @@ private:
 
         processDelay(ct_delayed, cVec, delayWriteIdx);
         processDelay(outs_delayed, outs, delayWriteIdx);
+
+        for (int i = 0; i < out_sizet; ++i)
+        {
+            extendedInHt1Vec(in_sizet + i) = outs(i);
+        }
     }
 
     template <typename VecType1, typename VecType2>
@@ -225,11 +235,6 @@ private:
 
         cTanhVec = cVecLocal.array().tanh();
         outsVec.noalias() = fioVecs.segment(out_sizet * 2, out_sizet).cwiseProduct(cTanhVec);
-
-        for (int i = 0; i < out_sizet; ++i)
-        {
-            extendedInHt1Vec(in_sizet + i) = outsVec(i);
-        }
     }
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>

@@ -290,6 +290,11 @@ private:
         }
 
         processDelay(outs_delayed, outs, delayWriteIdx);
+
+        for (int i = 0; i < out_sizet; ++i)
+        {
+            extendedHt1(i) = outs(i);
+        }
     }
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
