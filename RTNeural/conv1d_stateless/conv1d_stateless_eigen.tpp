@@ -63,4 +63,13 @@ void Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t,
             for(int j = 0; j < kernel_size_t; ++j)
                 kernelWeights[i](k, j) = inWeights.at(i).at(k).at(j);
 }
+
+template <typename T, int num_filters_in_t, int num_features_in_t, int num_filters_out_t, int kernel_size_t, int stride_t, bool valid_pad_t>
+void Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t, kernel_size_t, stride_t, valid_pad_t>::setWeightsTransposed(const std::vector<std::vector<std::vector<T>>>& inWeights)
+{
+    for(int i = 0; i < num_filters_out_t; ++i)
+        for(int k = 0; k < num_filters_in_t; ++k)
+            for(int j = 0; j < kernel_size_t; ++j)
+                kernelWeights[i](k, j) = inWeights.at(j).at(k).at(i);
+}
 } // RTNeural
