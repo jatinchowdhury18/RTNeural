@@ -224,6 +224,13 @@ public:
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
 
+    /**
+     * Sets the layer weights.
+     *
+     * The weights vector must have size weights[kernel_size][num_filters_in][num_filters_out]
+     */
+    void setWeightsTransposed(const std::vector<std::vector<std::vector<T>>>& inWeights);
+
     /** Returns the size of the convolution kernel. */
     int getKernelSize() const noexcept { return kernel_size_t; }
 
