@@ -69,6 +69,10 @@ jobs:
       shell: bash
       run: ./build/examples_out/torch_gru
 
+    - name: RTNeural Conv1D Stateless
+      shell: bash
+      run: ./build/examples_out/conv1d_stateless_example
+
     - name: Hello RTNeural with Makefile
       if: runner.os == 'Linux'
       shell: bash
