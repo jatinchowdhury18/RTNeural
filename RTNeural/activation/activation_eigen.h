@@ -518,7 +518,8 @@ public:
         }
         else
         {
-            std::copy(alphaVals.begin(), alphaVals.end(), std::begin(alpha));
+            for(size_t i = 0; i < (size_t)alpha.size(); i += alphaVals.size())
+                std::copy(alphaVals.begin(), alphaVals.end(), std::begin(alpha) + i);
         }
     }
 
