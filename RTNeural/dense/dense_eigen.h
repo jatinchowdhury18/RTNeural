@@ -19,11 +19,12 @@ public:
     Dense(int in_size, int out_size)
         : Layer<T>(in_size, out_size)
     {
-        weights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
-        bias = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+        weights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size + 1);
 
-        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(in_size, 1);
-        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(in_size + 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
+
+        inVec(in_size, 0) = (T)1;
     }
 
     Dense(std::initializer_list<int> sizes)
@@ -49,11 +50,17 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            input, Layer<T>::in_size, 1);
-        outVec.noalias() = weights * inVec + bias;
+        for (int i = 0; i < Layer<T>::in_size; ++i)
+            inVec(i, 0) = input[i];
 
-        std::copy(outVec.data(), outVec.data() + Layer<T>::out_size, out);
+        /**
+         * out = | w b | * | input |
+         *                 | 1     |
+         */
+        outVec.noalias() = weights * inVec;
+
+        for (int i = 0; i < Layer<T>::out_size; ++i)
+            out[i] = outVec(i, 0);
     }
 
     /**
@@ -89,18 +96,17 @@ public:
     void setBias(const T* b)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
-            bias(i, 0) = b[i];
+            weights(i, Layer<T>::in_size) = b[i];
     }
 
     /** Returns the weights value at the given indices. */
     T getWeight(int i, int k) const noexcept { return weights(i, k); }
 
     /** Returns the bias value at the given index. */
-    T getBias(int i) const noexcept { return bias(i, 0); }
+    T getBias(int i) const noexcept { return weights(i, Layer<T>::in_size); }
 
 private:
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> weights;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> bias;
 
     Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
@@ -114,8 +120,9 @@ private:
 template <typename T, int in_sizet, int out_sizet>
 class DenseT
 {
-    using vec_type = Eigen::Matrix<T, out_sizet, 1>;
-    using mat_type = Eigen::Matrix<T, out_sizet, in_sizet>;
+    using out_vec_type = Eigen::Matrix<T, out_sizet, 1>;
+    using in_vec_type = Eigen::Matrix<T, in_sizet + 1, 1>;
+    using mat_type = Eigen::Matrix<T, out_sizet, in_sizet + 1>;
 
 public:
     static constexpr auto in_size = in_sizet;
@@ -125,8 +132,9 @@ public:
         : outs(outs_internal)
     {
         weights = mat_type::Zero();
-        bias = vec_type::Zero();
-        outs = vec_type::Zero();
+        ins_internal = in_vec_type::Zero();
+        ins_internal(in_size, 0) = (T)1;
+        outs = out_vec_type::Zero();
     }
 
     /** Returns the name of this layer. */
@@ -141,7 +149,14 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
-        outs.noalias() = weights * ins + bias;
+        for (int i = 0; i < in_size; ++i)
+            ins_internal(i, 0) = ins(i, 0);
+
+        /**
+         * out = | w b | * | input |
+         *                 | 1     |
+         */
+        outs.noalias() = weights * ins_internal;
     }
 
     /**
@@ -177,16 +192,16 @@ public:
     void setBias(const T* b)
     {
         for(int i = 0; i < out_size; ++i)
-            bias(i, 0) = b[i];
+            weights(i, in_size) = b[i];
     }
 
-    Eigen::Map<vec_type, RTNeuralEigenAlignment> outs;
+    Eigen::Map<out_vec_type, RTNeuralEigenAlignment> outs;
 
 private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    in_vec_type ins_internal;
 
     mat_type weights;
-    vec_type bias;
 };
 
 } // namespace RTNeural

@@ -7,30 +7,18 @@ template <typename T>
 LSTMLayer<T>::LSTMLayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
 {
-    Wf = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
-    Wi = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
-    Wo = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
-    Wc = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
+    combinedWeights  = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(4 * out_size, in_size + out_size + 1);
+    extendedInVecHt1 = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(in_size + out_size + 1);
+    extendedInVecHt1(in_size + out_size) = (T)1;
 
-    Uf = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
-    Ui = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
-    Uo = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
-    Uc = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
+    fioctVecs = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(4 * out_size);
+    fioVecs   = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
+    ctVec     = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
 
-    bf = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    bi = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    bo = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    bc = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    cTanhVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 
-    fVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    iVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    oVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    ctVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    cVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-
-    inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    ht1 = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    ct1 = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
+    ht1 = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
+    ct1 = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
 }
 
 template <typename T>
@@ -54,8 +42,10 @@ LSTMLayer<T>& LSTMLayer<T>::operator=(const LSTMLayer<T>& other)
 template <typename T>
 void LSTMLayer<T>::reset()
 {
-    std::fill(ht1.data(), ht1.data() + Layer<T>::out_size, (T)0);
-    std::fill(ct1.data(), ct1.data() + Layer<T>::out_size, (T)0);
+    ht1.setZero();
+    ct1.setZero();
+    extendedInVecHt1.setZero();
+    extendedInVecHt1(Layer<T>::in_size + Layer<T>::out_size) = (T)1;
 }
 
 template <typename T>
@@ -65,10 +55,10 @@ void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
     {
         for(int k = 0; k < Layer<T>::out_size; ++k)
         {
-            Wi(k, i) = wVals[i][k];
-            Wf(k, i) = wVals[i][k + Layer<T>::out_size];
-            Wc(k, i) = wVals[i][k + Layer<T>::out_size * 2];
-            Wo(k, i) = wVals[i][k + Layer<T>::out_size * 3];
+            combinedWeights(k, i) = wVals[i][k + Layer<T>::out_size]; // Wf
+            combinedWeights(k + Layer<T>::out_size, i) = wVals[i][k]; // Wi
+            combinedWeights(k + Layer<T>::out_size * 2, i) = wVals[i][k + Layer<T>::out_size * 3]; // Wo
+            combinedWeights(k + Layer<T>::out_size * 3, i) = wVals[i][k + Layer<T>::out_size * 2]; // Wc
         }
     }
 }
@@ -76,14 +66,16 @@ void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 template <typename T>
 void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
+    int col;
     for(int i = 0; i < Layer<T>::out_size; ++i)
     {
+        col = i + Layer<T>::in_size;
         for(int k = 0; k < Layer<T>::out_size; ++k)
         {
-            Ui(k, i) = uVals[i][k];
-            Uf(k, i) = uVals[i][k + Layer<T>::out_size];
-            Uc(k, i) = uVals[i][k + Layer<T>::out_size * 2];
-            Uo(k, i) = uVals[i][k + Layer<T>::out_size * 3];
+            combinedWeights(k, col) = uVals[i][k + Layer<T>::out_size]; // Uf
+            combinedWeights(k + Layer<T>::out_size, col) = uVals[i][k]; // Ui
+            combinedWeights(k + Layer<T>::out_size * 2, col) = uVals[i][k + Layer<T>::out_size * 3]; // Uo
+            combinedWeights(k + Layer<T>::out_size * 3, col) = uVals[i][k + Layer<T>::out_size * 2]; // Uc
         }
     }
 }
@@ -91,12 +83,13 @@ void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 template <typename T>
 void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 {
+    int col = Layer<T>::in_size + Layer<T>::out_size;
     for(int k = 0; k < Layer<T>::out_size; ++k)
     {
-        bi(k) = bVals[k];
-        bf(k) = bVals[k + Layer<T>::out_size];
-        bc(k) = bVals[k + Layer<T>::out_size * 2];
-        bo(k) = bVals[k + Layer<T>::out_size * 3];
+        combinedWeights(k, col) = bVals[k + Layer<T>::out_size]; // Bf
+        combinedWeights(k + Layer<T>::out_size, col) = bVals[k]; // Bi
+        combinedWeights(k + Layer<T>::out_size * 2, col) = bVals[k + Layer<T>::out_size * 3]; // Bo
+        combinedWeights(k + Layer<T>::out_size * 3, col) = bVals[k + Layer<T>::out_size * 2]; // Bc
     }
 }
 
@@ -105,20 +98,13 @@ template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode samp
 LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::LSTMLayerT()
     : outs(outs_internal)
 {
-    Wf = k_type::Zero();
-    Wi = k_type::Zero();
-    Wo = k_type::Zero();
-    Wc = k_type::Zero();
+    combinedWeights  = weights_combined_type::Zero();
+    extendedInHt1Vec = extended_in_out_type::Zero();
+    fioctsVecs       = four_out_type::Zero();
+    fioVecs          = three_out_type::Zero();
 
-    Uf = r_type::Zero();
-    Ui = r_type::Zero();
-    Uo = r_type::Zero();
-    Uc = r_type::Zero();
-
-    bf = b_type::Zero();
-    bi = b_type::Zero();
-    bo = b_type::Zero();
-    bc = b_type::Zero();
+    ctVec            = out_type::Zero();
+    cTanhVec         = out_type::Zero();
 
     reset();
 }
@@ -164,8 +150,11 @@ void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
     }
 
     // reset output state
+    extendedInHt1Vec.setZero();
+    extendedInHt1Vec(in_sizet + out_sizet) = (T)1;
     outs = out_type::Zero();
     cVec = out_type::Zero();
+    ctVec.setZero();
 }
 
 // kernel weights
@@ -176,10 +165,10 @@ void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vec
     {
         for(int k = 0; k < out_size; ++k)
         {
-            Wi(k, i) = wVals[i][k];
-            Wf(k, i) = wVals[i][k + out_size];
-            Wc(k, i) = wVals[i][k + out_size * 2];
-            Wo(k, i) = wVals[i][k + out_size * 3];
+            combinedWeights(k, i) = wVals[i][k + out_sizet]; // Wf
+            combinedWeights(k + out_sizet, i) = wVals[i][k]; // Wi
+            combinedWeights(k + out_sizet * 2, i) = wVals[i][k + out_sizet * 3]; // Wo
+            combinedWeights(k + out_sizet * 3, i) = wVals[i][k + out_sizet * 2]; // Wc
         }
     }
 }
@@ -188,14 +177,16 @@ void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vec
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
+    int col;
     for(int i = 0; i < out_size; ++i)
     {
+        col = i + in_sizet;
         for(int k = 0; k < out_size; ++k)
         {
-            Ui(k, i) = uVals[i][k];
-            Uf(k, i) = uVals[i][k + out_size];
-            Uc(k, i) = uVals[i][k + out_size * 2];
-            Uo(k, i) = uVals[i][k + out_size * 3];
+            combinedWeights(k, col) = uVals[i][k + out_sizet]; // Uf
+            combinedWeights(k + out_sizet, col) = uVals[i][k]; // Ui
+            combinedWeights(k + out_sizet * 2, col) = uVals[i][k + out_sizet * 3]; // Uo
+            combinedWeights(k + out_sizet * 3, col) = uVals[i][k + out_sizet * 2]; // Uc
         }
     }
 }
@@ -204,12 +195,13 @@ void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vec
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setBVals(const std::vector<T>& bVals)
 {
+    int col = in_size + out_size;
     for(int k = 0; k < out_size; ++k)
     {
-        bi(k) = bVals[k];
-        bf(k) = bVals[k + out_size];
-        bc(k) = bVals[k + out_size * 2];
-        bo(k) = bVals[k + out_size * 3];
+        combinedWeights(k, col) = bVals[k + out_sizet]; // Bf
+        combinedWeights(k + out_sizet, col) = bVals[k]; // Bi
+        combinedWeights(k + out_sizet * 2, col) = bVals[k + out_sizet * 3]; // Bo
+        combinedWeights(k + out_sizet * 3, col) = bVals[k + out_sizet * 2]; // Bc
     }
 }
 

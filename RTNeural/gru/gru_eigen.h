@@ -29,7 +29,8 @@ public:
     /** Resets the state of the GRU. */
     void reset() override
     {
-        std::fill(ht1.data(), ht1.data() + Layer<T>::out_size, (T)0);
+        extendedHt1.setZero();
+        extendedHt1(Layer<T>::out_size) = (T)1;
     }
 
     /** Returns the name of this layer. */
@@ -38,19 +39,53 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            input, Layer<T>::in_size, 1);
+        for (int i = 0; i < Layer<T>::in_size; ++i)
+        {
+            extendedInVec(i) = input[i];
+        }
 
-        zVec.noalias() = wVec_z * inVec + uVec_z * ht1 + bVec_z.col(0) + bVec_z.col(1);
-        rVec.noalias() = wVec_r * inVec + uVec_r * ht1 + bVec_r.col(0) + bVec_r.col(1);
-        sigmoid(zVec);
-        sigmoid(rVec);
+        /**
+         *         | Wz bz[0] |   | input |   | Wz * input + bz[0] |
+         * alpha = | Wr br[0] | * | 1     | = | Wr * input + br[0] |
+         *         | Wc bc[0] |               | Wc * input + bc[0] |
+         *
+         *        | Uz bz[1] |   | h(t-1) |   | Uz * h(t-1) + bz[1] |
+         * beta = | Ur br[1] | * | 1      | = | Ur * h(t-1) + br[1] |
+         *        | Uc bc[1] |                | Uc * h(t-1) + bc[1] |
+         */
+        alphaVec.noalias() = wCombinedWeights * extendedInVec;
+        betaVec.noalias() = uCombinedWeights * extendedHt1;
 
-        cVec.noalias() = wVec_c * inVec + rVec.cwiseProduct(uVec_c * ht1 + bVec_c.col(1)) + bVec_c.col(0);
+        /**
+         * gamma = sigmoid( | z |   = sigmoid(alpha[0 : 2*out_sizet] + beta[0 : 2*out_sizet])
+         *                  | r | )
+         */
+        gammaVec.noalias() = alphaVec.segment(0, 2 * Layer<T>::out_size) +
+                             betaVec.segment(0, 2 * Layer<T>::out_size);
+        sigmoid(gammaVec);
+
+        /**
+         * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
+         * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
+         */
+        cVec.noalias() = alphaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size) +
+                         gammaVec.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(
+                            betaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size));
         cVec = cVec.array().tanh();
 
-        ht1 = (ones - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(ht1);
-        std::copy(ht1.data(), ht1.data() + Layer<T>::out_size, h);
+        /**
+         * h(t-1) = (1 - z).cwiseProduct(c) + z.cwiseProduct(h(t-1))
+         *        = c - z.cwiseProduct(c) + z.cwiseProduct(ht(t-1))
+         *        = c + z.cwiseProduct(h(t-1) - c)
+         */
+        extendedHt1.segment(0, Layer<T>::out_size) =
+            cVec + gammaVec.segment(0, Layer<T>::out_size).cwiseProduct(
+            extendedHt1.segment(0, Layer<T>::out_size) - cVec);
+
+        for (int i = 0; i < Layer<T>::out_size; ++i)
+        {
+            h[i] = extendedHt1(i);
+        }
     }
 
     /**
@@ -88,23 +123,29 @@ public:
     T getBVal(int i, int k) const noexcept;
 
 private:
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wVec_z;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wVec_r;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wVec_c;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> uVec_z;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> uVec_r;
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> uVec_c;
-    Eigen::Matrix<T, Eigen::Dynamic, 2> bVec_z;
-    Eigen::Matrix<T, Eigen::Dynamic, 2> bVec_r;
-    Eigen::Matrix<T, Eigen::Dynamic, 2> bVec_c;
+    // Kernels
+    // | Wz bz0 |
+    // | Wr br0 |
+    // | Wc bc0 |
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> wCombinedWeights;
 
-    Eigen::Matrix<T, Eigen::Dynamic, 1> ht1;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> zVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> rVec;
+    // | Uz bz1 |
+    // | Ur br1 |
+    // | Uc bc1 |
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> uCombinedWeights;
+
+    // Input vec
+    Eigen::Matrix<T, Eigen::Dynamic, 1> extendedInVec;
+
+    // h(t-1) vec
+    Eigen::Matrix<T, Eigen::Dynamic, 1> extendedHt1;
+
+    // Scratch memory
+    Eigen::Matrix<T, Eigen::Dynamic, 1> alphaVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> betaVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> gammaVec;
     Eigen::Matrix<T, Eigen::Dynamic, 1> cVec;
 
-    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> ones;
 };
 
 //====================================================
@@ -119,12 +160,16 @@ private:
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
 class GRULayerT
 {
-    using b_type = Eigen::Matrix<T, out_sizet, 1>;
-    using k_type = Eigen::Matrix<T, out_sizet, in_sizet>;
-    using r_type = Eigen::Matrix<T, out_sizet, out_sizet>;
-
     using in_type = Eigen::Matrix<T, in_sizet, 1>;
+    using extended_in_type = Eigen::Matrix<T, in_sizet + 1, 1>;
     using out_type = Eigen::Matrix<T, out_sizet, 1>;
+    using extended_out_type = Eigen::Matrix<T, out_sizet + 1, 1>;
+
+    using w_k_type = Eigen::Matrix<T, out_sizet * 3, in_sizet + 1>;
+    using u_k_type = Eigen::Matrix<T, out_sizet * 3, out_sizet + 1>;
+
+    using three_out_type = Eigen::Matrix<T, out_sizet * 3, 1>;
+    using two_out_type = Eigen::Matrix<T, out_sizet * 2, 1>;
 
 public:
     static constexpr auto in_size = in_sizet;
@@ -154,11 +199,47 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const in_type& ins) noexcept
     {
-        zVec.noalias() = sigmoid(wVec_z * ins + uVec_z * outs + bVec_z);
-        rVec.noalias() = sigmoid(wVec_r * ins + uVec_r * outs + bVec_r);
+        for (int i = 0; i < in_sizet; ++i)
+        {
+            extendedInVec(i) = ins(i);
+        }
 
-        cVec.noalias() = wVec_c * ins + rVec.cwiseProduct(uVec_c * outs + bVec_c1) + bVec_c0;
+        /**
+         *         | Wz bz[0] |   | input |   | Wz * input + bz[0] |
+         * alpha = | Wr br[0] | * | 1     | = | Wr * input + br[0] |
+         *         | Wc bc[0] |               | Wc * input + bc[0] |
+         *
+         *        | Uz bz[1] |   | h(t-1) |   | Uz * h(t-1) + bz[1] |
+         * beta = | Ur br[1] | * | 1      | = | Ur * h(t-1) + br[1] |
+         *        | Uc bc[1] |                | Uc * h(t-1) + bc[1] |
+         */
+        alphaVec.noalias() = wCombinedWeights * extendedInVec;
+        betaVec.noalias() = uCombinedWeights * extendedHt1;
+
+        /**
+         * gamma = sigmoid( | z |   = sigmoid(alpha[0 : 2*out_sizet] + beta[0 : 2*out_sizet])
+         *                  | r | )
+         */
+        gammaVec = sigmoid(alphaVec.segment(0, 2 * out_sizet) +
+            betaVec.segment(0, 2 * out_sizet));
+
+        /**
+         * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
+         * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
+         */
+        cVec.noalias() = alphaVec.segment(2 * out_sizet, out_sizet) +
+            gammaVec.segment(out_sizet, out_sizet).cwiseProduct(
+                betaVec.segment(2 * out_sizet, out_sizet));
         cVec = cVec.array().tanh();
+
+        /**
+         * h(t-1) = (1 - z).cwiseProduct(c) + z.cwiseProduct(h(t-1))
+         *        = c - z.cwiseProduct(c) + z.cwiseProduct(ht(t-1))
+         *        = c + z.cwiseProduct(h(t-1) - c)
+         */
+        extendedHt1.segment(0, out_sizet) =
+            cVec + gammaVec.segment(0, out_sizet).cwiseProduct(
+                extendedHt1.segment(0, out_sizet) - cVec);
 
         computeOutput();
     }
@@ -193,16 +274,27 @@ private:
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
     computeOutput() noexcept
     {
-        outs = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
+        for (int i = 0; i < out_sizet; ++i)
+        {
+            outs(i) = extendedHt1(i);
+        }
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
     computeOutput() noexcept
     {
-        outs_delayed[delayWriteIdx] = (out_type::Ones() - zVec).cwiseProduct(cVec) + zVec.cwiseProduct(outs);
+        for (int i = 0; i < out_sizet; ++i)
+        {
+            outs_delayed[delayWriteIdx][i] = extendedHt1(i);
+        }
 
         processDelay(outs_delayed, outs, delayWriteIdx);
+
+        for (int i = 0; i < out_sizet; ++i)
+        {
+            extendedHt1(i) = outs(i);
+        }
     }
 
     template <typename OutVec, SampleRateCorrectionMode srCorr = sampleRateCorr>
@@ -225,30 +317,25 @@ private:
             delayVec[j] = delayVec[j + 1];
     }
 
-    static inline out_type sigmoid(const out_type& x) noexcept
+    template <typename Vector>
+    static inline auto sigmoid(const Vector& x) noexcept
     {
         return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
     }
 
     // kernel weights
-    k_type wVec_z;
-    k_type wVec_r;
-    k_type wVec_c;
+    w_k_type wCombinedWeights;
+    u_k_type uCombinedWeights;
 
-    // recurrent weights
-    r_type uVec_z;
-    r_type uVec_r;
-    r_type uVec_c;
+    // scratch memory
+    three_out_type alphaVec;
+    three_out_type betaVec;
+    two_out_type gammaVec;
 
-    // biases
-    b_type bVec_z;
-    b_type bVec_r;
-    b_type bVec_c0;
-    b_type bVec_c1;
-
-    out_type zVec;
-    out_type rVec;
+    // input, output, memory
     out_type cVec;
+    extended_in_type extendedInVec;
+    extended_out_type extendedHt1;
 
     // needed for delays when doing sample rate correction
     std::vector<out_type> outs_delayed;

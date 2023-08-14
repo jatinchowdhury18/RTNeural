@@ -9,23 +9,17 @@ template <typename T>
 GRULayer<T>::GRULayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
 {
-    wVec_z = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
-    wVec_r = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
-    wVec_c = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, in_size);
-    uVec_z = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
-    uVec_r = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
-    uVec_c = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, out_size);
-    bVec_z = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 2);
-    bVec_r = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 2);
-    bVec_c = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 2);
+    wCombinedWeights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(3 * out_size, in_size + 1);
+    uCombinedWeights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(3 * out_size, out_size + 1);
+    extendedInVec    = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(in_size + 1);
+    extendedHt1      = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size + 1);
+    extendedInVec(Layer<T>::in_size) = (T)1;
+    extendedHt1(Layer<T>::out_size) = (T)1;
 
-    ht1 = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    zVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    rVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-    cVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
-
-    inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(in_size, 1);
-    ones = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Ones(out_size, 1);
+    alphaVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
+    betaVec  = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
+    gammaVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(2 * out_size);
+    cVec     = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
 }
 
 template <typename T>
@@ -51,11 +45,9 @@ void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(int i = 0; i < Layer<T>::in_size; ++i)
     {
-        for(int k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size * 3; ++k)
         {
-            wVec_z(k, i) = wVals[i][k];
-            wVec_r(k, i) = wVals[i][k + Layer<T>::out_size];
-            wVec_c(k, i) = wVals[i][k + Layer<T>::out_size * 2];
+            wCombinedWeights(k, i) = wVals[i][k];
         }
     }
 }
@@ -65,11 +57,9 @@ void GRULayer<T>::setWVals(T** wVals)
 {
     for(int i = 0; i < Layer<T>::in_size; ++i)
     {
-        for(int k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size * 3; ++k)
         {
-            wVec_z(k, i) = wVals[i][k];
-            wVec_r(k, i) = wVals[i][k + Layer<T>::out_size];
-            wVec_c(k, i) = wVals[i][k + Layer<T>::out_size * 2];
+            wCombinedWeights(k, i) = wVals[i][k];
         }
     }
 }
@@ -79,11 +69,9 @@ void GRULayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
     for(int i = 0; i < Layer<T>::out_size; ++i)
     {
-        for(int k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size * 3; ++k)
         {
-            uVec_z(k, i) = uVals[i][k];
-            uVec_r(k, i) = uVals[i][k + Layer<T>::out_size];
-            uVec_c(k, i) = uVals[i][k + Layer<T>::out_size * 2];
+            uCombinedWeights(k, i) = uVals[i][k];
         }
     }
 }
@@ -93,11 +81,9 @@ void GRULayer<T>::setUVals(T** uVals)
 {
     for(int i = 0; i < Layer<T>::out_size; ++i)
     {
-        for(int k = 0; k < Layer<T>::out_size; ++k)
+        for(int k = 0; k < Layer<T>::out_size * 3; ++k)
         {
-            uVec_z(k, i) = uVals[i][k];
-            uVec_r(k, i) = uVals[i][k + Layer<T>::out_size];
-            uVec_c(k, i) = uVals[i][k + Layer<T>::out_size * 2];
+            uCombinedWeights(k, i) = uVals[i][k];
         }
     }
 }
@@ -105,65 +91,48 @@ void GRULayer<T>::setUVals(T** uVals)
 template <typename T>
 void GRULayer<T>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
-    for(int i = 0; i < 2; ++i)
+    for(int k = 0; k < Layer<T>::out_size * 3; ++k)
     {
-        for(int k = 0; k < Layer<T>::out_size; ++k)
-        {
-            bVec_z(k, i) = bVals[i][k];
-            bVec_r(k, i) = bVals[i][k + Layer<T>::out_size];
-            bVec_c(k, i) = bVals[i][k + Layer<T>::out_size * 2];
-        }
+        wCombinedWeights(k, Layer<T>::in_size) = bVals[0][k];
+        uCombinedWeights(k, Layer<T>::out_size) = bVals[1][k];
     }
 }
 
 template <typename T>
 void GRULayer<T>::setBVals(T** bVals)
 {
-    for(int i = 0; i < 2; ++i)
+    for(int k = 0; k < Layer<T>::out_size * 3; ++k)
     {
-        for(int k = 0; k < Layer<T>::out_size; ++k)
-        {
-            bVec_z(k, i) = bVals[i][k];
-            bVec_r(k, i) = bVals[i][k + Layer<T>::out_size];
-            bVec_c(k, i) = bVals[i][k + Layer<T>::out_size * 2];
-        }
+        wCombinedWeights(k, Layer<T>::in_size) = bVals[0][k];
+        uCombinedWeights(k, Layer<T>::out_size) = bVals[1][k];
     }
 }
 
 template <typename T>
 T GRULayer<T>::getWVal(int i, int k) const noexcept
 {
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> set = wVec_z;
-    if(k > 2 * Layer<T>::out_size)
-        set = wVec_c;
-    else if(k > Layer<T>::out_size)
-        set = wVec_r;
-
-    return set(k % Layer<T>::out_size, i);
+    return wCombinedWeights[k][i];
 }
 
 template <typename T>
 T GRULayer<T>::getUVal(int i, int k) const noexcept
 {
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> set = uVec_z;
-    if(k > 2 * Layer<T>::out_size)
-        set = uVec_c;
-    else if(k > Layer<T>::out_size)
-        set = uVec_r;
-
-    return set(k % Layer<T>::out_size, i);
+    return uCombinedWeights[k][i];
 }
 
 template <typename T>
 T GRULayer<T>::getBVal(int i, int k) const noexcept
 {
-    Eigen::Matrix<T, Eigen::Dynamic, 2> set = bVec_z;
-    if(k > 2 * Layer<T>::out_size)
-        set = bVec_c;
-    else if(k > Layer<T>::out_size)
-        set = bVec_r;
-
-    return set(k % Layer<T>::out_size, i);
+    T val;
+    if (i == 0)
+    {
+        val = wCombinedWeights[k][Layer<T>::in_size];
+    }
+    else
+    {
+        val = uCombinedWeights[k][Layer<T>::out_size];
+    }
+    return val;
 }
 
 //====================================================
@@ -171,18 +140,18 @@ template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode samp
 GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::GRULayerT()
     : outs(outs_internal)
 {
-    wVec_z = k_type::Zero();
-    wVec_r = k_type::Zero();
-    wVec_c = k_type::Zero();
 
-    uVec_z = r_type::Zero();
-    uVec_r = r_type::Zero();
-    uVec_c = r_type::Zero();
+    wCombinedWeights = w_k_type::Zero();
+    uCombinedWeights = u_k_type::Zero();
+    alphaVec = three_out_type::Zero();
+    betaVec = three_out_type::Zero();
+    gammaVec = two_out_type::Zero();
+    cVec = out_type::Zero();
+    extendedInVec = extended_in_type::Zero();
+    extendedHt1 = extended_out_type::Zero();
 
-    bVec_z = b_type::Zero();
-    bVec_r = b_type::Zero();
-    bVec_c0 = b_type::Zero();
-    bVec_c1 = b_type::Zero();
+    extendedInVec(in_sizet) = (T)1;
+    extendedHt1(out_sizet) = (T)1;
 
     reset();
 }
@@ -224,6 +193,10 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
 
     // reset output state
     outs = out_type::Zero();
+
+    // reset extended internal state
+    extendedHt1.setZero();
+    extendedHt1(out_sizet) = (T)1;
 }
 
 // kernel weights
@@ -232,11 +205,9 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vect
 {
     for(int i = 0; i < in_size; ++i)
     {
-        for(int k = 0; k < out_size; ++k)
+        for(int k = 0; k < out_size * 3; ++k)
         {
-            wVec_z(k, i) = wVals[i][k];
-            wVec_r(k, i) = wVals[i][k + out_size];
-            wVec_c(k, i) = wVals[i][k + out_size * 2];
+            wCombinedWeights(k, i) = wVals[i][k];
         }
     }
 }
@@ -247,11 +218,9 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vect
 {
     for(int i = 0; i < out_size; ++i)
     {
-        for(int k = 0; k < out_size; ++k)
+        for(int k = 0; k < out_size * 3; ++k)
         {
-            uVec_z(k, i) = uVals[i][k];
-            uVec_r(k, i) = uVals[i][k + out_size];
-            uVec_c(k, i) = uVals[i][k + out_size * 2];
+            uCombinedWeights(k, i) = uVals[i][k];
         }
     }
 }
@@ -260,12 +229,10 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vect
 template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
 void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
-    for(int k = 0; k < out_size; ++k)
+    for(int k = 0; k < out_size * 3; ++k)
     {
-        bVec_z(k) = bVals[0][k] + bVals[1][k];
-        bVec_r(k) = bVals[0][k + out_size] + bVals[1][k + out_size];
-        bVec_c0(k) = bVals[0][k + 2 * out_size];
-        bVec_c1(k) = bVals[1][k + 2 * out_size];
+        wCombinedWeights(k, in_sizet) = bVals[0][k];
+        uCombinedWeights(k, out_sizet) = bVals[1][k];
     }
 }
 
