@@ -9,8 +9,6 @@
 #include "dense_eigen.h"
 #elif RTNEURAL_USE_XSIMD
 #include "dense_xsimd.h"
-#elif RTNEURAL_USE_ACCELERATE
-#include "dense_accelerate.h"
 #else
 #include "../Layer.h"
 

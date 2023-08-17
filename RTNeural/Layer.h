@@ -4,15 +4,6 @@
 #include <cstddef>
 #include <string>
 
-#if RTNEURAL_USE_ACCELERATE
-// Dummy defines to make this include safe for JUCE and other libraries
-#define Point CarbonDummyPointName
-#define Component CarbonDummyCompName
-#include <Accelerate/Accelerate.h>
-#undef Point
-#undef Component
-#endif
-
 namespace RTNeural
 {
 

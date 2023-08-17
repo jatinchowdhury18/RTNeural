@@ -1,6 +1,5 @@
 add_library(RTNeural STATIC
     activation/activation.h
-    activation/activation_accelerate.h
     activation/activation_eigen.h
     activation/activation_xsimd.h
     Model.h
@@ -16,13 +15,10 @@ add_library(RTNeural STATIC
     conv2d/conv2d_eigen.h
     conv2d/conv2d_eigen.tpp
     dense/dense.h
-    dense/dense_accelerate.h
     dense/dense_eigen.h
     dense/dense_xsimd.h
     gru/gru.h
     gru/gru.tpp
-    gru/gru_accelerate.h
-    gru/gru_accelerate.tpp
     gru/gru_eigen.h
     gru/gru_eigen.tpp
     gru/gru_xsimd.h

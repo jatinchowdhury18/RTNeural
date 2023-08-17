@@ -61,7 +61,6 @@ int templatedTests(std::string arg)
     using namespace RTNeural;
     using TestType = double;
 
-#if MODELT_AVAILABLE
     int result = 0;
 
     if(arg == "dense")
@@ -135,8 +134,4 @@ int templatedTests(std::string arg)
     }
 
     return result;
-
-#else // @TODO
-    return 0;
-#endif // MODELT_AVAILABLE
 }

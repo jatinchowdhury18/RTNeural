@@ -9,9 +9,6 @@
 #elif RTNEURAL_USE_XSIMD
 #include "gru_xsimd.h"
 #include "gru_xsimd.tpp"
-#elif RTNEURAL_USE_ACCELERATE
-#include "gru_accelerate.h"
-#include "gru_accelerate.tpp"
 #else
 #include "../Layer.h"
 #include "../common.h"
