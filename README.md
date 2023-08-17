@@ -199,13 +199,6 @@ backends that are available on your target platform
 to ensure optimal performance. For more information see the
 [benchmark results](https://github.com/jatinchowdhury18/RTNeural/actions?query=workflow%3ABench).
 
-RTNeural also has experimental support for Apple's
-[`Accelerate`](https://developer.apple.com/documentation/accelerate) framework (`-DRTNEURAL_ACCELERATE=ON`).
-Please note that the `Accelerate` backend can only be
-used when compiling for Apple devices, and does not
-currently support defining [compile-time inferencing
-engines](#compile-time-api).
-
 Note that you must abide by the licensing rules of whichever backend library you choose.
 
 ### Other configuration flags
