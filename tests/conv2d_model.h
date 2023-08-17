@@ -140,7 +140,6 @@ int conv2d_test()
     std::cout << "SUCCESS NON TEMPLATED!" << std::endl
               << std::endl;
 
-#if MODELT_AVAILABLE
     // templated model
     std::vector<TestType> yDataT(num_frames * num_features_out, (TestType)0);
     {
@@ -183,7 +182,6 @@ int conv2d_test()
 
     std::cout << "SUCCESS TEMPLATED!" << std::endl;
 
-#endif // MODELT_AVAILABLE
 #endif // ! RTNEURAL_USE_AVX
     return 0;
 }

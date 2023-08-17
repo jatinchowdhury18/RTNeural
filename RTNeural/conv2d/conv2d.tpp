@@ -1,6 +1,6 @@
 #include "conv2d.h"
 
-#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
+#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 
 namespace RTNeural
 {

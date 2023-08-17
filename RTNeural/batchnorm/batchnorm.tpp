@@ -2,7 +2,7 @@
 
 namespace RTNeural
 {
-#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
+#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 
 template <typename T>
 BatchNorm1DLayer<T>::BatchNorm1DLayer(int size)

@@ -2,10 +2,6 @@
 
 #include "model_loader.h"
 
-#define MODELT_AVAILABLE (!RTNEURAL_USE_ACCELERATE)
-
-#if MODELT_AVAILABLE
-
 namespace RTNeural
 {
 
@@ -580,5 +576,3 @@ private:
 };
 #endif // RTNEURAL_USE_XSIMD
 } // namespace RTNeural
-
-#endif // MODELT_AVAILABLE

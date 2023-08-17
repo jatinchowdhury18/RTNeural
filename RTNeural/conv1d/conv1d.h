@@ -7,9 +7,6 @@
 #elif RTNEURAL_USE_XSIMD
 #include "conv1d_xsimd.h"
 #include "conv1d_xsimd.tpp"
-#elif RTNEURAL_USE_ACCELERATE
-#include "conv1d_accelerate.h"
-#include "conv1d_accelerate.tpp"
 #else
 #include "../Layer.h"
 #include "../common.h"
