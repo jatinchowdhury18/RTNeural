@@ -48,21 +48,19 @@ public:
          */
         fioctVecs.noalias() = combinedWeights * extendedInVecHt1;
 
-
         fioVecs = fioctVecs.segment(0, Layer<T>::out_size * 3);
         ctVec = fioctVecs.segment(Layer<T>::out_size * 3, Layer<T>::out_size)
-                    .array().tanh();
+                    .array()
+                    .tanh();
 
         sigmoid(fioVecs);
 
-        ct1 = fioVecs.segment(0, Layer<T>::out_size).cwiseProduct(ct1) +
-                fioVecs.segment(Layer<T>::out_size, Layer<T>::out_size)
-                .cwiseProduct(ctVec);
+        ct1 = fioVecs.segment(0, Layer<T>::out_size).cwiseProduct(ct1) + fioVecs.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(ctVec);
         cTanhVec = ct1.array().tanh();
 
         ht1 = fioVecs.segment(Layer<T>::out_size * 2, Layer<T>::out_size).cwiseProduct(cTanhVec);
 
-        for (int i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             h[i] = extendedInVecHt1(Layer<T>::in_size + i) = ht1(i);
         }
@@ -117,11 +115,11 @@ template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode samp
 class LSTMLayerT
 {
     using weights_combined_type = Eigen::Matrix<T, 4 * out_sizet, in_sizet + out_sizet + 1>;
-    using extended_in_out_type  = Eigen::Matrix<T, in_sizet + out_sizet + 1, 1>;
-    using four_out_type         = Eigen::Matrix<T, 4 * out_sizet, 1>;
-    using three_out_type        = Eigen::Matrix<T, 3 * out_sizet, 1>;
+    using extended_in_out_type = Eigen::Matrix<T, in_sizet + out_sizet + 1, 1>;
+    using four_out_type = Eigen::Matrix<T, 4 * out_sizet, 1>;
+    using three_out_type = Eigen::Matrix<T, 3 * out_sizet, 1>;
 
-    using in_type  = Eigen::Matrix<T, in_sizet, 1>;
+    using in_type = Eigen::Matrix<T, in_sizet, 1>;
     using out_type = Eigen::Matrix<T, out_sizet, 1>;
 
 public:
@@ -152,7 +150,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const in_type& ins) noexcept
     {
-        for (int i = 0; i < in_sizet; ++i)
+        for(int i = 0; i < in_sizet; ++i)
         {
             extendedInHt1Vec(i) = ins(i);
         }
@@ -203,7 +201,7 @@ private:
     {
         computeOutputsInternal(cVec, outs);
 
-        for (int i = 0; i < out_sizet; ++i)
+        for(int i = 0; i < out_sizet; ++i)
         {
             extendedInHt1Vec(in_sizet + i) = outs(i);
         }
@@ -218,7 +216,7 @@ private:
         processDelay(ct_delayed, cVec, delayWriteIdx);
         processDelay(outs_delayed, outs, delayWriteIdx);
 
-        for (int i = 0; i < out_sizet; ++i)
+        for(int i = 0; i < out_sizet; ++i)
         {
             extendedInHt1Vec(in_sizet + i) = outs(i);
         }
@@ -229,9 +227,9 @@ private:
     {
         cVecLocal.noalias()
             = fioVecs.segment(0, out_sizet)
-                .cwiseProduct(cVec)
+                  .cwiseProduct(cVec)
             + fioVecs.segment(out_sizet, out_sizet)
-                .cwiseProduct(ctVec);
+                  .cwiseProduct(ctVec);
 
         cTanhVec = cVecLocal.array().tanh();
         outsVec.noalias() = fioVecs.segment(out_sizet * 2, out_sizet).cwiseProduct(cTanhVec);
@@ -265,10 +263,10 @@ private:
 
     // kernel weights
     weights_combined_type combinedWeights;
-    extended_in_out_type  extendedInHt1Vec;
-    four_out_type         fioctsVecs;
-    three_out_type        fioVecs;
-    out_type              cTanhVec;
+    extended_in_out_type extendedInHt1Vec;
+    four_out_type fioctsVecs;
+    three_out_type fioVecs;
+    out_type cTanhVec;
 
     // intermediate values
     out_type ctVec;

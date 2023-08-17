@@ -39,7 +39,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* h) noexcept override
     {
-        for (int i = 0; i < Layer<T>::in_size; ++i)
+        for(int i = 0; i < Layer<T>::in_size; ++i)
         {
             extendedInVec(i) = input[i];
         }
@@ -60,17 +60,14 @@ public:
          * gamma = sigmoid( | z |   = sigmoid(alpha[0 : 2*out_sizet] + beta[0 : 2*out_sizet])
          *                  | r | )
          */
-        gammaVec.noalias() = alphaVec.segment(0, 2 * Layer<T>::out_size) +
-                             betaVec.segment(0, 2 * Layer<T>::out_size);
+        gammaVec.noalias() = alphaVec.segment(0, 2 * Layer<T>::out_size) + betaVec.segment(0, 2 * Layer<T>::out_size);
         sigmoid(gammaVec);
 
         /**
          * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
          * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
          */
-        cVec.noalias() = alphaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size) +
-                         gammaVec.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(
-                            betaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size));
+        cVec.noalias() = alphaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size) + gammaVec.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(betaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size));
         cVec = cVec.array().tanh();
 
         /**
@@ -78,11 +75,9 @@ public:
          *        = c - z.cwiseProduct(c) + z.cwiseProduct(ht(t-1))
          *        = c + z.cwiseProduct(h(t-1) - c)
          */
-        extendedHt1.segment(0, Layer<T>::out_size) =
-            cVec + gammaVec.segment(0, Layer<T>::out_size).cwiseProduct(
-            extendedHt1.segment(0, Layer<T>::out_size) - cVec);
+        extendedHt1.segment(0, Layer<T>::out_size) = cVec + gammaVec.segment(0, Layer<T>::out_size).cwiseProduct(extendedHt1.segment(0, Layer<T>::out_size) - cVec);
 
-        for (int i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
         {
             h[i] = extendedHt1(i);
         }
@@ -145,7 +140,6 @@ private:
     Eigen::Matrix<T, Eigen::Dynamic, 1> betaVec;
     Eigen::Matrix<T, Eigen::Dynamic, 1> gammaVec;
     Eigen::Matrix<T, Eigen::Dynamic, 1> cVec;
-
 };
 
 //====================================================
@@ -199,7 +193,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const in_type& ins) noexcept
     {
-        for (int i = 0; i < in_sizet; ++i)
+        for(int i = 0; i < in_sizet; ++i)
         {
             extendedInVec(i) = ins(i);
         }
@@ -220,16 +214,13 @@ public:
          * gamma = sigmoid( | z |   = sigmoid(alpha[0 : 2*out_sizet] + beta[0 : 2*out_sizet])
          *                  | r | )
          */
-        gammaVec = sigmoid(alphaVec.segment(0, 2 * out_sizet) +
-            betaVec.segment(0, 2 * out_sizet));
+        gammaVec = sigmoid(alphaVec.segment(0, 2 * out_sizet) + betaVec.segment(0, 2 * out_sizet));
 
         /**
          * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
          * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
          */
-        cVec.noalias() = alphaVec.segment(2 * out_sizet, out_sizet) +
-            gammaVec.segment(out_sizet, out_sizet).cwiseProduct(
-                betaVec.segment(2 * out_sizet, out_sizet));
+        cVec.noalias() = alphaVec.segment(2 * out_sizet, out_sizet) + gammaVec.segment(out_sizet, out_sizet).cwiseProduct(betaVec.segment(2 * out_sizet, out_sizet));
         cVec = cVec.array().tanh();
 
         /**
@@ -237,9 +228,7 @@ public:
          *        = c - z.cwiseProduct(c) + z.cwiseProduct(ht(t-1))
          *        = c + z.cwiseProduct(h(t-1) - c)
          */
-        extendedHt1.segment(0, out_sizet) =
-            cVec + gammaVec.segment(0, out_sizet).cwiseProduct(
-                extendedHt1.segment(0, out_sizet) - cVec);
+        extendedHt1.segment(0, out_sizet) = cVec + gammaVec.segment(0, out_sizet).cwiseProduct(extendedHt1.segment(0, out_sizet) - cVec);
 
         computeOutput();
     }
@@ -274,7 +263,7 @@ private:
     inline std::enable_if_t<srCorr == SampleRateCorrectionMode::None, void>
     computeOutput() noexcept
     {
-        for (int i = 0; i < out_sizet; ++i)
+        for(int i = 0; i < out_sizet; ++i)
         {
             outs(i) = extendedHt1(i);
         }
@@ -284,14 +273,14 @@ private:
     inline std::enable_if_t<srCorr != SampleRateCorrectionMode::None, void>
     computeOutput() noexcept
     {
-        for (int i = 0; i < out_sizet; ++i)
+        for(int i = 0; i < out_sizet; ++i)
         {
             outs_delayed[delayWriteIdx][i] = extendedHt1(i);
         }
 
         processDelay(outs_delayed, outs, delayWriteIdx);
 
-        for (int i = 0; i < out_sizet; ++i)
+        for(int i = 0; i < out_sizet; ++i)
         {
             extendedHt1(i) = outs(i);
         }

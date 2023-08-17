@@ -7,13 +7,13 @@ template <typename T>
 LSTMLayer<T>::LSTMLayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
 {
-    combinedWeights  = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(4 * out_size, in_size + out_size + 1);
+    combinedWeights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(4 * out_size, in_size + out_size + 1);
     extendedInVecHt1 = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(in_size + out_size + 1);
     extendedInVecHt1(in_size + out_size) = (T)1;
 
     fioctVecs = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(4 * out_size);
-    fioVecs   = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
-    ctVec     = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
+    fioVecs = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
+    ctVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
 
     cTanhVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(out_size, 1);
 
@@ -98,13 +98,13 @@ template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode samp
 LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::LSTMLayerT()
     : outs(outs_internal)
 {
-    combinedWeights  = weights_combined_type::Zero();
+    combinedWeights = weights_combined_type::Zero();
     extendedInHt1Vec = extended_in_out_type::Zero();
-    fioctsVecs       = four_out_type::Zero();
-    fioVecs          = three_out_type::Zero();
+    fioctsVecs = four_out_type::Zero();
+    fioVecs = three_out_type::Zero();
 
-    ctVec            = out_type::Zero();
-    cTanhVec         = out_type::Zero();
+    ctVec = out_type::Zero();
+    cTanhVec = out_type::Zero();
 
     reset();
 }

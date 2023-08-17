@@ -50,7 +50,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        for (int i = 0; i < Layer<T>::in_size; ++i)
+        for(int i = 0; i < Layer<T>::in_size; ++i)
             inVec(i, 0) = input[i];
 
         /**
@@ -59,7 +59,7 @@ public:
          */
         outVec.noalias() = weights * inVec;
 
-        for (int i = 0; i < Layer<T>::out_size; ++i)
+        for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = outVec(i, 0);
     }
 
@@ -149,7 +149,7 @@ public:
     /** Performs forward propagation for this layer. */
     inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
-        for (int i = 0; i < in_size; ++i)
+        for(int i = 0; i < in_size; ++i)
             ins_internal(i, 0) = ins(i, 0);
 
         /**
