@@ -11,15 +11,15 @@ GRULayer<T>::GRULayer(int in_size, int out_size)
 {
     wCombinedWeights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(3 * out_size, in_size + 1);
     uCombinedWeights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(3 * out_size, out_size + 1);
-    extendedInVec    = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(in_size + 1);
-    extendedHt1      = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size + 1);
+    extendedInVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(in_size + 1);
+    extendedHt1 = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size + 1);
     extendedInVec(Layer<T>::in_size) = (T)1;
     extendedHt1(Layer<T>::out_size) = (T)1;
 
     alphaVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
-    betaVec  = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
+    betaVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(3 * out_size);
     gammaVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(2 * out_size);
-    cVec     = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
+    cVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
 }
 
 template <typename T>
@@ -124,7 +124,7 @@ template <typename T>
 T GRULayer<T>::getBVal(int i, int k) const noexcept
 {
     T val;
-    if (i == 0)
+    if(i == 0)
     {
         val = wCombinedWeights[k][Layer<T>::in_size];
     }

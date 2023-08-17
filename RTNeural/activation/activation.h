@@ -43,9 +43,6 @@ private:
 #elif RTNEURAL_USE_XSIMD
 #include "activation_xsimd.h"
 
-#elif RTNEURAL_USE_ACCELERATE
-#include "activation_accelerate.h"
-
 #else
 #include "../common.h"
 #include <cmath>

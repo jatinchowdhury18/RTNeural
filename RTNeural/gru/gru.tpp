@@ -3,7 +3,7 @@
 namespace RTNeural
 {
 
-#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD && !RTNEURAL_USE_ACCELERATE
+#if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 template <typename T>
 GRULayer<T>::GRULayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
