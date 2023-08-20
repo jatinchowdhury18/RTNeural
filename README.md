@@ -69,8 +69,8 @@ libraries including Tensorflow or PyTorch. Once you
 have trained a neural network using one of these frameworks,
 you can "export" the network weights to a json file,
 so that `RTNeural` can read them. An implementation of
-the export process for a Tensorflow model is provided in
-`python/model_utils.py`, and can be used as follows.
+the export process for a "sequential" Tensorflow model is
+provided in `python/model_utils.py`, and can be used as follows.
 
 ```python
 # import dependencies
@@ -268,9 +268,10 @@ It may also be worth checking out the
 ## Contributing
 
 Contributions to this project are most welcome!
-Currently, there is considerable need for the
+Currently, there is a need for the
 following improvements:
 - Improved support for 2-dimensional input/output data.
+- Improved support for "stateless" Conv1D layers.
 - More robust support for exporting/loading models.
 - Support for more activation layers.
 - Any changes that improve overall performance.
@@ -286,10 +287,11 @@ backend.
 
 Please thank the following individuals for their important contributions:
 
-- [wayne-chen](https://github.com/wayne-chen): Softmax activation layer and general API improvements
-- [hollance](https://github.com/hollance): RTNeural logo
-- [stepanmk](https://github.com/stepanmk): Eigen Conv1D layer optimization
-- [DamRsn](https://github.com/DamRsn): Eigen implementations for Conv2D and BatchNorm2D layers
+- [wayne-chen](https://github.com/wayne-chen): Softmax activation layer and general API improvements.
+- [hollance](https://github.com/hollance): RTNeural logo.
+- [stepanmk](https://github.com/stepanmk): Eigen Conv1D layer optimization.
+- [DamRsn](https://github.com/DamRsn): Eigen implementations for Conv2D and BatchNorm2D layers.
+- [lHorvalds](https://github.com/IHorvalds): Eigen backend optimizations.
 
 ## Powered by RTNeural
 
