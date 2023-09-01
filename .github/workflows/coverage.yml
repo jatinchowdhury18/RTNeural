@@ -57,7 +57,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: ./build/rtneural_tests all
+        run: ctest --test-dir build --parallel
 
       - name: Collect Coverage Data
         shell: bash
