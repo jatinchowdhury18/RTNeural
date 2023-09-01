@@ -10,6 +10,8 @@ include(cmake/ChooseBackend.cmake)
 option(BUILD_TESTS "Build RTNeural accuracy tests" OFF)
 if(BUILD_TESTS)
     message(STATUS "RTNeural -- Configuring tests...")
+    include(CTest)
+    enable_testing()
     add_subdirectory(tests)
 endif()
 

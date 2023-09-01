@@ -22,7 +22,7 @@ int runModelTest(const std::string& modelFile, MultType sampleRateMult)
     static constexpr auto baseSampleRate = 48000.0;
 
     ModelType<RTNeural::SampleRateCorrectionMode::None> baseSampleRateModel;
-    std::ifstream jsonStream1("models/" + modelFile, std::ifstream::binary);
+    std::ifstream jsonStream1(std::string { RTNEURAL_ROOT_DIR } + "models/" + modelFile, std::ifstream::binary);
     baseSampleRateModel.parseJson(jsonStream1);
     baseSampleRateModel.reset();
     auto baseSampleRateSignal = getSampleRateVector(baseSampleRate);
@@ -30,7 +30,7 @@ int runModelTest(const std::string& modelFile, MultType sampleRateMult)
         sample = baseSampleRateModel.forward(&sample);
 
     ModelType<mode> testSampleRateModel;
-    std::ifstream jsonStream2("models/" + modelFile, std::ifstream::binary);
+    std::ifstream jsonStream2(std::string { RTNEURAL_ROOT_DIR } + "models/" + modelFile, std::ifstream::binary);
     testSampleRateModel.parseJson(jsonStream2);
     testSampleRateModel.reset();
     testSampleRateModel.template get<RLayerIdx>().prepare(sampleRateMult);

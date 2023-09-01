@@ -23,8 +23,8 @@ int model_test()
 {
     std::cout << "TESTING FULL MODEL..." << std::endl;
 
-    const std::string model_file = "models/full_model.json";
-    const std::string data_file = "test_data/dense_x_python.csv";
+    const std::string model_file = std::string { RTNEURAL_ROOT_DIR } + "models/full_model.json";
+    const std::string data_file = std::string { RTNEURAL_ROOT_DIR } + "test_data/dense_x_python.csv";
     constexpr double threshold = 1.0e-12;
 
     std::ifstream pythonX(data_file);

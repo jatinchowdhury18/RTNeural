@@ -83,7 +83,7 @@ jobs:
 
     - name: Build
       shell: bash
-      run: cmake --build build --config Release --parallel
+      run: ctest -C Release --test-dir build --parallel
 
     - name: Test
       shell: bash

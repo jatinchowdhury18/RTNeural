@@ -1,7 +1,7 @@
 #pragma once
 
-#include "load_csv.hpp"
 #include "RTNeural/RTNeural.h"
+#include "load_csv.hpp"
 
 namespace torch_lstm_test
 {
@@ -16,23 +16,24 @@ int testTorchLSTMModel()
         jsonStream >> modelJson;
 
         auto& lstm = model.template get<0>();
-        RTNeural::torch_helpers::loadLSTM<T> (modelJson, "lstm.", lstm);
+        RTNeural::torch_helpers::loadLSTM<T>(modelJson, "lstm.", lstm);
 
         auto& dense = model.template get<1>();
-        RTNeural::torch_helpers::loadDense<T> (modelJson, "dense.", dense);
+        RTNeural::torch_helpers::loadDense<T>(modelJson, "dense.", dense);
     };
 
-    if (std::is_same<T, float>::value)
+    if(std::is_same<T, float>::value)
         std::cout << "TESTING TORCH/LSTM MODEL WITH DATA TYPE: FLOAT" << std::endl;
     else
         std::cout << "TESTING TORCH/LSTM MODEL WITH DATA TYPE: DOUBLE" << std::endl;
-    std::ifstream jsonStream("models/lstm_torch.json", std::ifstream::binary);
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/lstm_torch.json";
+    std::ifstream jsonStream(model_file, std::ifstream::binary);
 
     ModelType model;
     loadModel(jsonStream, model);
     model.reset();
 
-    std::ifstream modelInputsFile { "test_data/lstm_torch_x_python.csv" };
+    std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/lstm_torch_x_python.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
     std::vector<T> outputs {};
     outputs.resize(inputs.size(), {});
@@ -42,7 +43,7 @@ int testTorchLSTMModel()
         outputs[i] = model.forward(&inputs[i]);
     }
 
-    std::ifstream modelOutputsFile { "test_data/lstm_torch_y_python.csv" };
+    std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/lstm_torch_y_python.csv" };
     const auto expected_y = load_csv::loadFile<T>(modelOutputsFile);
 
     size_t nErrs = 0;
@@ -50,7 +51,7 @@ int testTorchLSTMModel()
     for(size_t n = 0; n < inputs.size(); ++n)
     {
         auto err = std::abs(outputs[n] - expected_y[n]);
-        if(err > (T) 1.0e-6)
+        if(err > (T)1.0e-6)
         {
             max_error = std::max(err, max_error);
             nErrs++;
