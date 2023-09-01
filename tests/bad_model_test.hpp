@@ -14,7 +14,8 @@ int badModelTest()
         RTNeural::LSTMLayerT<float, 1, 16>,
         RTNeural::DenseT<float, 16, 1>> lstm_16;
 
-    std::ifstream jsonStream1("models/bad_lstm.json", std::ifstream::binary);
+    const auto file_path = std::string { RTNEURAL_ROOT_DIR } + "models/bad_lstm.json";
+    std::ifstream jsonStream1(file_path, std::ifstream::binary);
 
     try
     {

@@ -36,14 +36,14 @@ int runTest(const TestConfig& test)
 {
     std::cout << "TESTING " << test.name << " IMPLEMENTATION..." << std::endl;
 
-    std::ifstream jsonStream(test.model_file, std::ifstream::binary);
+    std::ifstream jsonStream(std::string { RTNEURAL_ROOT_DIR } + test.model_file, std::ifstream::binary);
     auto model = RTNeural::json_parser::parseJson<T>(jsonStream, true);
     model->reset();
 
-    std::ifstream pythonX(test.x_data_file);
+    std::ifstream pythonX(std::string { RTNEURAL_ROOT_DIR } + test.x_data_file);
     auto xData = load_csv::loadFile<T>(pythonX);
 
-    std::ifstream pythonY(test.y_data_file);
+    std::ifstream pythonY(std::string { RTNEURAL_ROOT_DIR } + test.y_data_file);
     const auto yRefData = load_csv::loadFile<T>(pythonY);
 
     std::vector<T> yData(xData.size(), (T)0);

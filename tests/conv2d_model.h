@@ -66,9 +66,9 @@ int conv2d_test()
 #else
     std::cout << "TESTING CONV2D MODEL..." << std::endl;
 
-    const std::string model_file = "models/conv2d.json";
-    const std::string data_file = "test_data/conv2d_x_python.csv";
-    const std::string data_file_y = "test_data/conv2d_y_python.csv";
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv2d.json";
+    const auto data_file = std::string { RTNEURAL_ROOT_DIR } + "test_data/conv2d_x_python.csv";
+    const auto data_file_y = std::string { RTNEURAL_ROOT_DIR } + "test_data/conv2d_y_python.csv";
 
     constexpr double threshold = 1.0e-6;
 

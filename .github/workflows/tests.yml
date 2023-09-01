@@ -87,4 +87,4 @@ jobs:
 
     - name: Test
       shell: bash
-      run: ./build/rtneural_tests all
+      run: ctest -C Release --test-dir build --parallel

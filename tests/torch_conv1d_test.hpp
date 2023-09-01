@@ -42,7 +42,8 @@ int testTorchConv1DModel()
         std::cout << "TESTING TORCH/CONV1D MODEL WITH DATA TYPE: FLOAT" << std::endl;
     else
         std::cout << "TESTING TORCH/CONV1D MODEL WITH DATA TYPE: DOUBLE" << std::endl;
-    std::ifstream jsonStream("models/conv1d_torch.json", std::ifstream::binary);
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch.json";
+    std::ifstream jsonStream(model_file, std::ifstream::binary);
     nlohmann::json modelJson;
     jsonStream >> modelJson;
 
@@ -50,7 +51,7 @@ int testTorchConv1DModel()
     RTNeural::torch_helpers::loadConv1D<T> (modelJson, "", model.template get<0>());
     model.reset();
 
-    std::ifstream modelInputsFile { "test_data/conv1d_torch_x_python.csv" };
+    std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_x_python.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
     std::vector<std::array<T, 12>> outputs {};
     outputs.resize(inputs.size(), {});
@@ -61,7 +62,7 @@ int testTorchConv1DModel()
         std::copy(model.getOutputs(), model.getOutputs() + 12, outputs[i].begin());
     }
 
-    std::ifstream modelOutputsFile { "test_data/conv1d_torch_y_python.csv" };
+    std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_y_python.csv" };
     const auto expected_y = loadFile2D<T> (modelOutputsFile);
 
     size_t nErrs = 0;
