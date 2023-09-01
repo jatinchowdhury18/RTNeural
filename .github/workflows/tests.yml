@@ -83,8 +83,8 @@ jobs:
 
     - name: Build
       shell: bash
-      run: ctest -C Release --test-dir build --parallel
+      run: cmake --build build --config Release --parallel
 
     - name: Test
       shell: bash
-      run: ./build/rtneural_tests all
+      run: ctest -C Release --test-dir build --parallel
