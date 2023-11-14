@@ -1,4 +1,3 @@
-#include "approx_tests.hpp"
 #include "bad_model_test.hpp"
 #include "conv2d_model.h"
 #include "load_csv.hpp"
@@ -22,7 +21,6 @@ void help()
     std::cout << "    all" << std::endl;
     std::cout << "    util" << std::endl;
     std::cout << "    model" << std::endl;
-    std::cout << "    approx" << std::endl;
     std::cout << "    sample_rate_rnn" << std::endl;
     std::cout << "    bad_model" << std::endl;
     std::cout << "    torch" << std::endl;
@@ -108,7 +106,6 @@ int main(int argc, char* argv[])
 
         int result = 0;
         result |= model_test::model_test();
-        result |= approximationTests();
         result |= sampleRateRNNTest();
         result |= conv2d_test();
         result |= torchGRUTest();
@@ -138,11 +135,6 @@ int main(int argc, char* argv[])
     if(arg == "model")
     {
         return model_test::model_test();
-    }
-
-    if(arg == "approx")
-    {
-        return approximationTests();
     }
 
     if(arg == "sample_rate_rnn")

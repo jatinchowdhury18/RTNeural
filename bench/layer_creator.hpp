@@ -164,11 +164,6 @@ create_layer(const std::string &layer_type, size_t in_size, size_t out_size) {
     return std::move(layer);
   }
 
-  if (layer_type == "fast_tanh") {
-    auto layer = std::make_unique<RTNeural::FastTanh<double>>(in_size);
-    return std::move(layer);
-  }
-
   if (layer_type == "relu") {
     auto layer = std::make_unique<RTNeural::ReLuActivation<double>>(in_size);
     return std::move(layer);

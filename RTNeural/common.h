@@ -29,19 +29,6 @@ constexpr T ceil_div(T num, T den)
 {
     return (num + den - 1) / den;
 }
-
-/** Pade approximation of std::tanh() */
-template <typename T>
-static inline T tanh_approx(T x) noexcept
-{
-    constexpr auto clamp = (T)5.7;
-    x = x > clamp ? clamp : (x < -clamp ? -clamp : x); // clamp to range [-clamp, clamp]
-
-    auto x2 = x * x;
-    auto numerator = x * ((T)2027025 + x2 * ((T)270270 + x2 * ((T)6930 + (T)36 * x2)));
-    auto denominator = (T)2027025 + x2 * ((T)945945 + x2 * ((T)51975 + x2 * ((T)630 + x2)));
-    return numerator / denominator;
-}
 } // namespace RTNeural
 
 #if RTNEURAL_USE_EIGEN
@@ -329,36 +316,11 @@ static inline void fast_tanh(const T* in, T* out, int dim) noexcept
 
 namespace RTNeural
 {
-
 template <typename T>
 static inline T vMult(const T* arg1, const T* arg2, int dim) noexcept
 {
     return std::inner_product(arg1, arg1 + dim, arg2, (T)0);
 }
-
-template <typename T>
-static inline T sigmoid(T value) noexcept
-{
-    return (T)1 / ((T)1 + std::exp(-value));
-}
-
-template <typename T>
-static inline void softmax(const T* input, T* out, int size) noexcept
-{
-    T exp_sum = 0;
-    for(int i = 0; i < size; ++i)
-    {
-        out[i] = std::exp(input[i]);
-        exp_sum += out[i];
-    }
-
-    const auto exp_sum_recip = (T)1 / exp_sum;
-    for(int i = 0; i < size; ++i)
-    {
-        out[i] *= exp_sum_recip;
-    }
-}
-
 } // namespace RTNeural
 
 #endif
