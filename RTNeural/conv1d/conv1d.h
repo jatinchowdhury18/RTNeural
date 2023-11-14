@@ -138,10 +138,13 @@ private:
  * @param kernel_size: the size of the convolution kernel
  * @param dilation_rate: the dilation rate to use for dilated convolution
  * @param dynamic_state: use dynamically allocated layer state
+ * @param groups_of: controls connections between inputs and outputs
  */
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state = false>
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, int groups_of = 1, bool dynamic_state = false>
 class Conv1DT
 {
+    static_assert((in_sizet % groups_of == 0) && (out_sizet % groups_of == 0), "in_sizet and out_sizet must be divisible by groups_of!");
+
     static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
 
 public:
