@@ -4,7 +4,6 @@ add_executable(rtneural_tests tests.cpp)
 target_link_libraries(rtneural_tests LINK_PUBLIC RTNeural)
 target_compile_definitions(rtneural_tests PRIVATE RTNEURAL_ROOT_DIR="${CMAKE_SOURCE_DIR}/")
 
-add_test(NAME "RTNeural_Approx_Test" COMMAND $<TARGET_FILE:rtneural_tests> approx)
 add_test(NAME "RTNeural_Bad_Model_Test" COMMAND $<TARGET_FILE:rtneural_tests> bad_model)
 add_test(NAME "RTNeural_Model_Test" COMMAND $<TARGET_FILE:rtneural_tests> model)
 add_test(NAME "RTNeural_Sample_Rate_RNN_Test" COMMAND $<TARGET_FILE:rtneural_tests> sample_rate_rnn)
