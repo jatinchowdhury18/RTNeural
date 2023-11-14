@@ -59,9 +59,9 @@ public:
     /** Constructs a tanh activation layer for a given size. */
     explicit TanhActivation(int size)
         : Activation<T>(
-              size, [](T x)
-              { return MathsProvider::tanh(x); },
-              "tanh")
+            size, [](T x)
+            { return MathsProvider::tanh(x); },
+            "tanh")
     {
     }
 
@@ -114,9 +114,9 @@ public:
     /** Constructs a ReLU activation layer for a given size. */
     explicit ReLuActivation(int size)
         : Activation<T>(
-              size, [](T x)
-              { return std::max((T)0, x); },
-              "relu")
+            size, [](T x)
+            { return std::max((T)0, x); },
+            "relu")
     {
     }
 
@@ -162,9 +162,9 @@ public:
     /** Constructs a sigmoid activation layer for a given size. */
     explicit SigmoidActivation(int size)
         : Activation<T>(
-              size, [](T x)
-              { return MathsProvider::sigmoid(x); },
-              "sigmoid")
+            size, [](T x)
+            { return MathsProvider::sigmoid(x); },
+            "sigmoid")
     {
     }
 
@@ -210,9 +210,9 @@ public:
     /** Constructs a softmax activation layer for a given size. */
     explicit SoftmaxActivation(int size)
         : Activation<T>(
-              size, [](T x)
-              { return (T)0; },
-              "softmax")
+            size, [](T x)
+            { return (T)0; },
+            "softmax")
     {
     }
 
@@ -285,9 +285,9 @@ public:
     /** Constructs a softmax activation layer for a given size. */
     explicit ELuActivation(int size)
         : Activation<T>(
-              size, [this](T x)
-              { return x > (T)0 ? x : (alpha * (MathsProvider::exp(x) - (T)1)); },
-              "elu")
+            size, [this](T x)
+            { return x > (T)0 ? x : (alpha * (MathsProvider::exp(x) - (T)1)); },
+            "elu")
     {
     }
 
