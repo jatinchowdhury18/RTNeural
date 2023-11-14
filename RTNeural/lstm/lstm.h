@@ -10,6 +10,7 @@
 #else
 #include "../Layer.h"
 #include "../common.h"
+#include "../maths/maths_stl.h"
 #include <vector>
 
 namespace RTNeural
