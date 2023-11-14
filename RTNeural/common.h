@@ -29,19 +29,6 @@ constexpr T ceil_div(T num, T den)
 {
     return (num + den - 1) / den;
 }
-
-/** Pade approximation of std::tanh() */
-template <typename T>
-static inline T tanh_approx(T x) noexcept
-{
-    constexpr auto clamp = (T)5.7;
-    x = x > clamp ? clamp : (x < -clamp ? -clamp : x); // clamp to range [-clamp, clamp]
-
-    auto x2 = x * x;
-    auto numerator = x * ((T)2027025 + x2 * ((T)270270 + x2 * ((T)6930 + (T)36 * x2)));
-    auto denominator = (T)2027025 + x2 * ((T)945945 + x2 * ((T)51975 + x2 * ((T)630 + x2)));
-    return numerator / denominator;
-}
 } // namespace RTNeural
 
 #if RTNEURAL_USE_EIGEN
@@ -175,7 +162,7 @@ static inline void vCopy(const T* in, T* out, int dim) noexcept
         out[i] = in[i];
 }
 
-template <typename T>
+template <typename T, typename MathsProvider>
 static inline void sigmoid(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
@@ -186,16 +173,16 @@ static inline void sigmoid(const T* in, T* out, int dim) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = (T)1.0 / ((T)1.0 + xsimd::exp(-x_vec));
+        b_type y_vec = MathsProvider::sigmoid(x_vec);
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = 1.0 / (1.0 + std::exp(-in[i]));
+        out[i] = MathsProvider::sigmoid(in[i]);
 }
 
-template <typename T>
+template <typename T, typename MathsProvider>
 static inline void softmax(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
@@ -208,7 +195,7 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = xsimd::exp(x_vec);
+        b_type y_vec = MathsProvider::exp(x_vec);
         exp_sum_vec += y_vec;
         xsimd::store_aligned(&out[i], y_vec);
     }
@@ -218,7 +205,7 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
     {
-        out[i] = std::exp(in[i]);
+        out[i] = MathsProvider::exp(in[i]);
         exp_sum += out[i];
     }
 
@@ -237,7 +224,7 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
     }
 }
 
-template <typename T>
+template <typename T, typename MathsProvider>
 static inline void tanh(const T* in, T* out, int dim) noexcept
 {
     using b_type = xsimd::simd_type<T>;
@@ -248,16 +235,16 @@ static inline void tanh(const T* in, T* out, int dim) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = xsimd::tanh(x_vec);
+        b_type y_vec = MathsProvider::tanh(x_vec);
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = std::tanh(in[i]);
+        out[i] = MathsProvider::tanh(in[i]);
 }
 
-template <typename T>
+template <typename T, typename MathsProvider>
 static inline void elu(const T* in, T* out, int dim, T alpha) noexcept
 {
     using b_type = xsimd::simd_type<T>;
@@ -268,58 +255,14 @@ static inline void elu(const T* in, T* out, int dim, T alpha) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = xsimd::select(x_vec > (T)0, x_vec, alpha * (xsimd::exp(x_vec) - (T)1));
+        b_type y_vec = xsimd::select(x_vec > (T)0, x_vec, alpha * (MathsProvider::exp(x_vec) - (T)1));
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorized
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = in[i] > (T)0 ? in[i] : (alpha * (std::exp(in[i]) - (T)1));
+        out[i] = in[i] > (T)0 ? in[i] : (alpha * (MathsProvider::exp(in[i]) - (T)1));
 }
-
-template <typename T>
-static inline xsimd::simd_type<T> fast_tanh(const xsimd::simd_type<T>& x) noexcept
-{
-    using b_type = xsimd::simd_type<T>;
-
-    static const b_type clamp_hi((T)5.7);
-    static const b_type clamp_lo((T)-5.7);
-    auto xc = xsimd::clip(x, clamp_lo, clamp_hi); // clamp to range [-clamp, clamp]
-
-    static const b_type v2027025((T)2027025);
-    static const b_type v270270((T)270270);
-    static const b_type v6930((T)6930);
-    static const b_type v36((T)36);
-    static const b_type v945945((T)945945);
-    static const b_type v51975((T)51975);
-    static const b_type v630((T)630);
-
-    auto x2 = xc * xc;
-    auto numerator = xc * (v2027025 + x2 * (v270270 + x2 * (v6930 + v36 * x2)));
-    auto denominator = v2027025 + x2 * (v945945 + x2 * (v51975 + x2 * (v630 + x2)));
-    return numerator / denominator;
-}
-
-template <typename T>
-static inline void fast_tanh(const T* in, T* out, int dim) noexcept
-{
-    using b_type = xsimd::simd_type<T>;
-    constexpr auto inc = (int)b_type::size;
-
-    // size for which the vectorization is possible
-    auto vec_size = dim - dim % inc;
-    for(int i = 0; i < vec_size; i += inc)
-    {
-        b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = fast_tanh<T>(x_vec);
-        xsimd::store_aligned(&out[i], y_vec);
-    }
-
-    // Remaining part that cannot be vectorize
-    for(auto i = vec_size; i < dim; ++i)
-        out[i] = tanh_approx(in[i]);
-}
-
 } // namespace RTNeural
 
 #else // STL backend
@@ -329,36 +272,11 @@ static inline void fast_tanh(const T* in, T* out, int dim) noexcept
 
 namespace RTNeural
 {
-
 template <typename T>
 static inline T vMult(const T* arg1, const T* arg2, int dim) noexcept
 {
     return std::inner_product(arg1, arg1 + dim, arg2, (T)0);
 }
-
-template <typename T>
-static inline T sigmoid(T value) noexcept
-{
-    return (T)1 / ((T)1 + std::exp(-value));
-}
-
-template <typename T>
-static inline void softmax(const T* input, T* out, int size) noexcept
-{
-    T exp_sum = 0;
-    for(int i = 0; i < size; ++i)
-    {
-        out[i] = std::exp(input[i]);
-        exp_sum += out[i];
-    }
-
-    const auto exp_sum_recip = (T)1 / exp_sum;
-    for(int i = 0; i < size; ++i)
-    {
-        out[i] *= exp_sum_recip;
-    }
-}
-
 } // namespace RTNeural
 
 #endif

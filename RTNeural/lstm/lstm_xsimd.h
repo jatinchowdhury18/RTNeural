@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../common.h"
+#include "../maths/maths_xsimd.h"
 #include <vector>
 
 namespace RTNeural
@@ -16,7 +17,7 @@ namespace RTNeural
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class LSTMLayer : public Layer<T>
 {
 public:
@@ -45,22 +46,22 @@ public:
         }
 
         vAdd(fVec.data(), fWeights.b.data(), fVec.data(), Layer<T>::out_size);
-        sigmoid(fVec.data(), fVec.data(), Layer<T>::out_size);
+        sigmoid<T, MathsProvider>(fVec.data(), fVec.data(), Layer<T>::out_size);
 
         vAdd(iVec.data(), iWeights.b.data(), iVec.data(), Layer<T>::out_size);
-        sigmoid(iVec.data(), iVec.data(), Layer<T>::out_size);
+        sigmoid<T, MathsProvider>(iVec.data(), iVec.data(), Layer<T>::out_size);
 
         vAdd(oVec.data(), oWeights.b.data(), oVec.data(), Layer<T>::out_size);
-        sigmoid(oVec.data(), oVec.data(), Layer<T>::out_size);
+        sigmoid<T, MathsProvider>(oVec.data(), oVec.data(), Layer<T>::out_size);
 
         vAdd(ctVec.data(), cWeights.b.data(), ctVec.data(), Layer<T>::out_size);
-        tanh(ctVec.data(), ctVec.data(), Layer<T>::out_size);
+        tanh<T, MathsProvider>(ctVec.data(), ctVec.data(), Layer<T>::out_size);
 
         vProd(fVec.data(), ct1.data(), cVec.data(), Layer<T>::out_size);
         vProd(iVec.data(), ctVec.data(), prod_out.data(), Layer<T>::out_size);
         vAdd(cVec.data(), prod_out.data(), cVec.data(), Layer<T>::out_size);
 
-        tanh(cVec.data(), h, Layer<T>::out_size);
+        tanh<T, MathsProvider>(cVec.data(), h, Layer<T>::out_size);
         vProd(h, oVec.data(), h, Layer<T>::out_size);
 
         vCopy(cVec.data(), ct1.data(), Layer<T>::out_size);
@@ -130,7 +131,9 @@ protected:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
+template <typename T, int in_sizet, int out_sizet,
+    SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None,
+    typename MathsProvider = DefaultMathsProvider>
 class LSTMLayerT
 {
     using v_type = xsimd::simd_type<T>;
@@ -172,19 +175,19 @@ public:
         recurrent_mat_mul(outs, Uf, ft);
         kernel_mat_mul(ins, Wf, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ft[i] = sigmoid(ft[i] + bf[i] + kernel_outs[i]);
+            ft[i] = MathsProvider::sigmoid(ft[i] + bf[i] + kernel_outs[i]);
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
         kernel_mat_mul(ins, Wi, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            it[i] = sigmoid(it[i] + bi[i] + kernel_outs[i]);
+            it[i] = MathsProvider::sigmoid(it[i] + bi[i] + kernel_outs[i]);
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
         kernel_mat_mul(ins, Wo, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ot[i] = sigmoid(ot[i] + bo[i] + kernel_outs[i]);
+            ot[i] = MathsProvider::sigmoid(ot[i] + bo[i] + kernel_outs[i]);
 
         computeOutputs(ins);
     }
@@ -197,17 +200,17 @@ public:
         // compute ft
         recurrent_mat_mul(outs, Uf, ft);
         for(int i = 0; i < v_out_size; ++i)
-            ft[i] = sigmoid(xsimd::fma(Wf_1[i], ins[0], ft[i] + bf[i]));
+            ft[i] = MathsProvider::sigmoid(xsimd::fma(Wf_1[i], ins[0], ft[i] + bf[i]));
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
         for(int i = 0; i < v_out_size; ++i)
-            it[i] = sigmoid(xsimd::fma(Wi_1[i], ins[0], it[i] + bi[i]));
+            it[i] = MathsProvider::sigmoid(xsimd::fma(Wi_1[i], ins[0], it[i] + bi[i]));
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
         for(int i = 0; i < v_out_size; ++i)
-            ot[i] = sigmoid(xsimd::fma(Wo_1[i], ins[0], ot[i] + bo[i]));
+            ot[i] = MathsProvider::sigmoid(xsimd::fma(Wo_1[i], ins[0], ot[i] + bo[i]));
 
         computeOutputs(ins);
     }
@@ -261,11 +264,11 @@ private:
         recurrent_mat_mul(outs, Uc, ht);
         kernel_mat_mul(ins, Wc, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ctVec[i] = xsimd::fma(it[i], xsimd::tanh(ht[i] + bc[i] + kernel_outs[i]), ft[i] * ct[i]);
+            ctVec[i] = xsimd::fma(it[i], MathsProvider::tanh(ht[i] + bc[i] + kernel_outs[i]), ft[i] * ct[i]);
 
         // compute output
         for(int i = 0; i < v_out_size; ++i)
-            outsVec[i] = ot[i] * xsimd::tanh(ctVec[i]);
+            outsVec[i] = ot[i] * MathsProvider::tanh(ctVec[i]);
     }
 
     template <typename VecType, int N = in_size>
@@ -275,11 +278,11 @@ private:
         // compute ct
         recurrent_mat_mul(outs, Uc, ht);
         for(int i = 0; i < v_out_size; ++i)
-            ctVec[i] = xsimd::fma(it[i], xsimd::tanh(xsimd::fma(Wc_1[i], ins[0], ht[i] + bc[i])), ft[i] * ct[i]);
+            ctVec[i] = xsimd::fma(it[i], MathsProvider::tanh(xsimd::fma(Wc_1[i], ins[0], ht[i] + bc[i])), ft[i] * ct[i]);
 
         // compute output
         for(int i = 0; i < v_out_size; ++i)
-            outsVec[i] = ot[i] * xsimd::tanh(ctVec[i]);
+            outsVec[i] = ot[i] * MathsProvider::tanh(ctVec[i]);
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>
