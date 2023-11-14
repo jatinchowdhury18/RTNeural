@@ -27,8 +27,13 @@ public:
     /** Performs forward propagation for gated activation. */
     inline void forward(const T (&ins)[in_size]) noexcept
     {
+        const auto sigmoid = [] (T x)
+        {
+            return (T) 1 / ((T) 1 + std::exp (-x));
+        };
+
         for(int i = 0; i < out_size; ++i)
-            outs[i] = std::tanh(ins[i]) * RTNeural::sigmoid(ins[i + out_size]);
+            outs[i] = std::tanh(ins[i]) * sigmoid(ins[i + out_size]);
     }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
