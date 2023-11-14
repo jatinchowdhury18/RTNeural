@@ -2,12 +2,13 @@
 #define ACTIVATIONXSIMD_H_INCLUDED
 
 #include "../common.h"
+#include "../maths/maths_xsimd.h"
 
 namespace RTNeural
 {
 
 /** Dynamic implementation of a tanh activation layer. */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class TanhActivation : public Activation<T>
 {
 public:
@@ -25,12 +26,12 @@ public:
     /** Performs forward propagation for tanh activation. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        tanh(input, out, Layer<T>::in_size);
+        tanh<T, MathsProvider>(input, out, Layer<T>::in_size);
     }
 };
 
 /** Static implementation of a tanh activation layer. */
-template <typename T, int size>
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
 class TanhActivationT
 {
     using v_type = xsimd::simd_type<T>;
@@ -59,66 +60,7 @@ public:
     inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::tanh(ins[i]);
-    }
-
-    v_type outs[v_io_size];
-};
-
-/** Dynamic implementation of an approximate tanh activation layer. */
-template <typename T>
-class FastTanh : public Activation<T>
-{
-public:
-    /** Constructs a tanh activation layer for a given size. */
-    explicit FastTanh(int size)
-        : Activation<T>(size, {}, "tanh")
-    {
-    }
-
-    FastTanh(std::initializer_list<int> sizes)
-        : FastTanh(*sizes.begin())
-    {
-    }
-
-    /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) noexcept override
-    {
-        fast_tanh(input, out, Layer<T>::in_size);
-    }
-};
-
-/** Static implementation of an approximate tanh activation layer. */
-template <typename T, int size>
-class FastTanhT
-{
-    using v_type = xsimd::simd_type<T>;
-    static constexpr auto v_size = (int)v_type::size;
-    static constexpr auto v_io_size = ceil_div(size, v_size);
-
-public:
-    static constexpr auto in_size = size;
-    static constexpr auto out_size = size;
-
-    FastTanhT()
-    {
-        for(int i = 0; i < v_io_size; ++i)
-            outs[i] = v_type((T)0);
-    }
-
-    /** Returns the name of this layer. */
-    std::string getName() const noexcept { return "tanh"; }
-
-    /** Returns true since this layer is an activation layer. */
-    constexpr bool isActivation() const noexcept { return true; }
-
-    void reset() { }
-
-    /** Performs forward propagation for tanh activation. */
-    inline void forward(const v_type (&ins)[v_io_size]) noexcept
-    {
-        for(int i = 0; i < v_io_size; ++i)
-            outs[i] = fast_tanh<T>(ins[i]);
+            outs[i] = MathsProvider::tanh(ins[i]);
     }
 
     v_type outs[v_io_size];
@@ -190,7 +132,7 @@ public:
 };
 
 /** Dynamic implementation of a sigmoid activation layer. */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class SigmoidActivation : public Activation<T>
 {
 public:
@@ -208,12 +150,12 @@ public:
     /** Performs forward propagation for sigmoid activation. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        sigmoid(input, out, Layer<T>::in_size);
+        sigmoid<T, MathsProvider>(input, out, Layer<T>::in_size);
     }
 };
 
 /** Static implementation of a sigmoid activation layer. */
-template <typename T, int size>
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
 class SigmoidActivationT
 {
     using v_type = xsimd::simd_type<T>;
@@ -242,14 +184,14 @@ public:
     inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = (T)1.0 / ((T)1.0 + xsimd::exp(-ins[i]));
+            outs[i] = MathsProvider::sigmoid(ins[i]);
     }
 
     v_type outs[v_io_size];
 };
 
 /** Dynamic implementation of a softmax activation layer. */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class SoftmaxActivation : public Activation<T>
 {
 public:
@@ -267,12 +209,12 @@ public:
     /** Performs forward propagation for softmax activation. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        softmax(input, out, Layer<T>::in_size);
+        softmax<T, MathsProvider>(input, out, Layer<T>::in_size);
     }
 };
 
 /** Static implementation of a softmax activation layer. */
-template <typename T, int size>
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
 class SoftmaxActivationT
 {
     using v_type = xsimd::simd_type<T>;
@@ -303,7 +245,7 @@ public:
         v_type exp_sum {};
         for(int i = 0; i < v_io_size; ++i)
         {
-            outs[i] = xsimd::exp(ins[i]);
+            outs[i] = MathsProvider::exp(ins[i]);
             exp_sum += outs[i];
         }
 
@@ -316,7 +258,7 @@ public:
 };
 
 /** Dynamic implementation of a elu activation layer. */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class ELuActivation final : public Activation<T>
 {
 public:
@@ -334,7 +276,7 @@ public:
     /** Performs forward propagation for softmax activation. */
     inline void forward(const T* input, T* out) noexcept override
     {
-        elu(input, out, Layer<T>::in_size, alpha);
+        elu<T, MathsProvider>(input, out, Layer<T>::in_size, alpha);
     }
 
     /** Sets a custom value for the layer's "alpha" parameter. */
@@ -345,7 +287,7 @@ private:
 };
 
 /** Static implementation of a elu activation layer. */
-template <typename T, int size, int AlphaNumerator = 1, int AlphaDenominator = 1>
+template <typename T, int size, int AlphaNumerator = 1, int AlphaDenominator = 1, typename MathsProvider = DefaultMathsProvider>
 class ELuActivationT
 {
     using v_type = xsimd::simd_type<T>;
@@ -372,7 +314,7 @@ public:
     forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], xsimd::exp(ins[i]) - (T)1);
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], MathsProvider::exp(ins[i]) - (T)1);
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
@@ -382,7 +324,7 @@ public:
     {
         static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], alpha * (xsimd::exp(ins[i]) - (T)1));
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], alpha * (MathsProvider::exp(ins[i]) - (T)1));
     }
 
     v_type outs[v_io_size];

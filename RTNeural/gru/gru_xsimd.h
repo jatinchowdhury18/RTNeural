@@ -15,7 +15,7 @@ namespace RTNeural
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class GRULayer : public Layer<T>
 {
 public:
@@ -45,17 +45,17 @@ public:
 
         vAdd(zVec.data(), zWeights.b[0].data(), zVec.data(), Layer<T>::out_size);
         vAdd(zVec.data(), zWeights.b[1].data(), zVec.data(), Layer<T>::out_size);
-        sigmoid(zVec.data(), zVec.data(), Layer<T>::out_size);
+        sigmoid<T, MathsProvider>(zVec.data(), zVec.data(), Layer<T>::out_size);
 
         vAdd(rVec.data(), rWeights.b[0].data(), rVec.data(), Layer<T>::out_size);
         vAdd(rVec.data(), rWeights.b[1].data(), rVec.data(), Layer<T>::out_size);
-        sigmoid(rVec.data(), rVec.data(), Layer<T>::out_size);
+        sigmoid<T, MathsProvider>(rVec.data(), rVec.data(), Layer<T>::out_size);
 
         vAdd(cTmp.data(), cWeights.b[1].data(), cTmp.data(), Layer<T>::out_size);
         vProd(cTmp.data(), rVec.data(), cTmp.data(), Layer<T>::out_size);
         vAdd(cTmp.data(), cVec.data(), cVec.data(), Layer<T>::out_size);
         vAdd(cVec.data(), cWeights.b[0].data(), cVec.data(), Layer<T>::out_size);
-        tanh(cVec.data(), cVec.data(), Layer<T>::out_size);
+        tanh<T, MathsProvider>(cVec.data(), cVec.data(), Layer<T>::out_size);
 
         vSub(ones.data(), zVec.data(), h, Layer<T>::out_size);
         vProd(h, cVec.data(), h, Layer<T>::out_size);
@@ -156,7 +156,9 @@ protected:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
+template <typename T, int in_sizet, int out_sizet,
+    SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None,
+    typename MathsProvider = DefaultMathsProvider>
 class GRULayerT
 {
     using v_type = xsimd::simd_type<T>;
@@ -198,19 +200,19 @@ public:
         recurrent_mat_mul(outs, Uz, zt);
         kernel_mat_mul(ins, Wz, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            zt[i] = sigmoid(zt[i] + bz[i] + kernel_outs[i]);
+            zt[i] = MathsProvider::sigmoid(zt[i] + bz[i] + kernel_outs[i]);
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         kernel_mat_mul(ins, Wr, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            rt[i] = sigmoid(rt[i] + br[i] + kernel_outs[i]);
+            rt[i] = MathsProvider::sigmoid(rt[i] + br[i] + kernel_outs[i]);
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
         kernel_mat_mul(ins, Wh, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ht[i] = xsimd::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], bh0[i] + kernel_outs[i]));
+            ht[i] = MathsProvider::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], bh0[i] + kernel_outs[i]));
 
         computeOutput();
     }
@@ -223,17 +225,17 @@ public:
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
         for(int i = 0; i < v_out_size; ++i)
-            zt[i] = sigmoid(xsimd::fma(Wz_1[i], ins[0], zt[i] + bz[i]));
+            zt[i] = MathsProvider::sigmoid(xsimd::fma(Wz_1[i], ins[0], zt[i] + bz[i]));
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         for(int i = 0; i < v_out_size; ++i)
-            rt[i] = sigmoid(xsimd::fma(Wr_1[i], ins[0], rt[i] + br[i]));
+            rt[i] = MathsProvider::sigmoid(xsimd::fma(Wr_1[i], ins[0], rt[i] + br[i]));
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
         for(int i = 0; i < v_out_size; ++i)
-            ht[i] = xsimd::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], xsimd::fma(Wh_1[i], ins[0], bh0[i])));
+            ht[i] = MathsProvider::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], xsimd::fma(Wh_1[i], ins[0], bh0[i])));
 
         computeOutput();
     }
@@ -340,11 +342,6 @@ private:
                     out[i] += scalar_in[j] * mat[k * v_size + j][i];
             }
         }
-    }
-
-    static inline v_type sigmoid(v_type x) noexcept
-    {
-        return (T)1.0 / ((T)1.0 + xsimd::exp(-x));
     }
 
     // kernel weights
