@@ -163,6 +163,39 @@ public:
     /** Resets the layer state. */
     void reset();
 
+    template<int _groups_of = groups_of, std::enable_if_t<_groups_of == 1, bool> = true>
+    /** Performs forward propagation for this layer. */
+    inline void forward(const T (&ins)[in_size]) noexcept
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // copy selected columns to a helper variable
+        for(int k = 0; k < kernel_size; ++k)
+        {
+            const auto& col = state[state_ptrs[k]];
+            std::copy(col.begin(), col.end(), state_cols[k].begin());
+        }
+
+        // perform multi-channel convolution
+        for(int i = 0; i < out_size; ++i)
+        {
+            outs[i] = bias[i];
+            for(int k = 0; k < kernel_size; ++k)
+                outs[i] = std::inner_product(
+                    weights[i][k].begin(),
+                    weights[i][k].end(),
+                    state_cols[k].begin(),
+                    outs[i]);
+        }
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
+    template<int _groups_of = groups_of, std::enable_if_t<_groups_of != 1, bool> = true>
     /** Performs forward propagation for this layer. */
     inline void forward(const T (&ins)[in_size]) noexcept
     {
