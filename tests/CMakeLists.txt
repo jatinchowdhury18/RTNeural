@@ -16,6 +16,7 @@ add_test(NAME "RTNeural_GRU_Test" COMMAND $<TARGET_FILE:rtneural_tests> gru)
 add_test(NAME "RTNeural_GRU_1D_Test" COMMAND $<TARGET_FILE:rtneural_tests> gru_1d)
 add_test(NAME "RTNeural_LSTM_Test" COMMAND $<TARGET_FILE:rtneural_tests> lstm)
 add_test(NAME "RTNeural_LSTM_1D_Test" COMMAND $<TARGET_FILE:rtneural_tests> lstm_1d)
+add_test(NAME "CURRENT" COMMAND $<TARGET_FILE:rtneural_tests> current)
 
 option(RTNEURAL_CODE_COVERAGE "Build RTNeural tests with code coverage flags" OFF)
 if(RTNEURAL_CODE_COVERAGE)

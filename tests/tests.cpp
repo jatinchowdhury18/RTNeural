@@ -6,6 +6,7 @@
 #include "templated_tests.hpp"
 #include "test_configs.hpp"
 #include "torch_conv1d_test.hpp"
+#include "torch_conv1d_group_test.hpp"
 #include "torch_gru_test.hpp"
 #include "torch_lstm_test.hpp"
 #include "util_tests.hpp"
@@ -110,6 +111,7 @@ int main(int argc, char* argv[])
         result |= conv2d_test();
         result |= torchGRUTest();
         result |= torchConv1DTest();
+        result |= torchConv1DGroupTest();
         result |= torchLSTMTest();
 
         for(auto& testConfig : tests)
@@ -152,6 +154,7 @@ int main(int argc, char* argv[])
         int result = 0;
         result |= torchGRUTest();
         result |= torchConv1DTest();
+        result |= torchConv1DGroupTest();
         result |= torchLSTMTest();
         return result;
     }
@@ -159,6 +162,11 @@ int main(int argc, char* argv[])
     if(arg == "conv2d_model")
     {
         return conv2d_test();
+    }
+
+    if (arg == "current")
+    {
+        return torchConv1DGroupTest();
     }
 
     if(tests.find(arg) != tests.end())

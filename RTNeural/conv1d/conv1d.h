@@ -150,6 +150,7 @@ class Conv1DT
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
+    static constexpr auto group_count = in_size / groups_of;
 
     Conv1DT();
 
@@ -171,23 +172,28 @@ public:
         // set state pointers to particular columns of the buffer
         setStatePointers();
 
-        // copy selected columns to a helper variable
-        for(int k = 0; k < kernel_size; ++k)
-        {
-            const auto& col = state[state_ptrs[k]];
-            std::copy(col.begin(), col.end(), state_cols[k].begin());
-        }
-
         // perform multi-channel convolution
         for(int i = 0; i < out_size; ++i)
         {
             outs[i] = bias[i];
+
+            // copy selected columns to a helper variable
             for(int k = 0; k < kernel_size; ++k)
+            {
+                const auto& column = state[state_ptrs[k]];
+                const auto column_begin = column.begin() + i * group_count;
+                const auto column_end = column.begin() + i * group_count + group_count;
+                std::copy(column_begin, column_end, state_cols[k].begin());
+            }
+
+            for(int k = 0; k < kernel_size; ++k)
+            {
                 outs[i] = std::inner_product(
                     weights[i][k].begin(),
                     weights[i][k].end(),
                     state_cols[k].begin(),
                     outs[i]);
+            }
         }
 
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
@@ -196,7 +202,7 @@ public:
     /**
      * Sets the layer weights.
      *
-     * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
+     * The weights vector must have size weights[out_size][group_count][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
@@ -225,8 +231,40 @@ private:
     template <int DS = dynamic_state>
     typename std::enable_if<!DS, void>::type resize_state() { }
 
-    using state_type = typename std::conditional<dynamic_state, std::vector<std::array<T, in_size>>, std::array<std::array<T, in_size>, state_size>>::type;
-    using weights_type = std::array<std::array<T, in_size>, kernel_size>;
+    // The `state_type` is a matrix with the shape (in_size, state_size), where
+    // `state_size` corresponds to the width of the kernel given its size and
+    // dilation rate. Originally, during inference, samples from all input
+    // channels are copied onto the state. You can think of the state as a
+    // buffer of samples where each channel is stacked upon each other.
+    //
+    // The `weights_type` is a matrix with the shape (in_size, kernel_size),
+    // which corresponds to the groups of kernels used to produce the output.
+    // It's used in two fields, `weights`, which extends its dimension by
+    // associating a `weights_type` with each channel by `weights[out_size]`;
+    // `state_cols` on the other hand is an auxiliary field which is used
+    // as an intermediate structure for computing the output. Specifically,
+    // for a given cell in the kernel, it copies the corresponding column
+    // in the state. Note that the `state_ptrs` function is used to store
+    // which columns to actually get from, since we're taking into account
+    // the dilation.
+    //
+    // Inference is performed by iterating over the output channels. For
+    // each output channel, maps a group of kernels. The `outs` array is
+    // first set with the `bias`, then, it's set to the dot product of
+    // the `weights` and the `state_cols` at a given kernel cell.
+    //
+    // In the case of a `groups_of` parameter other than `1`, the `weights_type`
+    // would now have the shape `(in_size / groups_of, kernel_size)`, the idea
+    // being that the input channels are now treated as if they are being processed
+    // by different convolutions, for instance, a 6in->3out convolution in groups
+    // of 3 channels would be processed as if it had 2 3in->3out convolutions.
+    //
+    // Meanwhile, the `state_type` can remain the same shape as we still retain
+    // the same number of input channels, just that only the input channels for
+    // the current group being processed is copied over!
+
+    using state_type = std::array<std::array<T, in_size>, state_size>;
+    using weights_type = std::array<std::array<T, group_count>, kernel_size>;
 
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) state_type state;
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) weights_type state_cols;
