@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,27 @@ std::vector<T> loadFile(std::ifstream& stream)
     }
 
     return vec;
+}
+
+template <typename T, int N>
+std::vector<std::vector<T>> loadFile2d(std::ifstream& stream)
+{
+    std::vector<std::vector<T>> output;
+    
+    std::string line;
+    while(std::getline(stream, line)) {
+        std::vector<T> row;
+        std::stringstream lineStream(line);
+        std::string cell;
+
+        while(std::getline(lineStream, cell, ',')) {
+            row.push_back(static_cast<T>(std::stod(cell)));
+        }
+
+        output.push_back(row);
+    }
+
+    return output;
 }
 
 } // namespace load_csv

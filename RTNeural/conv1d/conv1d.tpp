@@ -119,7 +119,7 @@ Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups_of, dynamic_s
 {
     for(int i = 0; i < out_size; ++i)
         for(int j = 0; j < kernel_size; ++j)
-            for(int k = 0; k < in_size; ++k)
+            for(int k = 0; k < group_count; ++k)
                 weights[i][j][k] = (T)0.0;
 
     for(int i = 0; i < out_size; ++i)
@@ -140,7 +140,7 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups_of, dyna
             state[i][k] = (T)0.0;
 
     for(int i = 0; i < kernel_size; ++i)
-        for(int k = 0; k < in_size; ++k)
+        for(int k = 0; k < group_count; ++k)
             state_cols[i][k] = (T)0.0;
 
     state_ptr = 0;
@@ -152,7 +152,7 @@ template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation
 void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups_of, dynamic_state>::setWeights(const std::vector<std::vector<std::vector<T>>>& ws)
 {
     for(int i = 0; i < out_size; ++i)
-        for(int k = 0; k < in_size; ++k)
+        for(int k = 0; k < group_count; ++k)
             for(int j = 0; j < kernel_size; ++j)
                 weights[i][j][k] = ws[i][k][j];
 }
