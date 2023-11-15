@@ -164,11 +164,6 @@ int main(int argc, char* argv[])
         return conv2d_test();
     }
 
-    if (arg == "current")
-    {
-        return torchConv1DGroupTest();
-    }
-
     if(tests.find(arg) != tests.end())
     {
         int result = 0;
