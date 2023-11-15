@@ -264,7 +264,7 @@ private:
     template <int DS = dynamic_state>
     typename std::enable_if<!DS, void>::type resize_state() { }
 
-    using state_type = std::array<std::array<T, in_size>, state_size>;
+    using state_type = typename std::conditional<dynamic_state, std::vector<std::array<T, in_size>>, std::array<std::array<T, in_size>, state_size>>::type;
     using weights_type = std::array<std::array<T, group_count>, kernel_size>;
 
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) state_type state;
