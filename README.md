@@ -37,6 +37,7 @@ Currently supported activations:
   - [x] PReLU
 
 Additional resources:
+- [RTNeural Discord](https://discord.gg/sgwgf39y)
 - [API Reference](https://ccrma.stanford.edu/~jatin/chowdsp/RTNeural)
 - [Reference Paper](https://arxiv.org/abs/2106.03037)
 - [Example Plugin](https://github.com/jatinchowdhury18/RTNeural-example)
