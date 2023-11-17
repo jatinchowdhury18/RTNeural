@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../common.h"
+#include "../maths/maths_eigen.h"
 
 namespace RTNeural
 {
