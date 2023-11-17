@@ -2,12 +2,13 @@
 #define ACTIVATIONEIGEN_H_INCLUDED
 
 #include "../common.h"
+#include "../maths/maths_eigen.h"
 
 namespace RTNeural
 {
 
 /** Dynamic implementation of a tanh activation layer. */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class TanhActivation : public Activation<T>
 {
 public:
@@ -29,7 +30,7 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
-        outVec = inVec.array().tanh();
+        outVec = MathsProvider::tanh(inVec);
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
@@ -39,7 +40,7 @@ public:
 };
 
 /** Static implementation of a tanh activation layer. */
-template <typename T, int size>
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
 class TanhActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
@@ -65,74 +66,7 @@ public:
     /** Performs forward propagation for tanh activation. */
     inline void forward(const v_type& ins) noexcept
     {
-        outs = ins.array().tanh();
-    }
-
-    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
-
-private:
-    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
-};
-/** Dynamic implementation of an approximate tanh activation layer. */
-template <typename T>
-class FastTanh : public Activation<T>
-{
-public:
-    /** Constructs a tanh activation layer for a given size. */
-    explicit FastTanh(int size)
-        : Activation<T>(size, {}, "tanh")
-    {
-        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
-        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
-    }
-
-    FastTanh(std::initializer_list<int> sizes)
-        : FastTanh(*sizes.begin())
-    {
-    }
-
-    /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) noexcept override
-    {
-        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
-            input, Layer<T>::in_size, 1);
-        outVec = fast_tanh<T>(inVec);
-
-        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
-    }
-
-    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
-};
-
-/** Static implementation of an approximate tanh activation layer. */
-template <typename T, int size>
-class FastTanhT
-{
-    using v_type = Eigen::Matrix<T, size, 1>;
-
-public:
-    static constexpr auto in_size = size;
-    static constexpr auto out_size = size;
-
-    FastTanhT()
-        : outs(outs_internal)
-    {
-        outs = v_type::Zero();
-    }
-
-    /** Returns the name of this layer. */
-    std::string getName() const noexcept { return "tanh"; }
-
-    /** Returns true if this layer is an activation layer. */
-    constexpr bool isActivation() const noexcept { return true; }
-
-    void reset() { }
-
-    /** Performs forward propagation for tanh activation. */
-    inline void forward(const v_type& ins) noexcept
-    {
-        outs = fast_tanh<T>(ins);
+        outs = MathsProvider::tanh(ins);
     }
 
     Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
@@ -211,7 +145,7 @@ private:
 
 /** Dynamic implementation of a sigmoid activation layer. */
 
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class SigmoidActivation : public Activation<T>
 {
 public:
@@ -233,8 +167,7 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
-        outVec = inVec.array();
-        sigmoid(outVec);
+        outVec = MathsProvider::sigmoid(inVec);
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
@@ -244,7 +177,7 @@ public:
 };
 
 /** Static implementation of a sigmoid activation layer. */
-template <typename T, int size>
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
 class SigmoidActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
@@ -270,7 +203,7 @@ public:
     /** Performs forward propagation for sigmoid activation. */
     inline void forward(const v_type& ins) noexcept
     {
-        outs = (T)1 / (((T)-1 * ins.array()).array().exp() + (T)1);
+        outs = MathsProvider::sigmoid(ins);
     }
 
     Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
@@ -280,7 +213,7 @@ private:
 };
 
 /** Dynamic implementation of a softmax activation layer. */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class SoftmaxActivation : public Activation<T>
 {
 public:
@@ -302,8 +235,8 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
-        outVec = inVec.array();
-        softmax(outVec);
+        outVec = MathsProvider::exp (inVec);
+        outVec = outVec / outVec.sum();
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
@@ -313,7 +246,7 @@ public:
 };
 
 /** Static implementation of a softmax activation layer. */
-template <typename T, int size>
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
 class SoftmaxActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
@@ -339,7 +272,7 @@ public:
     /** Performs forward propagation for softmax activation. */
     inline void forward(const v_type& ins) noexcept
     {
-        outs = ins.array().exp();
+        outs = MathsProvider::exp(ins);
         outs = outs / outs.sum();
     }
 
@@ -350,7 +283,7 @@ private:
 };
 
 /** Dynamic implementation of a elu activation layer. */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class ELuActivation : public Activation<T>
 {
 public:
@@ -374,7 +307,7 @@ public:
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
 
-        outVec = (inVec.array() > (T)0).select(inVec, alpha * (inVec.array().exp() - ones.array()));
+        outVec = (inVec.array() > (T)0).select(inVec, alpha * (MathsProvider::exp(inVec) - ones.array()));
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
 
@@ -390,7 +323,7 @@ private:
 };
 
 /** Static implementation of a elu activation layer. */
-template <typename T, int size, int AlphaNumerator = 1, int AlphaDenominator = 1>
+template <typename T, int size, int AlphaNumerator = 1, int AlphaDenominator = 1, typename MathsProvider = DefaultMathsProvider>
 class ELuActivationT
 {
     using v_type = Eigen::Matrix<T, size, 1>;
@@ -418,7 +351,7 @@ public:
     inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
     forward(const v_type& ins) noexcept
     {
-        outs = (ins.array() > (T)0).select(ins, ins.array().exp() - ones.array());
+        outs = (ins.array() > (T)0).select(ins, MathsProvider::exp(ins) - ones.array());
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
@@ -427,7 +360,7 @@ public:
     forward(const v_type& ins) noexcept
     {
         static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
-        outs = (ins.array() > (T)0).select(ins, alpha * (ins.array().exp() - ones.array()));
+        outs = (ins.array() > (T)0).select(ins, alpha * (MathsProvider::exp(ins) - ones.array()));
     }
 
     Eigen::Map<v_type, RTNeuralEigenAlignment> outs;

@@ -3,8 +3,8 @@
 namespace RTNeural
 {
 
-template <typename T>
-LSTMLayer<T>::LSTMLayer(int in_size, int out_size)
+template <typename T, typename MathsProvider>
+LSTMLayer<T, MathsProvider>::LSTMLayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
 {
     combinedWeights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(4 * out_size, in_size + out_size + 1);
@@ -21,26 +21,26 @@ LSTMLayer<T>::LSTMLayer(int in_size, int out_size)
     ct1 = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
 }
 
-template <typename T>
-LSTMLayer<T>::LSTMLayer(std::initializer_list<int> sizes)
-    : LSTMLayer<T>(*sizes.begin(), *(sizes.begin() + 1))
+template <typename T, typename MathsProvider>
+LSTMLayer<T, MathsProvider>::LSTMLayer(std::initializer_list<int> sizes)
+    : LSTMLayer<T, MathsProvider>(*sizes.begin(), *(sizes.begin() + 1))
 {
 }
 
-template <typename T>
-LSTMLayer<T>::LSTMLayer(const LSTMLayer& other)
-    : LSTMLayer<T>(other.in_size, other.out_size)
+template <typename T, typename MathsProvider>
+LSTMLayer<T, MathsProvider>::LSTMLayer(const LSTMLayer& other)
+    : LSTMLayer<T, MathsProvider>(other.in_size, other.out_size)
 {
 }
 
-template <typename T>
-LSTMLayer<T>& LSTMLayer<T>::operator=(const LSTMLayer<T>& other)
+template <typename T, typename MathsProvider>
+LSTMLayer<T, MathsProvider>& LSTMLayer<T, MathsProvider>::operator=(const LSTMLayer<T, MathsProvider>& other)
 {
-    return *this = LSTMLayer<T>(other);
+    return *this = LSTMLayer<T, MathsProvider>(other);
 }
 
-template <typename T>
-void LSTMLayer<T>::reset()
+template <typename T, typename MathsProvider>
+void LSTMLayer<T, MathsProvider>::reset()
 {
     ht1.setZero();
     ct1.setZero();
@@ -48,8 +48,8 @@ void LSTMLayer<T>::reset()
     extendedInVecHt1(Layer<T>::in_size + Layer<T>::out_size) = (T)1;
 }
 
-template <typename T>
-void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
+template <typename T, typename MathsProvider>
+void LSTMLayer<T, MathsProvider>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(int i = 0; i < Layer<T>::in_size; ++i)
     {
@@ -63,8 +63,8 @@ void LSTMLayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
     }
 }
 
-template <typename T>
-void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
+template <typename T, typename MathsProvider>
+void LSTMLayer<T, MathsProvider>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
     int col;
     for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -80,8 +80,8 @@ void LSTMLayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
     }
 }
 
-template <typename T>
-void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
+template <typename T, typename MathsProvider>
+void LSTMLayer<T, MathsProvider>::setBVals(const std::vector<T>& bVals)
 {
     int col = Layer<T>::in_size + Layer<T>::out_size;
     for(int k = 0; k < Layer<T>::out_size; ++k)
@@ -94,8 +94,8 @@ void LSTMLayer<T>::setBVals(const std::vector<T>& bVals)
 }
 
 //====================================================
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::LSTMLayerT()
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::LSTMLayerT()
     : outs(outs_internal)
 {
     combinedWeights = weights_combined_type::Zero();
@@ -109,10 +109,10 @@ LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::LSTMLayerT()
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(int delaySamples)
+LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::prepare(int delaySamples)
 {
     delayWriteIdx = delaySamples - 1;
     ct_delayed.resize(delayWriteIdx + 1, {});
@@ -121,10 +121,10 @@ LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(int delaySamples)
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(T delaySamples)
+LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::prepare(T delaySamples)
 {
     const auto delayOffFactor = delaySamples - std::floor(delaySamples);
     delayMult = (T)1 - delayOffFactor;
@@ -137,8 +137,8 @@ LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(T delaySamples)
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::reset()
 {
     if(sampleRateCorr != SampleRateCorrectionMode::None)
     {
@@ -158,8 +158,8 @@ void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
 }
 
 // kernel weights
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vector<std::vector<T>>& wVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(int i = 0; i < in_size; ++i)
     {
@@ -174,8 +174,8 @@ void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vec
 }
 
 // recurrent weights
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vector<std::vector<T>>& uVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
     int col;
     for(int i = 0; i < out_size; ++i)
@@ -192,8 +192,8 @@ void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vec
 }
 
 // biases
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr>::setBVals(const std::vector<T>& bVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void LSTMLayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setBVals(const std::vector<T>& bVals)
 {
     int col = in_size + out_size;
     for(int k = 0; k < out_size; ++k)
