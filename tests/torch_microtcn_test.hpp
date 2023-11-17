@@ -121,7 +121,7 @@ namespace torch_microtcn_test
         model.reset();
 
         std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/microtcn_x.csv" };
-        const auto inputs = load_csv::loadFile2d<T, 1>(modelInputsFile);
+        const auto inputs = load_csv::loadFile2d<T>(modelInputsFile);
         std::vector<std::array<T, 32>> outputs {};
         outputs.resize(inputs.size(), {});
 

@@ -5,36 +5,6 @@
 
 namespace torch_conv1d_group_test
 {
-template <typename T>
-std::vector<std::vector<T>> loadFile2D(std::ifstream& stream)
-{
-    std::vector<std::vector<T>> vec;
-
-    std::string line;
-    if(stream.is_open()) {
-        while(std::getline(stream, line)) {
-            std::vector<T> lineVec;
-            std::string num;
-            for (auto ch : line) {
-                if (ch == ',') {
-                    lineVec.push_back(static_cast<T>(std::stod(num)));
-                    num.clear();
-                    continue;
-                }
-
-                num.push_back(ch);
-            }
-
-            lineVec.push_back(static_cast<T>(std::stod(num)));
-            vec.push_back(lineVec);
-        }
-
-        stream.close();
-    }
-
-    return RTNeural::torch_helpers::detail::transpose(vec);
-}
-
 int computeCrop(int input_size, int kernel_size, int dilation_rate)
 {
     int output_size = (input_size  - dilation_rate * (kernel_size - 1) - 1) + 1;
@@ -67,7 +37,7 @@ int testTorchConv1DGroupModel()
     model.reset();
 
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_x_python.csv" };
-    const auto inputs = load_csv::loadFile2d<T, 6>(modelInputsFile);
+    const auto inputs = load_csv::loadFile2d<T>(modelInputsFile);
     std::vector<std::array<T, output_size>> outputs {};
     outputs.resize(inputs.size(), {});
 
@@ -86,7 +56,7 @@ int testTorchConv1DGroupModel()
             std::to_string(dilation_rate) + "_" +
             std::to_string(groups_of) + ".csv"
         };
-    const auto expected_y = loadFile2D<T> (modelOutputsFile);
+    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T> (modelOutputsFile));
 
     int crop = computeCrop(static_cast<int>(inputs.size()), kernel_size, dilation_rate);
 
