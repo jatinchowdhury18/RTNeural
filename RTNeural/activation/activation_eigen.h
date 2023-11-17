@@ -235,7 +235,7 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
-        outVec = MathsProvider::exp (inVec);
+        outVec = MathsProvider::exp(inVec);
         outVec = outVec / outVec.sum();
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
