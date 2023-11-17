@@ -15,7 +15,7 @@ namespace RTNeural
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class GRULayer : public Layer<T>
 {
 public:
@@ -61,14 +61,14 @@ public:
          *                  | r | )
          */
         gammaVec.noalias() = alphaVec.segment(0, 2 * Layer<T>::out_size) + betaVec.segment(0, 2 * Layer<T>::out_size);
-        sigmoid(gammaVec);
+        gammaVec = MathsProvider::sigmoid(gammaVec);
 
         /**
          * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
          * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
          */
         cVec.noalias() = alphaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size) + gammaVec.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(betaVec.segment(2 * Layer<T>::out_size, Layer<T>::out_size));
-        cVec = cVec.array().tanh();
+        cVec = MathsProvider::tanh(cVec);
 
         /**
          * h(t-1) = (1 - z).cwiseProduct(c) + z.cwiseProduct(h(t-1))
@@ -151,7 +151,9 @@ private:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
+template <typename T, int in_sizet, int out_sizet,
+    SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None,
+    typename MathsProvider = DefaultMathsProvider>
 class GRULayerT
 {
     using in_type = Eigen::Matrix<T, in_sizet, 1>;
@@ -214,14 +216,14 @@ public:
          * gamma = sigmoid( | z |   = sigmoid(alpha[0 : 2*out_sizet] + beta[0 : 2*out_sizet])
          *                  | r | )
          */
-        gammaVec = sigmoid(alphaVec.segment(0, 2 * out_sizet) + betaVec.segment(0, 2 * out_sizet));
+        gammaVec = MathsProvider::sigmoid(alphaVec.segment(0, 2 * out_sizet) + betaVec.segment(0, 2 * out_sizet));
 
         /**
          * c = tanh( alpha[2*out_sizet : 3*out_sizet] + r.cwiseProduct(beta[2*out_sizet : 3*out_sizet] )
          * i.e. c = tanh( Wc * input + bc[0] + r.cwiseProduct(Uc * h(t-1) + bc[1]) )
          */
         cVec.noalias() = alphaVec.segment(2 * out_sizet, out_sizet) + gammaVec.segment(out_sizet, out_sizet).cwiseProduct(betaVec.segment(2 * out_sizet, out_sizet));
-        cVec = cVec.array().tanh();
+        cVec = MathsProvider::tanh(cVec);
 
         /**
          * h(t-1) = (1 - z).cwiseProduct(c) + z.cwiseProduct(h(t-1))
@@ -304,12 +306,6 @@ private:
 
         for(int j = 0; j < delayWriteIndex; ++j)
             delayVec[j] = delayVec[j + 1];
-    }
-
-    template <typename Vector>
-    static inline auto sigmoid(const Vector& x) noexcept
-    {
-        return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
     }
 
     // kernel weights

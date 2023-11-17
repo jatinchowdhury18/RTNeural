@@ -41,33 +41,6 @@ constexpr auto RTNeuralEigenAlignment = Eigen::Aligned32;
 #else
 constexpr auto RTNeuralEigenAlignment = Eigen::Aligned16;
 #endif
-
-template <typename T>
-static inline void
-sigmoid(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
-{
-    vector = (T)1 / (((T)-1 * vector.array()).array().exp() + (T)1);
-}
-
-template <typename T>
-static inline void
-softmax(Eigen::Matrix<T, Eigen::Dynamic, 1>& vector) noexcept
-{
-    vector = vector.array().exp();
-    vector = vector / vector.sum();
-}
-
-template <typename T, typename MatType>
-static inline auto fast_tanh(const MatType& in) noexcept
-{
-    constexpr auto clamp = (T)5.7;
-    auto xc = in.cwiseMin(clamp).cwiseMax(-clamp); // clamp to range [-clamp, clamp]
-
-    auto x2 = xc.array().square();
-    auto numerator = xc.array().cwiseProduct(((T)2027025 + x2.cwiseProduct((T)270270 + x2.cwiseProduct((T)6930 + (T)36 * x2.array()).array()).array()));
-    auto denominator = (T)2027025 + x2.cwiseProduct((T)945945 + x2.cwiseProduct((T)51975 + x2.cwiseProduct((T)630 + x2.array()).array()).array()).array();
-    return numerator.cwiseProduct(denominator.inverse());
-}
 } // namespace RTNeural
 
 #elif RTNEURAL_USE_XSIMD

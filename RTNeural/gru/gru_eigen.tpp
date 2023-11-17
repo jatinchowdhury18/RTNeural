@@ -5,8 +5,8 @@
 namespace RTNeural
 {
 
-template <typename T>
-GRULayer<T>::GRULayer(int in_size, int out_size)
+template <typename T, typename MathsProvider>
+GRULayer<T, MathsProvider>::GRULayer(int in_size, int out_size)
     : Layer<T>(in_size, out_size)
 {
     wCombinedWeights = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(3 * out_size, in_size + 1);
@@ -22,38 +22,26 @@ GRULayer<T>::GRULayer(int in_size, int out_size)
     cVec = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(out_size);
 }
 
-template <typename T>
-GRULayer<T>::GRULayer(std::initializer_list<int> sizes)
-    : GRULayer<T>(*sizes.begin(), *(sizes.begin() + 1))
+template <typename T, typename MathsProvider>
+GRULayer<T, MathsProvider>::GRULayer(std::initializer_list<int> sizes)
+    : GRULayer<T, MathsProvider>(*sizes.begin(), *(sizes.begin() + 1))
 {
 }
 
-template <typename T>
-GRULayer<T>::GRULayer(const GRULayer<T>& other)
-    : GRULayer<T>(other.in_size, other.out_size)
+template <typename T, typename MathsProvider>
+GRULayer<T, MathsProvider>::GRULayer(const GRULayer<T, MathsProvider>& other)
+    : GRULayer<T, MathsProvider>(other.in_size, other.out_size)
 {
 }
 
-template <typename T>
-GRULayer<T>& GRULayer<T>::operator=(const GRULayer<T>& other)
+template <typename T, typename MathsProvider>
+GRULayer<T, MathsProvider>& GRULayer<T, MathsProvider>::operator=(const GRULayer<T, MathsProvider>& other)
 {
-    return *this = GRULayer<T>(other);
+    return *this = GRULayer<T, MathsProvider>(other);
 }
 
-template <typename T>
-void GRULayer<T>::setWVals(const std::vector<std::vector<T>>& wVals)
-{
-    for(int i = 0; i < Layer<T>::in_size; ++i)
-    {
-        for(int k = 0; k < Layer<T>::out_size * 3; ++k)
-        {
-            wCombinedWeights(k, i) = wVals[i][k];
-        }
-    }
-}
-
-template <typename T>
-void GRULayer<T>::setWVals(T** wVals)
+template <typename T, typename MathsProvider>
+void GRULayer<T, MathsProvider>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(int i = 0; i < Layer<T>::in_size; ++i)
     {
@@ -64,8 +52,20 @@ void GRULayer<T>::setWVals(T** wVals)
     }
 }
 
-template <typename T>
-void GRULayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
+template <typename T, typename MathsProvider>
+void GRULayer<T, MathsProvider>::setWVals(T** wVals)
+{
+    for(int i = 0; i < Layer<T>::in_size; ++i)
+    {
+        for(int k = 0; k < Layer<T>::out_size * 3; ++k)
+        {
+            wCombinedWeights(k, i) = wVals[i][k];
+        }
+    }
+}
+
+template <typename T, typename MathsProvider>
+void GRULayer<T, MathsProvider>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
     for(int i = 0; i < Layer<T>::out_size; ++i)
     {
@@ -76,8 +76,8 @@ void GRULayer<T>::setUVals(const std::vector<std::vector<T>>& uVals)
     }
 }
 
-template <typename T>
-void GRULayer<T>::setUVals(T** uVals)
+template <typename T, typename MathsProvider>
+void GRULayer<T, MathsProvider>::setUVals(T** uVals)
 {
     for(int i = 0; i < Layer<T>::out_size; ++i)
     {
@@ -88,8 +88,8 @@ void GRULayer<T>::setUVals(T** uVals)
     }
 }
 
-template <typename T>
-void GRULayer<T>::setBVals(const std::vector<std::vector<T>>& bVals)
+template <typename T, typename MathsProvider>
+void GRULayer<T, MathsProvider>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
     for(int k = 0; k < Layer<T>::out_size * 3; ++k)
     {
@@ -98,8 +98,8 @@ void GRULayer<T>::setBVals(const std::vector<std::vector<T>>& bVals)
     }
 }
 
-template <typename T>
-void GRULayer<T>::setBVals(T** bVals)
+template <typename T, typename MathsProvider>
+void GRULayer<T, MathsProvider>::setBVals(T** bVals)
 {
     for(int k = 0; k < Layer<T>::out_size * 3; ++k)
     {
@@ -108,20 +108,20 @@ void GRULayer<T>::setBVals(T** bVals)
     }
 }
 
-template <typename T>
-T GRULayer<T>::getWVal(int i, int k) const noexcept
+template <typename T, typename MathsProvider>
+T GRULayer<T, MathsProvider>::getWVal(int i, int k) const noexcept
 {
     return wCombinedWeights[k][i];
 }
 
-template <typename T>
-T GRULayer<T>::getUVal(int i, int k) const noexcept
+template <typename T, typename MathsProvider>
+T GRULayer<T, MathsProvider>::getUVal(int i, int k) const noexcept
 {
     return uCombinedWeights[k][i];
 }
 
-template <typename T>
-T GRULayer<T>::getBVal(int i, int k) const noexcept
+template <typename T, typename MathsProvider>
+T GRULayer<T, MathsProvider>::getBVal(int i, int k) const noexcept
 {
     T val;
     if(i == 0)
@@ -136,11 +136,10 @@ T GRULayer<T>::getBVal(int i, int k) const noexcept
 }
 
 //====================================================
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::GRULayerT()
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::GRULayerT()
     : outs(outs_internal)
 {
-
     wCombinedWeights = w_k_type::Zero();
     uCombinedWeights = u_k_type::Zero();
     alphaVec = three_out_type::Zero();
@@ -156,10 +155,10 @@ GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::GRULayerT()
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::NoInterp, void>
-GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(int delaySamples)
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::prepare(int delaySamples)
 {
     delayWriteIdx = delaySamples - 1;
     outs_delayed.resize(delayWriteIdx + 1, {});
@@ -167,10 +166,10 @@ GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(int delaySamples)
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
 template <SampleRateCorrectionMode srCorr>
 std::enable_if_t<srCorr == SampleRateCorrectionMode::LinInterp, void>
-GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(T delaySamples)
+GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::prepare(T delaySamples)
 {
     const auto delayOffFactor = delaySamples - std::floor(delaySamples);
     delayMult = (T)1 - delayOffFactor;
@@ -182,8 +181,8 @@ GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::prepare(T delaySamples)
     reset();
 }
 
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::reset()
 {
     if(sampleRateCorr != SampleRateCorrectionMode::None)
     {
@@ -200,8 +199,8 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::reset()
 }
 
 // kernel weights
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vector<std::vector<T>>& wVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setWVals(const std::vector<std::vector<T>>& wVals)
 {
     for(int i = 0; i < in_size; ++i)
     {
@@ -213,8 +212,8 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setWVals(const std::vect
 }
 
 // recurrent weights
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vector<std::vector<T>>& uVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setUVals(const std::vector<std::vector<T>>& uVals)
 {
     for(int i = 0; i < out_size; ++i)
     {
@@ -226,8 +225,8 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setUVals(const std::vect
 }
 
 // biases
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr>
-void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr>::setBVals(const std::vector<std::vector<T>>& bVals)
+template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr, typename MathsProvider>
+void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setBVals(const std::vector<std::vector<T>>& bVals)
 {
     for(int k = 0; k < out_size * 3; ++k)
     {

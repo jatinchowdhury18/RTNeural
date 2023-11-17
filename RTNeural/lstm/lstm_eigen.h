@@ -15,7 +15,7 @@ namespace RTNeural
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T>
+template <typename T, typename MathsProvider = DefaultMathsProvider>
 class LSTMLayer : public Layer<T>
 {
 public:
@@ -49,14 +49,12 @@ public:
         fioctVecs.noalias() = combinedWeights * extendedInVecHt1;
 
         fioVecs = fioctVecs.segment(0, Layer<T>::out_size * 3);
-        ctVec = fioctVecs.segment(Layer<T>::out_size * 3, Layer<T>::out_size)
-                    .array()
-                    .tanh();
+        ctVec = MathsProvider::tanh(fioctVecs.segment(Layer<T>::out_size * 3, Layer<T>::out_size));
 
-        sigmoid(fioVecs);
+        fioVecs = MathsProvider::sigmoid(fioVecs);
 
         ct1 = fioVecs.segment(0, Layer<T>::out_size).cwiseProduct(ct1) + fioVecs.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(ctVec);
-        cTanhVec = ct1.array().tanh();
+        cTanhVec = MathsProvider::tanh(ct1);
 
         ht1 = fioVecs.segment(Layer<T>::out_size * 2, Layer<T>::out_size).cwiseProduct(cTanhVec);
 
@@ -111,7 +109,9 @@ private:
  * please make sure to call `reset()` before your first call to
  * the `forward()` method.
  */
-template <typename T, int in_sizet, int out_sizet, SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None>
+template <typename T, int in_sizet, int out_sizet,
+    SampleRateCorrectionMode sampleRateCorr = SampleRateCorrectionMode::None,
+    typename MathsProvider = DefaultMathsProvider>
 class LSTMLayerT
 {
     using weights_combined_type = Eigen::Matrix<T, 4 * out_sizet, in_sizet + out_sizet + 1>;
@@ -163,8 +163,8 @@ public:
          */
         fioctsVecs.noalias() = combinedWeights * extendedInHt1Vec;
 
-        fioVecs = sigmoid(fioctsVecs.segment(0, 3 * out_sizet));
-        ctVec = fioctsVecs.segment(3 * out_sizet, out_sizet).array().tanh();
+        fioVecs = MathsProvider::sigmoid(fioctsVecs.segment(0, 3 * out_sizet));
+        ctVec = MathsProvider::tanh(fioctsVecs.segment(3 * out_sizet, out_sizet));
 
         computeOutputs();
     }
@@ -231,7 +231,7 @@ private:
             + fioVecs.segment(out_sizet, out_sizet)
                   .cwiseProduct(ctVec);
 
-        cTanhVec = cVecLocal.array().tanh();
+        cTanhVec = MathsProvider::tanh(cVecLocal);
         outsVec.noalias() = fioVecs.segment(out_sizet * 2, out_sizet).cwiseProduct(cTanhVec);
     }
 
@@ -253,12 +253,6 @@ private:
 
         for(int j = 0; j < delayWriteIndex; ++j)
             delayVec[j] = delayVec[j + 1];
-    }
-
-    template <typename Vector>
-    static inline auto sigmoid(const Vector& x) noexcept
-    {
-        return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
     }
 
     // kernel weights
