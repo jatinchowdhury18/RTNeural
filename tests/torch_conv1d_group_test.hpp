@@ -41,7 +41,7 @@ int computeCrop(int input_size, int kernel_size, int dilation_rate)
     return input_size - output_size;
 }
 
-template <typename T, int kernel_size, int dilation_rate>
+template <typename T, int input_size, int output_size, int kernel_size, int dilation_rate, int groups_of>
 int testTorchConv1DGroupModel()
 {
     if (std::is_same<T, float>::value)
@@ -49,28 +49,43 @@ int testTorchConv1DGroupModel()
     else
         std::cout << "TESTING TORCH/CONV1D GROUP MODEL WITH DATA TYPE: DOUBLE" << std::endl;
 
-    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch_group_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + ".json";
+    const auto model_file = 
+        std::string { RTNEURAL_ROOT_DIR } + 
+        "models/conv1d_torch_group_" +
+        std::to_string(input_size) + "_" +
+        std::to_string(output_size) + "_" +
+        std::to_string(kernel_size) + "_" +
+        std::to_string(dilation_rate) + "_" +
+        std::to_string(groups_of) + ".json";
     std::ifstream jsonStream(model_file, std::ifstream::binary);
 
     nlohmann::json modelJson;
     jsonStream >> modelJson;
 
-    RTNeural::ModelT<T, 6, 3, RTNeural::Conv1DT<T, 6, 3, kernel_size, dilation_rate, 3, false>> model;
+    RTNeural::ModelT<T, input_size, output_size, RTNeural::Conv1DT<T, input_size, output_size, kernel_size, dilation_rate, groups_of, false>> model;
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model.template get<0>());
     model.reset();
 
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_x_python.csv" };
     const auto inputs = load_csv::loadFile2d<T, 6>(modelInputsFile);
-    std::vector<std::array<T, 3>> outputs {};
+    std::vector<std::array<T, output_size>> outputs {};
     outputs.resize(inputs.size(), {});
 
     for (size_t i = 0; i < inputs.size(); ++i)
     {
         model.forward(inputs[i].data());
-        std::copy(model.getOutputs(), model.getOutputs() + 3, outputs[i].begin());
+        std::copy(model.getOutputs(), model.getOutputs() + output_size, outputs[i].begin());
     }
 
-    std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_y_python_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + ".csv" };
+    std::ifstream modelOutputsFile { 
+        std::string { RTNEURAL_ROOT_DIR } + 
+        "test_data/conv1d_torch_group_y_python_" +
+            std::to_string(input_size) + "_" +
+            std::to_string(output_size) + "_" +
+            std::to_string(kernel_size) + "_" +
+            std::to_string(dilation_rate) + "_" +
+            std::to_string(groups_of) + ".csv"
+        };
     const auto expected_y = loadFile2D<T> (modelOutputsFile);
 
     int crop = computeCrop(static_cast<int>(inputs.size()), kernel_size, dilation_rate);
@@ -111,9 +126,11 @@ int testTorchConv1DGroupModel()
 int torchConv1DGroupTest()
 {
     int result = 0;
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 3, 1>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 3, 1>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 4, 10>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 4, 10>();
+    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 3, 1, 3>();
+    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 3, 1, 3>();
+    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 4, 10, 3>();
+    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 4, 10, 3>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 6, 1, 1, 6>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 6, 1, 1, 6>();
     return result;
 }
