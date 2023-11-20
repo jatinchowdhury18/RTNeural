@@ -32,9 +32,8 @@ class EncodeTensor(json.JSONEncoder):
 
 
 def causal_crop(x, length):
-    stop = x.shape[-1] - 1
-    start = stop - length
-    return x[..., start:stop]
+    start = x.shape[-1] - length
+    return x[..., start:]
 
 
 class TCNBlock(nn.Module):
@@ -55,17 +54,17 @@ class TCNBlock(nn.Module):
         self.res = nn.Conv1d(in_ch, out_ch, kernel_size=1, groups=in_ch, bias=False)
 
     def forward(self, x):
-        # x_in = x
+        x_in = x
 
         x = self.conv1(x)
-        x = self.bn(x)
-        x = self.relu(x)
+        # x = self.bn(x)
+        # x = self.relu(x)
 
         # x_res = self.res(x_in)
 
         # x = x + causal_crop(x_res, x.shape[-1])
 
-        return x
+        return causal_crop(self.res(x_in), x.shape[-1])
 
     def export(self):
         bn_dict = self.bn.state_dict()
