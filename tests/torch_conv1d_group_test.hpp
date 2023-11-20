@@ -126,10 +126,10 @@ int testTorchConv1DGroupModel()
 int torchConv1DGroupTest()
 {
     int result = 0;
-    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 3, 1, 3>();
-    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 3, 1, 3>();
-    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 4, 10, 3>();
-    // result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 4, 10, 3>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 3, 1, 3>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 3, 1, 3>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 4, 10, 3>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 4, 10, 3>();
     result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 6, 1, 1, 6>();
     result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 6, 1, 1, 6>();
     return result;
