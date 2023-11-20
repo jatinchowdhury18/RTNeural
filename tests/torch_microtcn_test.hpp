@@ -93,11 +93,11 @@ namespace torch_microtcn_test
             conv1.forward(ins);
             bn.forward(conv1.outs);
             relu.forward(bn.outs);
-            // res.forward(ins);
+            res.forward(ins);
             
             for (int i = 0; i < out_ch; ++i)
             {
-                outs[i] = relu.outs[i];
+                outs[i] = relu.outs[i] + res.outs[i];
             }
         }
 
