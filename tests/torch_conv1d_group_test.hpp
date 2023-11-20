@@ -35,7 +35,13 @@ std::vector<std::vector<T>> loadFile2D(std::ifstream& stream)
     return RTNeural::torch_helpers::detail::transpose(vec);
 }
 
-template <typename T>
+int computeCrop(int input_size, int kernel_size, int dilation_rate)
+{
+    int output_size = (input_size  - dilation_rate * (kernel_size - 1) - 1) + 1;
+    return input_size - output_size;
+}
+
+template <typename T, int kernel_size, int dilation_rate>
 int testTorchConv1DGroupModel()
 {
     if (std::is_same<T, float>::value)
@@ -43,13 +49,13 @@ int testTorchConv1DGroupModel()
     else
         std::cout << "TESTING TORCH/CONV1D GROUP MODEL WITH DATA TYPE: DOUBLE" << std::endl;
 
-    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch_group.json";
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch_group_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + ".json";
     std::ifstream jsonStream(model_file, std::ifstream::binary);
 
     nlohmann::json modelJson;
     jsonStream >> modelJson;
 
-    RTNeural::ModelT<T, 6, 3, RTNeural::Conv1DT<T, 6, 3, 1, 1, 3, false>> model;
+    RTNeural::ModelT<T, 6, 3, RTNeural::Conv1DT<T, 6, 3, kernel_size, dilation_rate, 3, false>> model;
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model.template get<0>());
     model.reset();
 
@@ -64,16 +70,18 @@ int testTorchConv1DGroupModel()
         std::copy(model.getOutputs(), model.getOutputs() + 3, outputs[i].begin());
     }
 
-    std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_y_python.csv" };
+    std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_y_python_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + ".csv" };
     const auto expected_y = loadFile2D<T> (modelOutputsFile);
+
+    int crop = computeCrop(static_cast<int>(inputs.size()), kernel_size, dilation_rate);
 
     size_t nErrs = 0;
     T max_error = (T)0;
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < outputs[n].size(); ++j)
+        for(size_t j = 0; j < outputs[crop + n].size(); ++j)
         {
-            auto err = std::abs(outputs[n][j] - expected_y[n][j]);
+            auto err = std::abs(outputs[crop + n][j] - expected_y[n][j]);
             if(err > (T)1.0e-6)
             {
                 max_error = std::max(err, max_error);
@@ -103,7 +111,9 @@ int testTorchConv1DGroupModel()
 int torchConv1DGroupTest()
 {
     int result = 0;
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 3, 1>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 3, 1>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 4, 10>();
+    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 4, 10>();
     return result;
 }
