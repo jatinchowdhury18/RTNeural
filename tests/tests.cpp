@@ -9,6 +9,7 @@
 #include "torch_conv1d_group_test.hpp"
 #include "torch_gru_test.hpp"
 #include "torch_lstm_test.hpp"
+#include "torch_microtcn_test.hpp"
 #include "util_tests.hpp"
 
 // @TODO: make tests for both float and double precision
@@ -162,6 +163,11 @@ int main(int argc, char* argv[])
     if(arg == "conv2d_model")
     {
         return conv2d_test();
+    }
+
+    if(arg == "microtcn")
+    {
+        return microtcn_test();
     }
 
     if(tests.find(arg) != tests.end())
