@@ -50,6 +50,7 @@ namespace torch_microtcn_test
 
         TCNBlock() {
             const auto conv1_weights = std::string { RTNEURAL_ROOT_DIR } + "models/microtcn/conv1.json";
+            const auto bn_weights = std::string { RTNEURAL_ROOT_DIR } + "models/microtcn/bn.json";
             const auto relu_weights = std::string { RTNEURAL_ROOT_DIR } + "models/microtcn/relu.json";
             const auto res_weights = std::string { RTNEURAL_ROOT_DIR } + "models/microtcn/res.json";
 
@@ -58,7 +59,22 @@ namespace torch_microtcn_test
             conv1_stream >> conv1_json;
             RTNeural::torch_helpers::loadConv1D<T>(conv1_json, "", conv1, false);
 
-            bn.setEpsilon(0.00001);
+            // (TODO) purefunctor: add this to torch_helpers?
+            std::ifstream bn_stream (bn_weights, std::ifstream::binary);
+            nlohmann::json bn_json;
+            bn_stream >> bn_json;
+
+            T epsilon = bn_json.at("eps");
+            std::vector<T> gamma = bn_json.at("weight");
+            std::vector<T> beta = bn_json.at("bias");
+            std::vector<T> runningMean = bn_json.at("running_mean");
+            std::vector<T> runningVariance = bn_json.at("running_var");
+
+            bn.setEpsilon(epsilon);
+            bn.setGamma(gamma);
+            bn.setBeta(beta);
+            bn.setRunningMean(runningMean);
+            bn.setRunningVariance(runningVariance);
 
             std::ifstream relu_stream (relu_weights, std::ifstream::binary);
             nlohmann::json relu_json;
@@ -70,8 +86,6 @@ namespace torch_microtcn_test
             nlohmann::json res_json;
             res_stream >> res_json;
             RTNeural::torch_helpers::loadConv1D<T>(res_json, "", res, false);
-
-            std::cout << "LOADED WEIGHTS" << std::endl;
         }
 
         inline void forward(const T (&ins)[in_ch]) noexcept
@@ -79,11 +93,11 @@ namespace torch_microtcn_test
             conv1.forward(ins);
             bn.forward(conv1.outs);
             relu.forward(bn.outs);
-            res.forward(ins);
+            // res.forward(ins);
             
-            for (int i = 0; i < out_ch; i++)
+            for (int i = 0; i < out_ch; ++i)
             {
-                outs[i] = relu.outs[i] + res.outs[i];
+                outs[i] = relu.outs[i];
             }
         }
 
@@ -158,7 +172,7 @@ namespace torch_microtcn_test
 int microtcn_test()
 {
     int result = 0;
-    // result |= torch_microtcn_test::testMicroTCN<float>();
+    result |= torch_microtcn_test::testMicroTCN<float>();
     result |= torch_microtcn_test::testMicroTCN<double>();
     return result;
 }

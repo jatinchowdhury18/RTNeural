@@ -55,35 +55,44 @@ class TCNBlock(nn.Module):
         self.res = nn.Conv1d(in_ch, out_ch, kernel_size=1, groups=in_ch, bias=False)
 
     def forward(self, x):
-        x_in = x
+        # x_in = x
 
         x = self.conv1(x)
         x = self.bn(x)
         x = self.relu(x)
 
-        x_res = self.res(x_in)
+        # x_res = self.res(x_in)
 
-        x = x + causal_crop(x_res, x.shape[-1])
+        # x = x + causal_crop(x_res, x.shape[-1])
 
         return x
 
     def export(self):
+        bn_dict = self.bn.state_dict()
+        bn_dict["eps"] = self.bn.eps
+
         layers = [
             ("conv1", self.conv1.state_dict()),
+            ("bn", bn_dict),
             ("relu", self.relu.state_dict()),
             ("res", self.res.state_dict()),
         ]
 
-        for (layer_name, layer_weight) in layers:
+        for layer_name, layer_weight in layers:
             layer_file = _microtcn / Path(layer_name).with_suffix(".json")
             with layer_file.open("w") as json_file:
                 json.dump(layer_weight, json_file, cls=EncodeTensor)
 
 
 if __name__ == "__main__":
-    f = TCNBlock(1, 32, 4, 10).to(torch.float64)
+    # !!!IMPORTANT!!!
+    # Make sure to use `eval` and `no_grad` such that the
+    # `running_mean` and `running_var` is not updated after
+    # running inference for `y`.
+    f = TCNBlock(1, 32, 4, 10).to(torch.float64).eval()
     x = torch.from_numpy(np.random.uniform(-1, 1, 1000)).reshape(1, 1, -1)
-    y = f(x).detach().numpy()
+    with torch.no_grad():
+        y = f(x).detach().numpy()
 
     np.savetxt("test_data/microtcn_x.csv", x[0].T, delimiter=",")
     np.savetxt("test_data/microtcn_y.csv", y[0], delimiter=",")
