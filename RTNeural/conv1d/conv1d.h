@@ -210,17 +210,14 @@ public:
         {
             outs[i] = bias[i];
 
-            // copy selected columns to a helper variable
             for(int k = 0; k < kernel_size; ++k)
             {
+                // copy selected columns to a helper variable
                 const auto& column = state[state_ptrs[k]];
                 const auto column_begin = column.begin() + i * group_count;
                 const auto column_end = column.begin() + i * group_count + group_count;
                 std::copy(column_begin, column_end, state_cols[k].begin());
-            }
 
-            for(int k = 0; k < kernel_size; ++k)
-            {
                 outs[i] = std::inner_product(
                     weights[i][k].begin(),
                     weights[i][k].end(),
