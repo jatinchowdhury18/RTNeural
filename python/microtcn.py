@@ -57,14 +57,14 @@ class TCNBlock(nn.Module):
         x_in = x
 
         x = self.conv1(x)
-        # x = self.bn(x)
-        # x = self.relu(x)
+        x = self.bn(x)
+        x = self.relu(x)
 
-        # x_res = self.res(x_in)
+        x_res = self.res(x_in)
 
-        # x = x + causal_crop(x_res, x.shape[-1])
+        x = x + causal_crop(x_res, x.shape[-1])
 
-        return causal_crop(self.res(x_in), x.shape[-1])
+        return x
 
     def export(self):
         bn_dict = self.bn.state_dict()
