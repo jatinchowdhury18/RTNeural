@@ -4,7 +4,7 @@
 #include "../Layer.h"
 #include <xsimd/xsimd.hpp>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -382,6 +382,6 @@ private:
     v_type weights[v_out_size];
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // DENSEXSIMD_H_INCLUDED

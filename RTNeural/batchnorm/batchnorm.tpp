@@ -1,6 +1,6 @@
 #include "batchnorm.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 #if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 

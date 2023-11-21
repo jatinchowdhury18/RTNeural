@@ -4,7 +4,7 @@
 #include "../Layer.h"
 #include <Eigen/Dense>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -204,6 +204,6 @@ private:
     mat_type weights;
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // DENSEEIGEN_H_INCLUDED

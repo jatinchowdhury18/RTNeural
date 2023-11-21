@@ -4,7 +4,7 @@
 #include "../common.h"
 #include "../maths/maths_eigen.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /** Dynamic implementation of a tanh activation layer. */
@@ -463,6 +463,6 @@ private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
     v_type alpha;
 };
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // ACTIVATIONEIGEN_H_INCLUDED

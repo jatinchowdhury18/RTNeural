@@ -2,7 +2,7 @@
 
 #include "model_loader.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 #ifndef DOXYGEN
@@ -575,4 +575,4 @@ private:
     static constexpr size_t n_layers = sizeof...(Layers);
 };
 #endif // RTNEURAL_USE_XSIMD
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE

@@ -4,7 +4,7 @@
 #include "../Layer.h"
 #include <functional>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /** Base class for activation layers. */
@@ -35,7 +35,7 @@ private:
     const std::function<T(T)> func;
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #if RTNEURAL_USE_EIGEN
 #include "activation_eigen.h"
@@ -48,7 +48,7 @@ private:
 #include "../maths/maths_stl.h"
 #include <cmath>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /** Dynamic implementation of a tanh activation layer. */
@@ -424,7 +424,7 @@ public:
     T outs[size];
     T alpha[size];
 };
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // RTNEURAL_USE_EIGEN
 

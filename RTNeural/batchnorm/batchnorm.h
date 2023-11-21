@@ -12,7 +12,7 @@
 #include "../common.h"
 #include <vector>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 /** Dynamic batch normalization layer. */
 template <typename T>

@@ -1,6 +1,6 @@
 #include "conv1d_stateless_xsimd.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 template <typename T>
 Conv1DStateless<T>::Conv1DStateless(int in_num_filters_in, int in_num_features_in, int in_num_filters_out, int in_kernel_size, int in_stride, bool in_valid_pad)
@@ -71,4 +71,4 @@ void Conv1DStatelessT<T, num_filters_in_t, num_features_in_t, num_filters_out_t,
             for(int j = 0; j < kernel_size_t; ++j)
                 kernelWeights[i][j][k / v_size] = set_value(kernelWeights[i][j][k / v_size], k % v_size, inWeights.at(i).at(k).at(j));
 }
-} // RTNeural
+} // RTNEURAL_NAMESPACE

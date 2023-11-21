@@ -1,6 +1,6 @@
 #include "conv1d.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 #if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
@@ -166,4 +166,4 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, dynamic_state>:
 
 #endif
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE

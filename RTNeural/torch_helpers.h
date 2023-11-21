@@ -2,7 +2,7 @@
 
 #include "model_loader.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 namespace torch_helpers
 {
