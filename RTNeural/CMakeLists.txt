@@ -44,5 +44,5 @@ target_include_directories(RTNeural
     PUBLIC
         ../modules/json
     INTERFACE
-        ..
+        ./
 )

@@ -1,12 +1,12 @@
-#pragma once
+#include <gmock/gmock.h>
 
-#include "RTNeural/RTNeural.h"
 #include "load_csv.hpp"
+#include <RTNeural.h>
 
-namespace torch_gru_test
+namespace
 {
 template <typename T>
-int testTorchGRUModel()
+void testTorchGRUModel()
 {
     using ModelType = RTNeural::ModelT<T, 1, 1, RTNeural::GRULayerT<T, 1, 8>, RTNeural::DenseT<T, 8, 1>>;
 
@@ -22,10 +22,6 @@ int testTorchGRUModel()
         RTNeural::torch_helpers::loadDense<T>(modelJson, "dense.", dense);
     };
 
-    if(std::is_same<T, float>::value)
-        std::cout << "TESTING TORCH/GRU MODEL WITH DATA TYPE: FLOAT" << std::endl;
-    else
-        std::cout << "TESTING TORCH/GRU MODEL WITH DATA TYPE: DOUBLE" << std::endl;
     const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/gru_torch.json";
     std::ifstream jsonStream(model_file, std::ifstream::binary);
 
@@ -46,40 +42,17 @@ int testTorchGRUModel()
     std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/gru_torch_y_python.csv" };
     const auto expected_y = load_csv::loadFile<T>(modelOutputsFile);
 
-    size_t nErrs = 0;
-    T max_error = (T)0;
-    for(size_t n = 0; n < inputs.size(); ++n)
-    {
-        auto err = std::abs(outputs[n] - expected_y[n]);
-        if(err > (T)1.0e-6)
-        {
-            max_error = std::max(err, max_error);
-            nErrs++;
-
-            // For debugging purposes
-            // std::cout << "ERR: " << err << ", idx: " << n << std::endl;
-            // std::cout << yData[n] << std::endl;
-            // std::cout << yRefData[n] << std::endl;
-            // break;
-        }
-    }
-
-    if(nErrs > 0)
-    {
-        std::cout << "FAIL: " << nErrs << " errors!" << std::endl;
-        std::cout << "Maximum error: " << max_error << std::endl;
-        return 1;
-    }
-
-    std::cout << "SUCCESS" << std::endl;
-    return 0;
+    using namespace testing;
+    EXPECT_THAT(outputs, Pointwise(DoubleNear(1e-6), expected_y));
 }
 }
 
-int torchGRUTest()
+TEST(TestTorchGRU, modelOutputMatchesPythonImplementationForFloats)
 {
-    int result = 0;
-    result |= torch_gru_test::testTorchGRUModel<float>();
-    result |= torch_gru_test::testTorchGRUModel<double>();
-    return result;
+    testTorchGRUModel<float>();
+}
+
+TEST(TestTorchGRU, modelOutputMatchesPythonImplementationForDoubles)
+{
+    testTorchGRUModel<double>();
 }
