@@ -23,8 +23,8 @@ Happy testing!
 To build and run all tests, make sure that you have passed `-DBUILD_TESTS=ON`
 to your `cmake` command. You then have two options:
 
-1. Build all targets as normal, then run the test suite by invoking `ctest` in your build folder, or
-2. Build the `rtneural_test` target, which should also run the test suite.
+1. build all targets as normal, then run the test suite by invoking `ctest` in your build folder, or
+2. build the `rtneural_test` target, which should also run the test suite.
 
 ### All unit tests
 
