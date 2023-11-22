@@ -48,6 +48,6 @@ target_include_directories(RTNeural
 )
 
 target_compile_definitions(RTNeural
-    PRIVATE
+    PUBLIC
         RTNEURAL_NAMESPACE=RTNeural
 )
