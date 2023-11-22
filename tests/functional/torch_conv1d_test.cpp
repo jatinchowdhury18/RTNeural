@@ -39,14 +39,12 @@ std::vector<std::vector<T>> loadFile2D(std::ifstream& stream)
     return RTNeural::torch_helpers::detail::transpose(vec);
 }
 
-auto near(double expected, double tol)
+template <typename T>
+void expectNear(T const& expected, T const& actual)
 {
-    return testing::DoubleNear(expected, tol);
-}
-
-auto near(float expected, float tol)
-{
-    return testing::FloatNear(expected, tol);
+    EXPECT_THAT(
+        static_cast<double>(expected),
+        testing::DoubleNear(static_cast<double>(actual), 1e-6));
 }
 
 template <typename T>
@@ -79,7 +77,7 @@ void testTorchConv1DModel()
     {
         for(size_t j = 0; j < outputs[n].size(); ++j)
         {
-            EXPECT_THAT(outputs[n + 4][j], near(expected_y[n][j], T { 1e-6f }));
+            expectNear(outputs[n + 4][j], expected_y[n][j]);
         }
     }
 }
