@@ -6,6 +6,7 @@ add_subdirectory(RTNeural)
 
 include(cmake/SIMDExtensions.cmake)
 include(cmake/ChooseBackend.cmake)
+include(cmake/CPM.cmake)
 include(cmake/Testing.cmake)
 
 option(BUILD_TESTS "Build RTNeural accuracy tests" OFF)
