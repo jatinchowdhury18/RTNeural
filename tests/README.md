@@ -5,13 +5,14 @@ RTNeural tests are configured with CMake's [CTest](https://cmake.org/cmake/help/
 1. unit test, and
 2. functional tests.
 
-A unit test should (ideally) be small, and should verify that one piece of
+A unit test should (ideally) be small, and will usually verify that one piece of
 logic in an individual component is working correctly. Functional tests operate
 at a higher level, and should check that the combination of multiple components
-(or multiple pieces of logic) are working correctly together.
+(or multiple pieces of logic) are operating together as expected.
 
-GoogleTest has excellent documentation, which is easy to highly recommended
-reading if you're new to the framework.
+GoogleTest has excellent [documentation](https://google.github.io/googletest/),
+which is highly recommended reading if you're new to testing or new to the
+framework.
 
 Happy testing!
 
