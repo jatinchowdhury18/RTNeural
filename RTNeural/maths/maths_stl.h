@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 struct DefaultMathsProvider
 {

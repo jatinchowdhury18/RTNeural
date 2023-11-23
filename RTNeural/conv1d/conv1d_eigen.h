@@ -4,7 +4,7 @@
 #include "../Layer.h"
 #include <Eigen/Dense>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -214,6 +214,6 @@ private:
     }
 };
 
-} // RTNeural
+} // RTNEURAL_NAMESPACE
 
 #endif // CONV1DEIGEN_H_INCLUDED

@@ -19,7 +19,7 @@
 #include "lstm/lstm.h"
 #include "lstm/lstm.tpp"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -112,6 +112,6 @@ private:
     std::vector<vec_type> outs;
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // MODEL_H_INCLUDED

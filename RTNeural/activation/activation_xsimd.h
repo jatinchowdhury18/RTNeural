@@ -4,7 +4,7 @@
 #include "../common.h"
 #include "../maths/maths_xsimd.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /** Dynamic implementation of a tanh activation layer. */
@@ -430,6 +430,6 @@ public:
     v_type outs[v_io_size];
     v_type alpha[v_io_size];
 };
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // ACTIVATIONXSIMD_H_INCLUDED

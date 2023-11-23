@@ -1,6 +1,6 @@
 #pragma once
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -29,26 +29,26 @@ constexpr T ceil_div(T num, T den)
 {
     return (num + den - 1) / den;
 }
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #if RTNEURAL_USE_EIGEN
 #include <Eigen/Dense>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 #if RTNEURAL_DEFAULT_ALIGNMENT == 32
 constexpr auto RTNeuralEigenAlignment = Eigen::Aligned32;
 #else
 constexpr auto RTNeuralEigenAlignment = Eigen::Aligned16;
 #endif
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #elif RTNEURAL_USE_XSIMD
 #include <xsimd/xsimd.hpp>
 
 #include "xsimd-legacy/algorithms/algorithms.hpp"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 template <typename T>
@@ -236,20 +236,20 @@ static inline void elu(const T* in, T* out, int dim, T alpha) noexcept
     for(auto i = vec_size; i < dim; ++i)
         out[i] = in[i] > (T)0 ? in[i] : (alpha * (MathsProvider::exp(in[i]) - (T)1));
 }
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #else // STL backend
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 template <typename T>
 static inline T vMult(const T* arg1, const T* arg2, int dim) noexcept
 {
     return std::inner_product(arg1, arg1 + dim, arg2, (T)0);
 }
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif

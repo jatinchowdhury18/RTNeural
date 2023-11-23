@@ -2,7 +2,7 @@
 
 #include "gru_eigen.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 template <typename T, typename MathsProvider>
@@ -235,6 +235,6 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setBVals(
     }
 }
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // RTNEURAL_USE_EIGEN

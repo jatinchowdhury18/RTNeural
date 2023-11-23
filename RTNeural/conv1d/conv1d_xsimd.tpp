@@ -1,6 +1,6 @@
 #include "conv1d_xsimd.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 template <typename T>
@@ -126,4 +126,4 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, dynamic_state>:
         bias[i / v_size] = set_value(bias[i / v_size], i % v_size, biasVals[i]);
 }
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE

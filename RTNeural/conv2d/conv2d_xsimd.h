@@ -5,7 +5,7 @@
 #include "../conv1d_stateless/conv1d_stateless.h"
 #include <xsimd/xsimd.hpp>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 /**
  * Dynamic implementation of a 2-dimensional convolution layer with no activation.

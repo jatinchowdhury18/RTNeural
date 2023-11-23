@@ -5,7 +5,7 @@
 #include "../common.h"
 #include "../maths/maths_xsimd.h"
 #include <vector>
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -380,6 +380,6 @@ private:
     v_type delayPlus1Mult = (T)0;
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // GRUXSIMD_H_INCLUDED

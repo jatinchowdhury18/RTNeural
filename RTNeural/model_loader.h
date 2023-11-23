@@ -16,7 +16,7 @@
 #define RTNEURAL_MAYBE_UNUSED
 #endif
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 /** Utility functions for loading model weights from their json representation. */
 namespace json_parser
@@ -718,4 +718,4 @@ namespace json_parser
     }
 
 } // namespace json_parser
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
