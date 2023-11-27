@@ -1,6 +1,6 @@
 #include "conv2d_xsimd.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 template <typename T>
 Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_features_in, int in_kernel_size_time, int in_kernel_size_feature,
@@ -85,4 +85,4 @@ void Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_s
 {
     std::copy(inBias.begin(), inBias.end(), reinterpret_cast<T*>(std::begin(bias)));
 }
-} // RTNeural
+} // RTNEURAL_NAMESPACE

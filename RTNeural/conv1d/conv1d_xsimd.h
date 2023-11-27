@@ -6,7 +6,7 @@
 #include <numeric>
 #include <vector>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -313,6 +313,6 @@ private:
             state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // CONV1DXSIMD_H_INCLUDED

@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <string>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /** Virtual base class for a generic neural network layer. */
@@ -34,6 +34,6 @@ public:
     const int out_size;
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // LAYER_H_INCLUDED

@@ -1,6 +1,6 @@
 #include "batchnorm_xsimd.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 template <typename T>
 BatchNorm1DLayer<T>::BatchNorm1DLayer(int size)

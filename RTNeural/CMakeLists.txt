@@ -46,3 +46,8 @@ target_include_directories(RTNeural
     INTERFACE
         ./
 )
+set(RTNEURAL_NAMESPACE "RTNeural" CACHE STRING "Namespace to use for RTNeural code")
+target_compile_definitions(RTNeural
+    PUBLIC
+        RTNEURAL_NAMESPACE=${RTNEURAL_NAMESPACE}
+)

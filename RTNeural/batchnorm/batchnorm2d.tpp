@@ -2,7 +2,7 @@
 
 #if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 template <typename T>
 BatchNorm2DLayer<T>::BatchNorm2DLayer(int in_num_filters, int in_num_features)

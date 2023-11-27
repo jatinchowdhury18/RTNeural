@@ -15,7 +15,7 @@
 #include "../maths/maths_stl.h"
 #include <vector>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -339,7 +339,7 @@ private:
     T delayPlus1Mult = (T)0;
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // RTNEURAL_USE_EIGEN
 

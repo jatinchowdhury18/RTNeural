@@ -12,7 +12,7 @@
 #else
 #include "../Layer.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 #ifndef DOXYGEN
@@ -246,7 +246,7 @@ private:
     T weights[weights_size];
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // RTNEURAL_USE_STL
 

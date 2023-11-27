@@ -4,7 +4,7 @@
 #include "../Layer.h"
 #include <Eigen/Dense>
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 /** Dynamic batch normalization layer. */
 template <typename T>

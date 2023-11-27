@@ -5,6 +5,10 @@
 // C++ STL includes
 #include <limits>
 
+#ifndef RTNEURAL_NAMESPACE
+#define RTNEURAL_NAMESPACE RTNeural
+#endif
+
 // Handle default RTNeural defines
 #ifndef RTNEURAL_DEFAULT_ALIGNMENT
 #if _MSC_VER
