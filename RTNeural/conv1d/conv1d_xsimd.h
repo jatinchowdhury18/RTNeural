@@ -76,11 +76,11 @@ public:
             vCopy(bias.data(), h, Layer<T>::out_size);
             for(int i = 0; i < Layer<T>::out_size; ++i)
             {
+                const auto ii = ((i / channels_per_group) * filters_per_group);
                 for(int k = 0; k < kernel_size; ++k)
                 {
                     // copy selected columns to a helper variable
                     const auto& column = state[state_ptrs[k]];
-                    const auto ii = ((i * filters_per_group) / Layer<T>::out_size) * groups;
                     const auto column_begin = column.begin() + ii;
                     const auto column_end = column_begin + filters_per_group;
                     std::copy(column_begin, column_end, state_cols[k].begin());
@@ -113,7 +113,7 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
-    /** Returns the convolution dilation rate. */
+    /** Returns the number of "groups" in the convolution. */
     int getGroups() const noexcept { return groups; }
 
 private:
@@ -126,6 +126,7 @@ private:
     const int state_size;
     const int groups;
     const int filters_per_group;
+    const int channels_per_group;
 
     vec3_type weights;
     vec_type bias;
@@ -172,10 +173,13 @@ class Conv1DT
     static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
     static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
 
+    static_assert((in_sizet % groups == 0) && (out_sizet % groups == 0), "in_size and out_size must be divisible by groups!");
+
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
     static constexpr auto filters_per_group = in_size / groups;
+    static constexpr auto channels_per_group = out_size / groups;
     static constexpr auto v_filters_per_group = ceil_div(filters_per_group, v_size);
 
     Conv1DT();
@@ -209,12 +213,13 @@ public:
                 assert(i * v_size + k < out_size);
                 const auto& subWeights = weights[i * v_size + k];
                 v_type accum {};
+
+                const auto ii = (((i * v_size + k) / channels_per_group) * filters_per_group);
                 for(int j = 0; j < kernel_size; ++j)
                 {
                     // copy selected columns to a helper variable
                     // @TODO: I'm not sure the reinterpret_casts are 100% safe here, but they seem to work in testing!
                     const auto& column = reinterpret_cast<std::array<T, in_size>&> (state[state_ptrs[j]]);
-                    const auto ii = (((i * v_size + k) * filters_per_group) / out_size) * groups;
                     const auto column_begin = column.begin() + ii;
                     const auto column_end = column_begin + filters_per_group;
                     std::copy(column_begin, column_end, reinterpret_cast<std::array<T, filters_per_group>&> (state_cols[j]).begin());
@@ -356,7 +361,7 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
-    /** Returns the convolution dilation rate. */
+    /** Returns the number of "groups" in the convolution. */
     int getGroups() const noexcept { return groups; }
 
     v_type outs[v_out_size];

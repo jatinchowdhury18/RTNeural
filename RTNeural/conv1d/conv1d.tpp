@@ -10,9 +10,10 @@ Conv1D<T>::Conv1D(int in_size, int out_size, int kernel_size, int dilation, int 
     : Layer<T>(in_size, out_size)
     , dilation_rate(dilation)
     , kernel_size(kernel_size)
+    , state_size((kernel_size - 1) * dilation + 1)
     , groups(num_groups)
     , filters_per_group(in_size / groups)
-    , state_size((kernel_size - 1) * dilation + 1)
+    , channels_per_group(out_size / groups)
 {
     weights = new T**[out_size];
     for(int i = 0; i < out_size; ++i)

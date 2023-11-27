@@ -85,11 +85,12 @@ public:
             for(int i = 0; i < Layer<T>::out_size; ++i)
             {
                 h[i] = bias[i];
+                const auto ii = ((i / channels_per_group) * filters_per_group);
                 for(int k = 0; k < kernel_size; ++k)
                 {
                     // copy selected columns to a helper variable
                     const auto& column = state[state_ptrs[k]];
-                    const auto ii = ((i * filters_per_group) / Layer<T>::out_size) * groups;
+
                     const auto column_begin = column + ii;
                     const auto column_end = column_begin + filters_per_group;
                     std::copy(column_begin, column_end, state_cols[k]);
@@ -126,7 +127,7 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
-    /** Returns the convolution dilation rate. */
+    /** Returns the number of "groups" in the convolution. */
     int getGroups() const noexcept { return groups; }
 
 private:
@@ -135,6 +136,7 @@ private:
     const int state_size;
     const int groups;
     const int filters_per_group;
+    const int channels_per_group;
 
     T*** weights;
     T* bias;
@@ -174,7 +176,7 @@ private:
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, int groups = 1, bool dynamic_state = false>
 class Conv1DT
 {
-    static_assert((in_sizet % groups == 0) && (out_sizet % groups == 0), "in_sizet and out_sizet must be divisible by groups!");
+    static_assert((in_sizet % groups == 0) && (out_sizet % groups == 0), "in_size and out_size must be divisible by groups!");
 
     static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
 
@@ -182,6 +184,7 @@ public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
     static constexpr auto filters_per_group = in_size / groups;
+    static constexpr auto channels_per_group = out_size / groups;
 
     Conv1DT();
 
@@ -241,11 +244,11 @@ public:
         {
             outs[i] = bias[i];
 
+            const auto ii = ((i / channels_per_group) * filters_per_group);
             for(int k = 0; k < kernel_size; ++k)
             {
                 // copy selected columns to a helper variable
                 const auto& column = state[state_ptrs[k]];
-                const auto ii = ((i * filters_per_group) / out_size) * groups;
                 const auto column_begin = column.begin() + ii;
                 const auto column_end = column_begin + filters_per_group;
                 std::copy(column_begin, column_end, state_cols[k].begin());
@@ -281,7 +284,7 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
-    /** Returns the convolution dilation rate. */
+    /** Returns the number of "groups" in the convolution. */
     int getGroups() const noexcept { return groups; }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
