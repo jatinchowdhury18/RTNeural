@@ -1,10 +1,16 @@
 option(RTNEURAL_TEST_REPORTS "Output test reports to XML files" OFF)
 
 macro(rtneural_setup_testing)
+
     include(CTest)
     enable_testing()
     add_custom_target(rtneural_test COMMAND ctest -C ${Configuration} --output-on-failure)
+
+    # From the GoogleTest README:
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     CPMAddPackage("gh:google/googletest@1.14.0")
+
 endmacro()
 
 function(rtneural_add_test)
