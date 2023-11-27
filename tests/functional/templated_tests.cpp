@@ -2,7 +2,7 @@
 
 #include "load_csv.hpp"
 #include "test_configs.hpp"
-#include <RTNeural.h>
+#include <RTNeural/RTNeural.h>
 
 namespace
 {

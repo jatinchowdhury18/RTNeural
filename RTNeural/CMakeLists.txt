@@ -44,7 +44,7 @@ target_include_directories(RTNeural
     PUBLIC
         ../modules/json
     INTERFACE
-        ./
+        ..
 )
 set(RTNEURAL_NAMESPACE "RTNeural" CACHE STRING "Namespace to use for RTNeural code")
 target_compile_definitions(RTNeural

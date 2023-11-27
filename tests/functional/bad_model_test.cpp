@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <RTNeural.h>
+#include <RTNeural/RTNeural.h>
 
 // The idea here is to purposely feed an incorrect JSON file to the parseJson() method,
 // and make sure that the parser handles it gracefully.

@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 
-#include <activation/activation.h>
+#include <RTNeural/activation/activation.h>
 
 using namespace testing;
 

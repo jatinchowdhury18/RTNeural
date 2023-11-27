@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 
 #include "load_csv.hpp"
-#include <RTNeural.h>
+#include <RTNeural/RTNeural.h>
 
 namespace
 {

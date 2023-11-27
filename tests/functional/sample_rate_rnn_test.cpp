@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 
-#include <RTNeural.h>
+#include <RTNeural/RTNeural.h>
 #include <iostream>
 
 namespace
