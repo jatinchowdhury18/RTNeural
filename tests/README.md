@@ -2,7 +2,7 @@
 
 RTNeural tests are configured with CMake's [CTest](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Testing%20With%20CMake%20and%20CTest.html) and developed with the [GoogleTest framework](https://github.com/google/googletest). Tests are split into two categories:
 
-1. unit test, and
+1. unit tests, and
 2. functional tests.
 
 A unit test should (ideally) be small, and will usually verify that one piece of
