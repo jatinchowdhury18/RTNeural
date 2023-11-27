@@ -1,5 +1,6 @@
 #include "RTNeural/RTNeural.h"
 
+#if !(RTNEURAL_USE_XSIMD || RTNEURAL_USE_EIGEN)
 namespace torch_microtcn_test
 {
     template <typename T>
@@ -39,7 +40,7 @@ namespace torch_microtcn_test
     }
 
     template<typename T, int in_ch, int out_ch, int kernel_size, int dilation_rate>
-    class TCNBlock 
+    class TCNBlock
     {
     public:
         T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_ch];
@@ -94,7 +95,7 @@ namespace torch_microtcn_test
             bn.forward(conv1.outs);
             relu.forward(bn.outs);
             res.forward(ins);
-            
+
             for (int i = 0; i < out_ch; ++i)
             {
                 outs[i] = relu.outs[i] + res.outs[i];
@@ -176,3 +177,10 @@ int microtcn_test()
     result |= torch_microtcn_test::testMicroTCN<double>();
     return result;
 }
+#else
+int microtcn_test()
+{
+    // @TODO
+    return 0;
+}
+#endif

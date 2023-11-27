@@ -113,8 +113,9 @@ namespace modelt_detail
         const auto& weights = l["weights"];
         const auto kernel = l["kernel_size"].back().get<int>();
         const auto dilation = l["dilation"].back().get<int>();
+        const auto groups = l.value("groups", 1);
 
-        if(checkConv1D<T>(conv, type, layerDims, kernel, dilation, debug))
+        if(checkConv1D<T>(conv, type, layerDims, kernel, dilation, groups, debug))
             loadConv1D<T>(conv, kernel, dilation, weights);
 
         if(!l.contains("activation"))

@@ -43,7 +43,9 @@ int testTorchConv1DGroupModel()
 
     for (size_t i = 0; i < inputs.size(); ++i)
     {
-        model.forward(inputs[i].data());
+        alignas (16) T input_copy[input_size + 4] {};
+        std::copy (inputs[i].begin(), inputs[i].end(), std::begin (input_copy));
+        model.forward(input_copy);
         std::copy(model.getOutputs(), model.getOutputs() + output_size, outputs[i].begin());
     }
 

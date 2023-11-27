@@ -6,10 +6,12 @@ namespace RTNEURAL_NAMESPACE
 #if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 
 template <typename T>
-Conv1D<T>::Conv1D(int in_size, int out_size, int kernel_size, int dilation)
+Conv1D<T>::Conv1D(int in_size, int out_size, int kernel_size, int dilation, int num_groups)
     : Layer<T>(in_size, out_size)
     , dilation_rate(dilation)
     , kernel_size(kernel_size)
+    , groups(num_groups)
+    , filters_per_group(in_size / groups)
     , state_size((kernel_size - 1) * dilation + 1)
 {
     weights = new T**[out_size];
@@ -18,8 +20,8 @@ Conv1D<T>::Conv1D(int in_size, int out_size, int kernel_size, int dilation)
         weights[i] = new T*[kernel_size];
         for(int k = 0; k < kernel_size; ++k)
         {
-            weights[i][k] = new T[in_size];
-            std::fill(weights[i][k], weights[i][k] + in_size, (T)0);
+            weights[i][k] = new T[filters_per_group];
+            std::fill(weights[i][k], weights[i][k] + filters_per_group, (T)0);
         }
     }
 
@@ -31,7 +33,7 @@ Conv1D<T>::Conv1D(int in_size, int out_size, int kernel_size, int dilation)
 
     state_cols = new T*[kernel_size];
     for(int k = 0; k < kernel_size; ++k)
-        state_cols[k] = new T[in_size];
+        state_cols[k] = new T[filters_per_group];
 
     state_ptrs = new int[kernel_size];
 }
@@ -89,7 +91,7 @@ void Conv1D<T>::reset()
         std::fill(state[k], state[k] + Layer<T>::in_size, (T)0);
 
     for(int k = 0; k < kernel_size; ++k)
-        std::fill(state_cols[k], state_cols[k] + Layer<T>::in_size, (T)0);
+        std::fill(state_cols[k], state_cols[k] + filters_per_group, (T)0);
 
     for(int k = 0; k < kernel_size; ++k)
         state_ptrs[k] = 0;
@@ -101,7 +103,7 @@ template <typename T>
 void Conv1D<T>::setWeights(const std::vector<std::vector<std::vector<T>>>& ws)
 {
     for(int i = 0; i < Layer<T>::out_size; ++i)
-        for(int k = 0; k < Layer<T>::in_size; ++k)
+        for(int k = 0; k < filters_per_group; ++k)
             for(int j = 0; j < kernel_size; ++j)
                 weights[i][j][k] = ws[i][k][j];
 }
@@ -119,7 +121,7 @@ Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups_of, dynamic_s
 {
     for(int i = 0; i < out_size; ++i)
         for(int j = 0; j < kernel_size; ++j)
-            for(int k = 0; k < group_count; ++k)
+            for(int k = 0; k < filters_per_group; ++k)
                 weights[i][j][k] = (T)0.0;
 
     for(int i = 0; i < out_size; ++i)
@@ -140,7 +142,7 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups_of, dyna
             state[i][k] = (T)0.0;
 
     for(int i = 0; i < kernel_size; ++i)
-        for(int k = 0; k < group_count; ++k)
+        for(int k = 0; k < filters_per_group; ++k)
             state_cols[i][k] = (T)0.0;
 
     state_ptr = 0;
@@ -152,7 +154,7 @@ template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation
 void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups_of, dynamic_state>::setWeights(const std::vector<std::vector<std::vector<T>>>& ws)
 {
     for(int i = 0; i < out_size; ++i)
-        for(int k = 0; k < group_count; ++k)
+        for(int k = 0; k < filters_per_group; ++k)
             for(int j = 0; j < kernel_size; ++j)
                 weights[i][j][k] = ws[i][k][j];
 }
