@@ -101,8 +101,6 @@ auto loadTemplatedModel()
     return modelT;
 }
 
-
-
 template <typename ModelType>
 void testModelOutputMatchesPythonImplementation(
     ModelType& model,
@@ -153,8 +151,7 @@ TEST(TestConv2D, nonTemplatedModelOutputMatchesPythonImplementation)
 {
 #if RTNEURAL_AVX_ENABLED
     GTEST_SKIP() << "SKIPPING CONV2D MODEL TEST w/ AVX ENABLED...";
-#endif
-
+#else
     auto non_templated_model = loadNonTemplatedModel();
     ASSERT_THAT(non_templated_model, testing::Ne(nullptr));
     testModelOutputMatchesPythonImplementation(
@@ -162,13 +159,14 @@ TEST(TestConv2D, nonTemplatedModelOutputMatchesPythonImplementation)
         computeReceptiveField(*non_templated_model),
         computeTotalPaddedLeftFramesTensorflow(*non_templated_model),
         non_templated_model->getOutSize());
+#endif
 }
 
 TEST(TestConv2D, templatedModelOutputMatchesPythonImplementation)
 {
 #if RTNEURAL_AVX_ENABLED
     GTEST_SKIP() << "SKIPPING CONV2D MODEL TEST w/ AVX ENABLED...";
-#endif
+#else
     auto non_templated_model = loadNonTemplatedModel();
     ASSERT_THAT(non_templated_model, testing::Ne(nullptr));
 
@@ -178,4 +176,5 @@ TEST(TestConv2D, templatedModelOutputMatchesPythonImplementation)
         computeReceptiveField(*non_templated_model),
         computeTotalPaddedLeftFramesTensorflow(*non_templated_model),
         non_templated_model->getOutSize());
+#endif
 }
