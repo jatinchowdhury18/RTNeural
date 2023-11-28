@@ -291,6 +291,7 @@ Please thank the following individuals for their important contributions:
 - [stepanmk](https://github.com/stepanmk): Eigen Conv1D layer optimization.
 - [DamRsn](https://github.com/DamRsn): Eigen implementations for Conv2D and BatchNorm2D layers.
 - [lHorvalds](https://github.com/IHorvalds): Eigen backend optimizations.
+- [davidtrevelyan](https://github.com/davidtrevelyan): Testing framework upgrade.
 
 ## Powered by RTNeural
 
