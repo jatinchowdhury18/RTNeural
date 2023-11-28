@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 
-#include "load_csv.hpp"
 #include "RTNeural/RTNeural.h"
+#include "load_csv.hpp"
 
 namespace
 {
@@ -15,21 +15,14 @@ void expectNear(T const& expected, T const& actual)
 
 int computeCrop(int input_size, int kernel_size, int dilation_rate)
 {
-    int output_size = (input_size  - dilation_rate * (kernel_size - 1) - 1) + 1;
+    int output_size = (input_size - dilation_rate * (kernel_size - 1) - 1) + 1;
     return input_size - output_size;
 }
 
 template <typename T, int input_size, int output_size, int kernel_size, int dilation_rate, int groups_of>
 void testTorchConv1DGroupModel()
 {
-    const auto model_file = 
-        std::string { RTNEURAL_ROOT_DIR } + 
-        "models/conv1d_torch_group_" +
-        std::to_string(input_size) + "_" +
-        std::to_string(output_size) + "_" +
-        std::to_string(kernel_size) + "_" +
-        std::to_string(dilation_rate) + "_" +
-        std::to_string(groups_of) + ".json";
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch_group_" + std::to_string(input_size) + "_" + std::to_string(output_size) + "_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + "_" + std::to_string(groups_of) + ".json";
     std::ifstream jsonStream(model_file, std::ifstream::binary);
 
     nlohmann::json modelJson;
@@ -44,24 +37,18 @@ void testTorchConv1DGroupModel()
     std::vector<std::array<T, output_size>> outputs {};
     outputs.resize(inputs.size(), {});
 
-    for (size_t i = 0; i < inputs.size(); ++i)
+    for(size_t i = 0; i < inputs.size(); ++i)
     {
-        alignas (16) T input_copy[input_size + 4] {};
-        std::copy (inputs[i].begin(), inputs[i].end(), std::begin (input_copy));
+        alignas(16) T input_copy[input_size + 4] {};
+        std::copy(inputs[i].begin(), inputs[i].end(), std::begin(input_copy));
         model.forward(input_copy);
         std::copy(model.getOutputs(), model.getOutputs() + output_size, outputs[i].begin());
     }
 
-    std::ifstream modelOutputsFile { 
-        std::string { RTNEURAL_ROOT_DIR } + 
-        "test_data/conv1d_torch_group_y_python_" +
-            std::to_string(input_size) + "_" +
-            std::to_string(output_size) + "_" +
-            std::to_string(kernel_size) + "_" +
-            std::to_string(dilation_rate) + "_" +
-            std::to_string(groups_of) + ".csv"
-        };
-    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T> (modelOutputsFile));
+    std::ifstream modelOutputsFile {
+        std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_y_python_" + std::to_string(input_size) + "_" + std::to_string(output_size) + "_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + "_" + std::to_string(groups_of) + ".csv"
+    };
+    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelOutputsFile));
 
     int crop = computeCrop(static_cast<int>(inputs.size()), kernel_size, dilation_rate);
 

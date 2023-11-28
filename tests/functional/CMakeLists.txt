@@ -10,4 +10,5 @@ rtneural_add_test(
         torch_conv1d_groups_test.cpp
         torch_lstm_test.cpp
         torch_gru_test.cpp
+        torch_microtcn_test.cpp
     DEPENDENCIES PRIVATE RTNeural)
