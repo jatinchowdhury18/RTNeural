@@ -1,10 +1,18 @@
-#pragma once
+#include <gmock/gmock.h>
 
 #include "load_csv.hpp"
 #include "RTNeural/RTNeural.h"
 
-namespace torch_conv1d_group_test
+namespace
 {
+template <typename T>
+void expectNear(T const& expected, T const& actual)
+{
+    EXPECT_THAT(
+        static_cast<double>(expected),
+        testing::DoubleNear(static_cast<double>(actual), 1e-6));
+}
+
 int computeCrop(int input_size, int kernel_size, int dilation_rate)
 {
     int output_size = (input_size  - dilation_rate * (kernel_size - 1) - 1) + 1;
@@ -12,13 +20,8 @@ int computeCrop(int input_size, int kernel_size, int dilation_rate)
 }
 
 template <typename T, int input_size, int output_size, int kernel_size, int dilation_rate, int groups_of>
-int testTorchConv1DGroupModel()
+void testTorchConv1DGroupModel()
 {
-    if (std::is_same<T, float>::value)
-        std::cout << "TESTING TORCH/CONV1D GROUP MODEL WITH DATA TYPE: FLOAT" << std::endl;
-    else
-        std::cout << "TESTING TORCH/CONV1D GROUP MODEL WITH DATA TYPE: DOUBLE" << std::endl;
-
     const auto model_file = 
         std::string { RTNEURAL_ROOT_DIR } + 
         "models/conv1d_torch_group_" +
@@ -62,47 +65,26 @@ int testTorchConv1DGroupModel()
 
     int crop = computeCrop(static_cast<int>(inputs.size()), kernel_size, dilation_rate);
 
-    size_t nErrs = 0;
-    T max_error = (T)0;
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
         for(size_t j = 0; j < outputs[crop + n].size(); ++j)
         {
-            auto err = std::abs(outputs[crop + n][j] - expected_y[n][j]);
-            if(err > (T)1.0e-6)
-            {
-                max_error = std::max(err, max_error);
-                nErrs++;
-
-                // For debugging purposes
-                // std::cout << "ERR: " << err << ", idx: " << n << std::endl;
-                // std::cout << "Output: " << outputs[n][j] << std::endl;
-                // std::cout << "Expected: " << expected_y[n][j] << std::endl;
-                // break;
-            }
+            expectNear(outputs[n + crop][j], expected_y[n][j]);
         }
     }
-
-    if(nErrs > 0)
-    {
-        std::cout << "FAIL: " << nErrs << " errors!" << std::endl;
-        std::cout << "Maximum error: " << max_error << std::endl;
-        return 1;
-    }
-
-    std::cout << "SUCCESS" << std::endl;
-    return 0;
 }
 }
 
-int torchConv1DGroupTest()
+TEST(TestTorchConv1DGroups, modelOutputMatchesPythonImplementationForFloats)
 {
-    int result = 0;
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 3, 1, 3>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 3, 1, 3>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 3, 4, 10, 3>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 3, 4, 10, 3>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<float, 6, 6, 1, 1, 6>();
-    result |= torch_conv1d_group_test::testTorchConv1DGroupModel<double, 6, 6, 1, 1, 6>();
-    return result;
+    testTorchConv1DGroupModel<float, 6, 3, 3, 1, 3>();
+    testTorchConv1DGroupModel<float, 6, 3, 4, 10, 3>();
+    testTorchConv1DGroupModel<float, 6, 6, 1, 1, 6>();
+}
+
+TEST(TestTorchConv1DGroups, modelOutputMatchesPythonImplementationForDoubles)
+{
+    testTorchConv1DGroupModel<double, 6, 3, 3, 1, 3>();
+    testTorchConv1DGroupModel<double, 6, 3, 4, 10, 3>();
+    testTorchConv1DGroupModel<double, 6, 6, 1, 1, 6>();
 }

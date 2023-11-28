@@ -69,11 +69,11 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForConv1D)
         PReLUActivationT<TestType, 4>,
         Conv1DT<TestType, 4, 4, 1, 1>,
         TanhActivationT<TestType, 4>,
-        Conv1DT<TestType, 4, 4, 3, 2>,
-        TanhActivationT<TestType, 4>,
-        BatchNorm1DT<TestType, 4, false>,
-        PReLUActivationT<TestType, 4>,
-        DenseT<TestType, 4, 1>,
+        Conv1DT<TestType, 4, 6, 3, 2, 2>,
+        TanhActivationT<TestType, 6>,
+        BatchNorm1DT<TestType, 6, false>,
+        PReLUActivationT<TestType, 6>,
+        DenseT<TestType, 6, 1>,
         SigmoidActivationT<TestType, 1>>;
 
     runTestTemplated<TestType, ModelType>(tests.at("conv1d"));
