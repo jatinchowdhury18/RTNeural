@@ -350,20 +350,20 @@ public:
 
     /** Get a reference to the layer at index `Index`. */
     template <int Index>
-    auto& get() noexcept
+    RTNEURAL_REALTIME auto& get() noexcept
     {
         return std::get<Index>(layers);
     }
 
     /** Get a reference to the layer at index `Index`. */
     template <int Index>
-    const auto& get() const noexcept
+    RTNEURAL_REALTIME const auto& get() const noexcept
     {
         return std::get<Index>(layers);
     }
 
     /** Resets the state of the network layers. */
-    void reset()
+    RTNEURAL_REALTIME void reset()
     {
         modelt_detail::forEachInTuple([&](auto& layer, size_t)
             { layer.reset(); },
@@ -372,7 +372,7 @@ public:
 
     /** Performs forward propagation for this model. */
     template <int N = in_size>
-    inline typename std::enable_if<(N > 1), T>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<(N > 1), T>::type
     forward(const T* input)
     {
 #if RTNEURAL_USE_XSIMD
@@ -399,7 +399,7 @@ public:
 
     /** Performs forward propagation for this model. */
     template <int N = in_size>
-    inline typename std::enable_if<N == 1, T>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<N == 1, T>::type
     forward(const T* input)
     {
 #if RTNEURAL_USE_XSIMD
@@ -425,7 +425,7 @@ public:
     }
 
     /** Returns a pointer to the output of the final layer in the network. */
-    inline const T* getOutputs() const noexcept
+    RTNEURAL_REALTIME inline const T* getOutputs() const noexcept
     {
         return outs;
     }
