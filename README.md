@@ -18,7 +18,7 @@ This library was designed with the intention of being used in
 real-time systems, specifically real-time audio processing.
 
 Currently supported layers:
-  
+
   - [x] Dense
   - [x] GRU
   - [x] LSTM
@@ -49,7 +49,7 @@ Additional resources:
 If you are using RTNeural as part of an academic work, please cite the library as follows:
 ```
 @article{chowdhury2021rtneural,
-        title={RTNeural: Fast Neural Inferencing for Real-Time Systems}, 
+        title={RTNeural: Fast Neural Inferencing for Real-Time Systems},
         author={Jatin Chowdhury},
         year={2021},
         journal={arXiv preprint arXiv:2106.03037}
@@ -187,17 +187,17 @@ or the C++ STL. You can choose your backend by passing
 either `-DRTNEURAL_EIGEN=ON`, `-DRTNEURAL_XSIMD=ON`,
 or `-DRTNEURAL_STL=ON` to your CMake configuration. By
 default, the `Eigen` backend will be used. Alternatively,
-you may select your choice of backends in your CMake 
+you may select your choice of backends in your CMake
 configuration as follows:
 ```cmake
 set(RTNEURAL_XSIMD ON CACHE BOOL "Use RTNeural with this backend" FORCE)
 add_subdirectory(modules/RTNeural)
 ```
 
-In general, the `Eigen` backend typically has the best 
+In general, the `Eigen` backend typically has the best
 performance for larger networks, while smaller networks
 may perform better with XSIMD. However, it is recommended
-to measure the performance of your network with all the 
+to measure the performance of your network with all the
 backends that are available on your target platform
 to ensure optimal performance. For more information see the
 [benchmark results](https://github.com/jatinchowdhury18/RTNeural/actions?query=workflow%3ABench).
@@ -211,13 +211,11 @@ you may run CMake with the `-DRTNEURAL_USE_AVX=ON`. Note that
 this flag will have no effect when compiling for platforms that
 do not support AVX instructions.
 
-### Building the Unit Tests
+### Building the test suite
 
-To build RTNeural's unit tests, run
-`cmake -Bbuild -DBUILD_TESTS=ON`, followed by
-`cmake --build build`. To run the full testing suite,
-run `./build/rtneural_tests all`. For more information,
-run `./build/rtneural_tests --help`.
+To build RTNeural's test suite, run `cmake -Bbuild -DBUILD_TESTS=ON`, followed
+by `cmake --build build`. To run the full testing suite, run `ctest` from the
+`build` folder. For more information, see `tests/README.md`.
 
 ### Building the Performance Benchmarks
 
@@ -293,6 +291,7 @@ Please thank the following individuals for their important contributions:
 - [stepanmk](https://github.com/stepanmk): Eigen Conv1D layer optimization.
 - [DamRsn](https://github.com/DamRsn): Eigen implementations for Conv2D and BatchNorm2D layers.
 - [lHorvalds](https://github.com/IHorvalds): Eigen backend optimizations.
+- [davidtrevelyan](https://github.com/davidtrevelyan): Testing framework upgrade.
 
 ## Powered by RTNeural
 
