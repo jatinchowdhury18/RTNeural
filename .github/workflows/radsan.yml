@@ -1,16 +1,14 @@
 name: RADSan Real-Time Safety
 
-# TODO Re-enable this restriction when submitting PR
-#on:
-#  push:
-#    branches:
-#    - main
-#    - develop
-#  pull_request:
-#    branches:
-#    - main
-#    - develop
-on: [push]
+on:
+  push:
+    branches:
+    - main
+    - develop
+  pull_request:
+    branches:
+    - main
+    - develop
 
 jobs:
   build_and_test:
@@ -33,4 +31,4 @@ jobs:
       run: cmake --build build --config Release --parallel
 
     - name: Test
-      run: cd build && ctest --output-on-failure
+      run: cd build && ctest -C Release --output-on-failure
