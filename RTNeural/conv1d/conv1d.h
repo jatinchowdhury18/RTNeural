@@ -37,7 +37,7 @@ public:
      * @param kernel_size: the size of the convolution kernel
      * @param dilation: the dilation rate to use for dilated convolution
      */
-    Conv1D(int in_size, int out_size, int kernel_size, int dilation);
+    Conv1D(int in_size, int out_size, int kernel_size, int dilation, int groups = 1);
     Conv1D(std::initializer_list<int> sizes);
     Conv1D(const Conv1D& other);
     Conv1D& operator=(const Conv1D& other);
@@ -58,23 +58,50 @@ public:
         // set state pointers to particular columns of the buffer
         setStatePointers();
 
-        // copy selected columns to a helper variable
-        for(int k = 0; k < kernel_size; ++k)
+        if (groups == 1)
         {
-            const auto& col = state[state_ptrs[k]];
-            std::copy(col, col + Layer<T>::in_size, state_cols[k]);
-        }
-
-        // perform multi-channel convolution
-        for(int i = 0; i < Layer<T>::out_size; ++i)
-        {
-            h[i] = bias[i];
+            // copy selected columns to a helper variable
             for(int k = 0; k < kernel_size; ++k)
-                h[i] = std::inner_product(
-                    weights[i][k],
-                    weights[i][k] + Layer<T>::in_size,
-                    state_cols[k],
-                    h[i]);
+            {
+                const auto& col = state[state_ptrs[k]];
+                std::copy(col, col + Layer<T>::in_size, state_cols[k]);
+            }
+
+            // perform multi-channel convolution
+            for(int i = 0; i < Layer<T>::out_size; ++i)
+            {
+                h[i] = bias[i];
+                for(int k = 0; k < kernel_size; ++k)
+                    h[i] = std::inner_product(
+                        weights[i][k],
+                        weights[i][k] + filters_per_group,
+                        state_cols[k],
+                        h[i]);
+            }
+        }
+        else
+        {
+            // perform multi-channel convolution
+            for(int i = 0; i < Layer<T>::out_size; ++i)
+            {
+                h[i] = bias[i];
+                const auto ii = ((i / channels_per_group) * filters_per_group);
+                for(int k = 0; k < kernel_size; ++k)
+                {
+                    // copy selected columns to a helper variable
+                    const auto& column = state[state_ptrs[k]];
+
+                    const auto column_begin = column + ii;
+                    const auto column_end = column_begin + filters_per_group;
+                    std::copy(column_begin, column_end, state_cols[k]);
+
+                    h[i] = std::inner_product(
+                        weights[i][k],
+                        weights[i][k] + filters_per_group,
+                        state_cols[k],
+                        h[i]);
+                }
+            }
         }
 
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
@@ -100,10 +127,16 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
+    /** Returns the number of "groups" in the convolution. */
+    int getGroups() const noexcept { return groups; }
+
 private:
     const int dilation_rate;
     const int kernel_size;
     const int state_size;
+    const int groups;
+    const int filters_per_group;
+    const int channels_per_group;
 
     T*** weights;
     T* bias;
@@ -138,15 +171,20 @@ private:
  * @param kernel_size: the size of the convolution kernel
  * @param dilation_rate: the dilation rate to use for dilated convolution
  * @param dynamic_state: use dynamically allocated layer state
+ * @param groups: controls connections between inputs and outputs
  */
-template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state = false>
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, int groups = 1, bool dynamic_state = false>
 class Conv1DT
 {
+    static_assert((in_sizet % groups == 0) && (out_sizet % groups == 0), "in_size and out_size must be divisible by groups!");
+
     static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
 
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
+    static constexpr auto filters_per_group = in_size / groups;
+    static constexpr auto channels_per_group = out_size / groups;
 
     Conv1DT();
 
@@ -159,6 +197,7 @@ public:
     /** Resets the layer state. */
     void reset();
 
+    template<int _groups = groups, std::enable_if_t<_groups == 1, bool> = true>
     /** Performs forward propagation for this layer. */
     inline void forward(const T (&ins)[in_size]) noexcept
     {
@@ -190,10 +229,45 @@ public:
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
+    template<int _groups = groups, std::enable_if_t<_groups != 1, bool> = true>
+    /** Performs forward propagation for this layer. */
+    inline void forward(const T (&ins)[in_size]) noexcept
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // perform multi-channel convolution
+        for(int i = 0; i < out_size; ++i)
+        {
+            outs[i] = bias[i];
+
+            const auto ii = ((i / channels_per_group) * filters_per_group);
+            for(int k = 0; k < kernel_size; ++k)
+            {
+                // copy selected columns to a helper variable
+                const auto& column = state[state_ptrs[k]];
+                const auto column_begin = column.begin() + ii;
+                const auto column_end = column_begin + filters_per_group;
+                std::copy(column_begin, column_end, state_cols[k].begin());
+
+                outs[i] = std::inner_product(
+                    weights[i][k].begin(),
+                    weights[i][k].end(),
+                    state_cols[k].begin(),
+                    outs[i]);
+            }
+        }
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
     /**
      * Sets the layer weights.
      *
-     * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
+     * The weights vector must have size weights[out_size][group_count][kernel_size * dilation]
      */
     void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
@@ -210,6 +284,9 @@ public:
     /** Returns the convolution dilation rate. */
     int getDilationRate() const noexcept { return dilation_rate; }
 
+    /** Returns the number of "groups" in the convolution. */
+    int getGroups() const noexcept { return groups; }
+
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 
 private:
@@ -223,7 +300,7 @@ private:
     typename std::enable_if<!DS, void>::type resize_state() { }
 
     using state_type = typename std::conditional<dynamic_state, std::vector<std::array<T, in_size>>, std::array<std::array<T, in_size>, state_size>>::type;
-    using weights_type = std::array<std::array<T, in_size>, kernel_size>;
+    using weights_type = std::array<std::array<T, filters_per_group>, kernel_size>;
 
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) state_type state;
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) weights_type state_cols;

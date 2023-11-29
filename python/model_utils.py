@@ -81,6 +81,7 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
         if layer_dict["type"] == "conv1d":
             layer_dict["kernel_size"] = layer.kernel_size
             layer_dict["dilation"] = layer.dilation_rate
+            layer_dict["groups"] = layer.groups
 
         if layer_dict["type"] == "conv2d":
             layer_dict["kernel_size_time"] = layer.kernel_size[0]

@@ -6,40 +6,6 @@
 namespace
 {
 template <typename T>
-std::vector<std::vector<T>> loadFile2D(std::ifstream& stream)
-{
-    std::vector<std::vector<T>> vec;
-
-    std::string line;
-    if(stream.is_open())
-    {
-        while(std::getline(stream, line))
-        {
-            std::vector<T> lineVec;
-            std::string num;
-            for(auto ch : line)
-            {
-                if(ch == ',')
-                {
-                    lineVec.push_back(static_cast<T>(std::stod(num)));
-                    num.clear();
-                    continue;
-                }
-
-                num.push_back(ch);
-            }
-
-            lineVec.push_back(static_cast<T>(std::stod(num)));
-            vec.push_back(lineVec);
-        }
-
-        stream.close();
-    }
-
-    return RTNeural::torch_helpers::detail::transpose(vec);
-}
-
-template <typename T>
 void expectNear(T const& expected, T const& actual)
 {
     EXPECT_THAT(
@@ -71,7 +37,7 @@ void testTorchConv1DModel()
     }
 
     std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_y_python.csv" };
-    const auto expected_y = loadFile2D<T>(modelOutputsFile);
+    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T> (modelOutputsFile));
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {

@@ -93,7 +93,7 @@ namespace json_parser
         std::vector<std::vector<std::vector<T>>> convWeights(conv.out_size);
         for(auto& wIn : convWeights)
         {
-            wIn.resize(conv.in_size);
+            wIn.resize(conv.in_size / conv.getGroups());
 
             for(auto& w : wIn)
                 w.resize(kernel_size, (T)0);
@@ -169,9 +169,9 @@ namespace json_parser
     /** Creates a Conv1D layer from a json representation of the layer weights. */
     template <typename T>
     std::unique_ptr<Conv1D<T>> createConv1D(int in_size, int out_size,
-        int kernel_size, int dilation, const nlohmann::json& weights)
+        int kernel_size, int dilation, int groups, const nlohmann::json& weights)
     {
-        auto conv = std::make_unique<Conv1D<T>>(in_size, out_size, kernel_size, dilation);
+        auto conv = std::make_unique<Conv1D<T>>(in_size, out_size, kernel_size, dilation, groups);
         loadConv1D<T>(*conv.get(), kernel_size, dilation, weights);
         return std::move(conv);
     }
@@ -179,7 +179,7 @@ namespace json_parser
     /** Checks that a Conv1D (or Conv1DT) layer has the given dimensions. */
     template <typename T, typename Conv1DType>
     bool checkConv1D(const Conv1DType& conv, const std::string& type, int layerDims,
-        int kernel_size, int dilation_rate, const bool debug)
+        int kernel_size, int dilation_rate, int groups, const bool debug)
     {
         if(type != "conv1d")
         {
@@ -202,6 +202,12 @@ namespace json_parser
         if(dilation_rate != conv.getDilationRate())
         {
             debug_print("Wrong dilation_rate! Expected: " + std::to_string(conv.getDilationRate()), debug);
+            return false;
+        }
+
+        if(groups != conv.getGroups())
+        {
+            debug_print("Wrong number of groups! Expected: " + std::to_string(conv.getGroups()), debug);
             return false;
         }
 
@@ -649,8 +655,9 @@ namespace json_parser
             {
                 const auto kernel_size = l.at("kernel_size").back().get<int>();
                 const auto dilation = l.at("dilation").back().get<int>();
+                const auto groups = l.value("groups", 1);
 
-                auto conv = createConv1D<T>(model->getNextInSize(), layerDims, kernel_size, dilation, weights);
+                auto conv = createConv1D<T>(model->getNextInSize(), layerDims, kernel_size, dilation, groups, weights);
                 model->addLayer(conv.release());
                 add_activation(model, l);
             }
