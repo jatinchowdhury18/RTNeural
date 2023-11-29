@@ -41,7 +41,7 @@ int computeCrop(int input_size, int kernel_size, int dilation_rate)
     return input_size - output_size;
 }
 
-template <typename T, int input_size, int output_size, int kernel_size, int dilation_rate, int groups_of>
+template <typename T, int input_size, int output_size, int kernel_size, int dilation_rate, int groups>
 int testTorchConv1DGroupModel()
 {
     if (std::is_same<T, float>::value)
@@ -56,13 +56,13 @@ int testTorchConv1DGroupModel()
         std::to_string(output_size) + "_" +
         std::to_string(kernel_size) + "_" +
         std::to_string(dilation_rate) + "_" +
-        std::to_string(groups_of) + ".json";
+        std::to_string(groups) + ".json";
     std::ifstream jsonStream(model_file, std::ifstream::binary);
 
     nlohmann::json modelJson;
     jsonStream >> modelJson;
 
-    RTNeural::ModelT<T, input_size, output_size, RTNeural::Conv1DT<T, input_size, output_size, kernel_size, dilation_rate, groups_of, false>> model;
+    RTNeural::ModelT<T, input_size, output_size, RTNeural::Conv1DT<T, input_size, output_size, kernel_size, dilation_rate, groups, false>> model;
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model.template get<0>());
     model.reset();
 
@@ -84,7 +84,7 @@ int testTorchConv1DGroupModel()
             std::to_string(output_size) + "_" +
             std::to_string(kernel_size) + "_" +
             std::to_string(dilation_rate) + "_" +
-            std::to_string(groups_of) + ".csv"
+            std::to_string(groups) + ".csv"
         };
     const auto expected_y = loadFile2D<T> (modelOutputsFile);
 

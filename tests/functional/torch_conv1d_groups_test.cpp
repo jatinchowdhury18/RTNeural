@@ -19,16 +19,16 @@ int computeCrop(int input_size, int kernel_size, int dilation_rate)
     return input_size - output_size;
 }
 
-template <typename T, int input_size, int output_size, int kernel_size, int dilation_rate, int groups_of>
+template <typename T, int input_size, int output_size, int kernel_size, int dilation_rate, int groups>
 void testTorchConv1DGroupModel()
 {
-    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch_group_" + std::to_string(input_size) + "_" + std::to_string(output_size) + "_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + "_" + std::to_string(groups_of) + ".json";
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch_group_" + std::to_string(input_size) + "_" + std::to_string(output_size) + "_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + "_" + std::to_string(groups) + ".json";
     std::ifstream jsonStream(model_file, std::ifstream::binary);
 
     nlohmann::json modelJson;
     jsonStream >> modelJson;
 
-    RTNeural::ModelT<T, input_size, output_size, RTNeural::Conv1DT<T, input_size, output_size, kernel_size, dilation_rate, groups_of, false>> model;
+    RTNeural::ModelT<T, input_size, output_size, RTNeural::Conv1DT<T, input_size, output_size, kernel_size, dilation_rate, groups, false>> model;
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model.template get<0>());
     model.reset();
 
@@ -46,7 +46,7 @@ void testTorchConv1DGroupModel()
     }
 
     std::ifstream modelOutputsFile {
-        std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_y_python_" + std::to_string(input_size) + "_" + std::to_string(output_size) + "_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + "_" + std::to_string(groups_of) + ".csv"
+        std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_group_y_python_" + std::to_string(input_size) + "_" + std::to_string(output_size) + "_" + std::to_string(kernel_size) + "_" + std::to_string(dilation_rate) + "_" + std::to_string(groups) + ".csv"
     };
     const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelOutputsFile));
 
