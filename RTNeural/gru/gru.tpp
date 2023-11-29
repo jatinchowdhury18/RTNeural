@@ -1,6 +1,6 @@
 #include "gru.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 #if !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
@@ -361,4 +361,4 @@ void GRULayerT<T, in_sizet, out_sizet, sampleRateCorr, MathsProvider>::setBVals(
 
 #endif // !RTNEURAL_USE_EIGEN && !RTNEURAL_USE_XSIMD
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE

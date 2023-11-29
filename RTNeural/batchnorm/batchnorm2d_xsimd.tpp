@@ -1,6 +1,6 @@
 #include "batchnorm2d_xsimd.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 template <typename T>
 BatchNorm2DLayer<T>::BatchNorm2DLayer(int in_num_filters, int in_num_features)

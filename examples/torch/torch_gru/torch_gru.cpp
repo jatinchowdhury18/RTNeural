@@ -1,5 +1,5 @@
 #include "RTNeural/RTNeural.h"
-#include "tests/load_csv.hpp"
+#include "tests/functional/load_csv.hpp"
 #include <filesystem>
 #include <iostream>
 

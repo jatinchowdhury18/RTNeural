@@ -10,7 +10,7 @@
 #else
 #include "../Layer.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 /** Dynamic batch normalization layer. */
 template <typename T>

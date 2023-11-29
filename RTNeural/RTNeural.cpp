@@ -1,7 +1,7 @@
 #include "RTNeural.h"
 
 // forward declare some template classes
-template class RTNeural::Model<float>;
-template class RTNeural::Model<double>;
-template class RTNeural::Layer<float>;
-template class RTNeural::Layer<double>;
+template class RTNEURAL_NAMESPACE::Model<float>;
+template class RTNEURAL_NAMESPACE::Model<double>;
+template class RTNEURAL_NAMESPACE::Layer<float>;
+template class RTNEURAL_NAMESPACE::Layer<double>;

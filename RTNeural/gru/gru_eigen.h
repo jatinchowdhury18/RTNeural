@@ -5,7 +5,7 @@
 #include "../common.h"
 #include "../maths/maths_eigen.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 
 /**
@@ -330,6 +330,6 @@ private:
     T delayPlus1Mult = (T)0;
 };
 
-} // namespace RTNeural
+} // namespace RTNEURAL_NAMESPACE
 
 #endif // GRUEIGEN_H_INCLUDED

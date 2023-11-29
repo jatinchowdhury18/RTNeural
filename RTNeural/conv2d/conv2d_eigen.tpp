@@ -1,6 +1,6 @@
 #include "conv2d_eigen.h"
 
-namespace RTNeural
+namespace RTNEURAL_NAMESPACE
 {
 template <typename T>
 Conv2D<T>::Conv2D(int in_num_filters_in, int in_num_filters_out, int in_num_features_in, int in_kernel_size_time, int in_kernel_size_feature,
@@ -88,4 +88,4 @@ void Conv2DT<T, num_filters_in_t, num_filters_out_t, num_features_in_t, kernel_s
         bias(i) = inBias[i];
     }
 }
-} // RTNeural
+} // RTNEURAL_NAMESPACE
