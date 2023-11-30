@@ -59,7 +59,7 @@ void randomise_conv1d(ConvType &conv, size_t kernel_size) {
 template <typename Float = double, typename GruType>
 void randomise_gru(GruType &gru) {
   std::default_random_engine generator;
-  std::uniform_real_distribution<Float> distribution((Float) -1 (Float) 1);
+  std::uniform_real_distribution<Float> distribution((Float) -1, (Float) 1);
 
   // kernel weights
   std::vector<std::vector<Float>> kernelWeights(gru.in_size);
