@@ -2,6 +2,7 @@
 #define ACTIVATIONEIGEN_H_INCLUDED
 
 #include "../common.h"
+#include "../config.h"
 #include "../maths/maths_eigen.h"
 
 namespace RTNEURAL_NAMESPACE
@@ -26,7 +27,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -61,10 +62,10 @@ public:
     /** Returns true if this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const v_type& ins) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
         outs = MathsProvider::tanh(ins);
     }
@@ -94,7 +95,7 @@ public:
     }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -129,10 +130,10 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const v_type& ins) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
         outs = ins.array().max((T)0);
     }
@@ -163,7 +164,7 @@ public:
     }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -198,10 +199,10 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const v_type& ins) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
         outs = MathsProvider::sigmoid(ins);
     }
@@ -231,7 +232,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -267,10 +268,10 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const v_type& ins) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
         outs = MathsProvider::exp(ins);
         outs = outs / outs.sum();
@@ -302,7 +303,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -315,7 +316,7 @@ public:
     Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
 
     /** Sets a custom value for the layer's "alpha" parameter. */
-    void set_alpha(T newAlpha) { alpha = newAlpha; }
+    RTNEURAL_REALTIME void set_alpha(T newAlpha) { alpha = newAlpha; }
 
 private:
     const Eigen::Matrix<T, Eigen::Dynamic, 1> ones;
@@ -344,11 +345,11 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for elu activation. */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
-    inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
     forward(const v_type& ins) noexcept
     {
         outs = (ins.array() > (T)0).select(ins, MathsProvider::exp(ins) - ones.array());
@@ -356,7 +357,7 @@ public:
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
-    inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const v_type& ins) noexcept
     {
         static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
@@ -384,7 +385,7 @@ public:
     }
 
     /** Performs forward propagation for prelu activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -393,7 +394,7 @@ public:
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
 
-    void setAlphaVals(const std::vector<T>& alphaVals)
+    RTNEURAL_REALTIME void setAlphaVals(const std::vector<T>& alphaVals)
     {
         if(alphaVals.size() == 1)
         {
@@ -435,15 +436,15 @@ public:
     /** Returns false since this layer has weights even though it is an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for prelu activation. */
-    inline void forward(const v_type& ins) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
         outs = (ins.array() >= (T)0).select(ins, alpha.cwiseProduct(ins));
     }
 
-    void setAlphaVals(const std::vector<T>& alphaVals)
+    RTNEURAL_REALTIME void setAlphaVals(const std::vector<T>& alphaVals)
     {
         if(alphaVals.size() == 1)
         {

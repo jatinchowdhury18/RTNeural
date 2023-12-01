@@ -2,6 +2,7 @@
 #define ACTIVATION_H_INCLUDED
 
 #include "../Layer.h"
+#include "../config.h"
 #include <functional>
 
 namespace RTNEURAL_NAMESPACE
@@ -24,7 +25,7 @@ public:
     std::string getName() const noexcept override { return name; }
 
     /** Implements the forward propagation step for this layer. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = func(input[i]);
@@ -71,7 +72,7 @@ public:
     }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             out[i] = MathsProvider::tanh(input[i]);
@@ -94,10 +95,10 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for tanh activation. */
-    inline void forward(const T (&ins)[size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = MathsProvider::tanh(ins[i]);
@@ -142,10 +143,10 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for ReLU activation. */
-    inline void forward(const T (&ins)[size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = std::max((T)0, ins[i]);
@@ -190,10 +191,10 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for sigmoid activation. */
-    inline void forward(const T (&ins)[size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
             outs[i] = MathsProvider::sigmoid(ins[i]);
@@ -222,7 +223,7 @@ public:
     }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         T exp_sum = 0;
         for(int i = 0; i < Layer<T>::out_size; ++i)
@@ -255,10 +256,10 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for softmax activation. */
-    inline void forward(const T (&ins)[size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const T (&ins)[size]) noexcept
     {
         T exp_sum = 0;
         for(int i = 0; i < size; ++i)
@@ -297,7 +298,7 @@ public:
     }
 
     /** Sets a custom value for the layer's "alpha" parameter. */
-    void set_alpha(T newAlpha) { alpha = newAlpha; }
+    RTNEURAL_REALTIME void set_alpha(T newAlpha) { alpha = newAlpha; }
 
 private:
     T alpha = (T)1;
@@ -319,11 +320,11 @@ public:
     /** Returns true since this layer is an activation layer. */
     constexpr bool isActivation() const noexcept { return true; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for elu activation. */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
-    inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
     forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
@@ -332,7 +333,7 @@ public:
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
     template <int A_N = AlphaNumerator, int A_D = AlphaDenominator>
-    inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<A_N != 1 || A_D != 1, void>::type
     forward(const T (&ins)[size]) noexcept
     {
         static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
@@ -355,13 +356,13 @@ public:
     }
 
     /** Performs forward propagation for prelu activation. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         for(auto i = 0; i < Layer<T>::in_size; ++i)
             out[i] = input[i] >= (T)0 ? input[i] : (input[i] * alpha[i]);
     }
 
-    void setAlphaVals(const std::vector<T>& alphaVals)
+    RTNEURAL_REALTIME void setAlphaVals(const std::vector<T>& alphaVals)
     {
         if(alphaVals.size() == 1)
         {
@@ -399,16 +400,16 @@ public:
     /** Returns false since this layer has weights even though it is an activation layer. */
     constexpr bool isActivation() const noexcept { return false; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for prelu activation. */
-    inline void forward(const T (&ins)[size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const T (&ins)[size]) noexcept
     {
         for(auto i = 0; i < size; ++i)
             outs[i] = ins[i] >= (T)0 ? ins[i] : (ins[i] * alpha[i]);
     }
 
-    void setAlphaVals(const std::vector<T>& alphaVals)
+    RTNEURAL_REALTIME void setAlphaVals(const std::vector<T>& alphaVals)
     {
         if(alphaVals.size() == 1)
         {

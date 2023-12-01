@@ -1,0 +1,34 @@
+name: RADSan Real-Time Safety
+
+on:
+  push:
+    branches:
+    - main
+    - develop
+  pull_request:
+    branches:
+    - main
+    - develop
+
+jobs:
+  build_and_test:
+    name: Check real-time safety with RADSan
+    runs-on: ubuntu-latest
+    container: realtimesanitizer/radsan-clang:latest
+    steps:
+    - name: Install CMake and Git
+      run: apt-get update && apt-get install -y cmake git
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Configure
+      run: cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DRTNEURAL_ENABLE_RADSAN=ON
+
+    - name: Build
+      run: cmake --build build --config Release --parallel
+
+    - name: Test
+      run: cd build && ctest -C Release --output-on-failure

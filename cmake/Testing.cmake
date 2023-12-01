@@ -4,7 +4,7 @@ macro(rtneural_setup_testing)
 
     include(CTest)
     enable_testing()
-    add_custom_target(rtneural_test COMMAND ctest -C ${Configuration} --output-on-failure)
+    add_custom_target(rtneural_test COMMAND ctest -C $<CONFIG> --output-on-failure)
 
     # From the GoogleTest README:
     # For Windows: Prevent overriding the parent project's compiler/linker settings

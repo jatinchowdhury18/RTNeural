@@ -51,3 +51,7 @@ target_compile_definitions(RTNeural
     PUBLIC
         RTNEURAL_NAMESPACE=${RTNEURAL_NAMESPACE}
 )
+
+if(RTNEURAL_ENABLE_RADSAN)
+    rtneural_radsan_configure(RTNeural)
+endif()

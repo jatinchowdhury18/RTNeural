@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(RTNeural VERSION 1.0.0)
 include(cmake/CXXStandard.cmake)
+include(cmake/Sanitizers.cmake)
 
 add_subdirectory(RTNeural)
 

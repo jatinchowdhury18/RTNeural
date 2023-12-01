@@ -9,6 +9,7 @@
 #include "batchnorm/batchnorm.tpp"
 #include "batchnorm/batchnorm2d.h"
 #include "batchnorm/batchnorm2d.tpp"
+#include "config.h"
 #include "conv1d/conv1d.h"
 #include "conv1d/conv1d.tpp"
 #include "conv2d/conv2d.h"
@@ -71,14 +72,14 @@ public:
     }
 
     /** Resets the state of the network layers. */
-    void reset()
+    RTNEURAL_REALTIME void reset()
     {
         for(auto* l : layers)
             l->reset();
     }
 
     /** Performs forward propagation for this model. */
-    inline T forward(const T* input)
+    RTNEURAL_REALTIME inline T forward(const T* input)
     {
         layers[0]->forward(input, outs[0].data());
 
@@ -91,7 +92,7 @@ public:
     }
 
     /** Returns a pointer to the output of the final layer in the network. */
-    inline const T* getOutputs() const noexcept
+    RTNEURAL_REALTIME inline const T* getOutputs() const noexcept
     {
         return outs.back().data();
     }

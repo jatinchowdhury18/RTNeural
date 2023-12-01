@@ -2,6 +2,7 @@
 #define BATCHNORMEIGEN_H_INCLUDED
 
 #include "../Layer.h"
+#include "../config.h"
 #include <Eigen/Dense>
 
 namespace RTNEURAL_NAMESPACE
@@ -17,7 +18,7 @@ public:
     std::string getName() const noexcept override { return "batchnorm"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         auto inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
@@ -29,19 +30,19 @@ public:
     }
 
     /** Sets the layer "gamma" values. */
-    void setGamma(const std::vector<T>& gammaVals);
+    RTNEURAL_REALTIME void setGamma(const std::vector<T>& gammaVals);
 
     /** Sets the layer "beta" values. */
-    void setBeta(const std::vector<T>& betaVals);
+    RTNEURAL_REALTIME void setBeta(const std::vector<T>& betaVals);
 
     /** Sets the layer's trained running mean. */
-    void setRunningMean(const std::vector<T>& runningMean);
+    RTNEURAL_REALTIME void setRunningMean(const std::vector<T>& runningMean);
 
     /** Set's the layer's trained running variance. */
-    void setRunningVariance(const std::vector<T>& runningVar);
+    RTNEURAL_REALTIME void setRunningVariance(const std::vector<T>& runningVar);
 
     /** Set's the layer "epsilon" value. */
-    void setEpsilon(T epsilon);
+    RTNEURAL_REALTIME void setEpsilon(T epsilon);
 
 private:
     void updateMultiplier();
@@ -75,11 +76,11 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Resets the layer state. */
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
-    inline typename std::enable_if<isAffine, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<isAffine, void>::type
     forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         outs = multiplier.cwiseProduct(ins - running_mean) + beta;
@@ -87,7 +88,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
-    inline typename std::enable_if<!isAffine, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<!isAffine, void>::type
     forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         outs = multiplier.cwiseProduct(ins - running_mean);
@@ -95,28 +96,28 @@ public:
 
     /** Sets the layer "gamma" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<isAffine, void>::type setGamma(const std::vector<T>& gammaVals);
+    RTNEURAL_REALTIME typename std::enable_if<isAffine, void>::type setGamma(const std::vector<T>& gammaVals);
 
     /** Sets the layer "gamma" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<!isAffine, void>::type setGamma(const std::vector<T>&) { }
+    RTNEURAL_REALTIME typename std::enable_if<!isAffine, void>::type setGamma(const std::vector<T>&) { }
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<isAffine, void>::type setBeta(const std::vector<T>& betaVals);
+    RTNEURAL_REALTIME typename std::enable_if<isAffine, void>::type setBeta(const std::vector<T>& betaVals);
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<!isAffine, void>::type setBeta(const std::vector<T>&) { }
+    RTNEURAL_REALTIME typename std::enable_if<!isAffine, void>::type setBeta(const std::vector<T>&) { }
 
     /** Sets the layer's trained running mean. */
-    void setRunningMean(const std::vector<T>& runningMean);
+    RTNEURAL_REALTIME void setRunningMean(const std::vector<T>& runningMean);
 
     /** Set's the layer's trained running variance. */
-    void setRunningVariance(const std::vector<T>& runningVar);
+    RTNEURAL_REALTIME void setRunningVariance(const std::vector<T>& runningVar);
 
     /** Set's the layer "epsilon" value. */
-    void setEpsilon(T epsilon);
+    RTNEURAL_REALTIME void setEpsilon(T epsilon);
 
     Eigen::Map<Eigen::Vector<T, out_size>, RTNeuralEigenAlignment> outs;
 

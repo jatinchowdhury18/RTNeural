@@ -2,6 +2,7 @@
 #define BATCHNORMXSIMD_H_INCLUDED
 
 #include "../Layer.h"
+#include "../config.h"
 #include <xsimd/xsimd.hpp>
 
 namespace RTNEURAL_NAMESPACE
@@ -17,7 +18,7 @@ public:
     std::string getName() const noexcept override { return "batchnorm"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         xsimd::transform(input, input + Layer<T>::in_size, running_mean.begin(), out,
             [](auto const& a, auto const& b)
@@ -31,19 +32,19 @@ public:
     }
 
     /** Sets the layer "gamma" values. */
-    void setGamma(const std::vector<T>& gammaVals);
+    RTNEURAL_REALTIME void setGamma(const std::vector<T>& gammaVals);
 
     /** Sets the layer "beta" values. */
-    void setBeta(const std::vector<T>& betaVals);
+    RTNEURAL_REALTIME void setBeta(const std::vector<T>& betaVals);
 
     /** Sets the layer's trained running mean. */
-    void setRunningMean(const std::vector<T>& runningMean);
+    RTNEURAL_REALTIME void setRunningMean(const std::vector<T>& runningMean);
 
     /** Set's the layer's trained running variance. */
-    void setRunningVariance(const std::vector<T>& runningVar);
+    RTNEURAL_REALTIME void setRunningVariance(const std::vector<T>& runningVar);
 
     /** Set's the layer "epsilon" value. */
-    void setEpsilon(T epsilon);
+    RTNEURAL_REALTIME void setEpsilon(T epsilon);
 
 private:
     void updateMultiplier();
@@ -83,11 +84,11 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Resets the layer state. */
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
-    inline typename std::enable_if<isAffine, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<isAffine, void>::type
     forward(const v_type (&ins)[v_out_size]) noexcept
     {
         for(int k = 0; k < v_out_size; ++k)
@@ -96,7 +97,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <bool isAffine = affine>
-    inline typename std::enable_if<!isAffine, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<!isAffine, void>::type
     forward(const v_type (&ins)[v_out_size]) noexcept
     {
         for(int k = 0; k < v_out_size; ++k)
@@ -105,28 +106,28 @@ public:
 
     /** Sets the layer "gamma" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<isAffine, void>::type setGamma(const std::vector<T>& gammaVals);
+    RTNEURAL_REALTIME typename std::enable_if<isAffine, void>::type setGamma(const std::vector<T>& gammaVals);
 
     /** Sets the layer "gamma" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<!isAffine, void>::type setGamma(const std::vector<T>&) { }
+    RTNEURAL_REALTIME typename std::enable_if<!isAffine, void>::type setGamma(const std::vector<T>&) { }
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<isAffine, void>::type setBeta(const std::vector<T>& betaVals);
+    RTNEURAL_REALTIME typename std::enable_if<isAffine, void>::type setBeta(const std::vector<T>& betaVals);
 
     /** Sets the layer "beta" values. */
     template <bool isAffine = affine>
-    typename std::enable_if<!isAffine, void>::type setBeta(const std::vector<T>&) { }
+    RTNEURAL_REALTIME typename std::enable_if<!isAffine, void>::type setBeta(const std::vector<T>&) { }
 
     /** Sets the layer's trained running mean. */
-    void setRunningMean(const std::vector<T>& runningMean);
+    RTNEURAL_REALTIME void setRunningMean(const std::vector<T>& runningMean);
 
     /** Set's the layer's trained running variance. */
-    void setRunningVariance(const std::vector<T>& runningVar);
+    RTNEURAL_REALTIME void setRunningVariance(const std::vector<T>& runningVar);
 
     /** Set's the layer "epsilon" value. */
-    void setEpsilon(T epsilon);
+    RTNEURAL_REALTIME void setEpsilon(T epsilon);
 
     v_type outs[v_out_size];
 
