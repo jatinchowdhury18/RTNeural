@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../common.h"
+#include "../config.h"
 #include <Eigen/Dense>
 
 namespace RTNEURAL_NAMESPACE
@@ -60,7 +61,7 @@ public:
     }
 
     /** Resets the layer state. */
-    void reset() override {};
+    RTNEURAL_REALTIME void reset() override {};
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d_stateless"; }
@@ -69,7 +70,7 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* output) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* output) noexcept override
     {
         auto inMatrix = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>,
             RTNeuralEigenAlignment>(input, num_filters_in, num_features_in);
@@ -112,13 +113,13 @@ public:
      *
      * The weights vector must have size weights[num_filters_out][num_filters_in][kernel_size]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size; }
 
     /** Returns the stride. */
-    int getStride() const noexcept { return stride; }
+    RTNEURAL_REALTIME int getStride() const noexcept { return stride; }
 
 private:
     const int num_filters_in;
@@ -171,11 +172,11 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Empty function, this layer has no state */
-    void reset() {};
+    RTNEURAL_REALTIME void reset() {};
 
     /** Performs forward propagation for this layer if pad is "valid". */
     template <bool isValid = valid_pad_t>
-    inline typename std::enable_if<isValid, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<isValid, void>::type
     forward(const input_type& inMatrix) noexcept
     {
         // perform a multichannel convolution
@@ -191,7 +192,7 @@ public:
 
     /** Performs forward propagation for this layer if pad is "same" */
     template <bool isValid = valid_pad_t>
-    inline typename std::enable_if<!isValid, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<!isValid, void>::type
     forward(const input_type& inMatrix) noexcept
     {
         // perform a multichannel convolution
@@ -222,20 +223,20 @@ public:
      *
      * The weights vector must have size weights[num_filters_out][num_filters_in][kernel_size]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
 
     /**
      * Sets the layer weights.
      *
      * The weights vector must have size weights[kernel_size][num_filters_in][num_filters_out]
      */
-    void setWeightsTransposed(const std::vector<std::vector<std::vector<T>>>& inWeights);
+    RTNEURAL_REALTIME void setWeightsTransposed(const std::vector<std::vector<std::vector<T>>>& inWeights);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size_t; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size_t; }
 
     /** Returns the convolution dilation rate. */
-    int getStride() const noexcept { return stride_t; }
+    RTNEURAL_REALTIME int getStride() const noexcept { return stride_t; }
 
     Eigen::Map<output_type, RTNeuralEigenAlignment> outs;
 

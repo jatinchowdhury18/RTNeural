@@ -10,6 +10,7 @@
 #else
 #include "../Layer.h"
 #include "../common.h"
+#include "../config.h"
 #include "../conv1d_stateless/conv1d_stateless.h"
 
 namespace RTNEURAL_NAMESPACE
@@ -40,7 +41,7 @@ public:
     virtual ~Conv2D() = default;
 
     /** Reset the layer's state */
-    void reset() override
+    RTNEURAL_REALTIME void reset() override
     {
         state_index = 0;
 
@@ -57,7 +58,7 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* output) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* output) noexcept override
     {
         for(int i = 0; i < kernel_size_time; ++i)
         {
@@ -83,26 +84,26 @@ public:
      *
      * The weights vector must have size weights[num_filters_out][num_filters_in][kernel_size]
      */
-    void setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights);
 
     /**
      * Sets the layer biases.
      *
      * The bias vector must have size bias[num_filters_out]
      */
-    void setBias(const std::vector<T>& inBias);
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& inBias);
 
     /** Returns the size of the convolution kernel (time axis). */
-    int getKernelSizeTime() const noexcept { return kernel_size_time; }
+    RTNEURAL_REALTIME int getKernelSizeTime() const noexcept { return kernel_size_time; }
 
     /** Returns the size of the convolution kernel (feature axis). */
-    int getKernelSizeFeature() const noexcept { return kernel_size_feature; }
+    RTNEURAL_REALTIME int getKernelSizeFeature() const noexcept { return kernel_size_feature; }
 
     /** Returns the convolution stride (feature axis) */
-    int getStride() const noexcept { return stride; }
+    RTNEURAL_REALTIME int getStride() const noexcept { return stride; }
 
     /** Returns the convolution dilation rate (time axis) */
-    int getDilationRate() const noexcept { return dilation_rate; }
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return dilation_rate; }
 
     const int num_filters_in;
     const int num_features_in;
@@ -171,7 +172,7 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Reset the layer's state */
-    void reset()
+    RTNEURAL_REALTIME void reset()
     {
         state_index = 0;
 
@@ -182,7 +183,7 @@ public:
     };
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T (&ins)[in_size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const T (&ins)[in_size]) noexcept
     {
         for(int i = 0; i < kernel_size_time; ++i)
         {
@@ -212,26 +213,26 @@ public:
      *
      * The weights vector must have size weights [kernel_size_time][num_filters_out][num_filters_in][kernel_size_feature]
      */
-    void setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<std::vector<T>>>>& inWeights);
 
     /**
      * Sets the layer biases.
      *
      * The bias vector must have size bias[num_filters_out]
      */
-    void setBias(const std::vector<T>& inBias);
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& inBias);
 
     /** Returns the size of the convolution kernel (time axis). */
-    int getKernelSizeTime() const noexcept { return kernel_size_time_t; }
+    RTNEURAL_REALTIME int getKernelSizeTime() const noexcept { return kernel_size_time_t; }
 
     /** Returns the size of the convolution kernel (feature axis). */
-    int getKernelSizeFeature() const noexcept { return kernel_size_feature_t; }
+    RTNEURAL_REALTIME int getKernelSizeFeature() const noexcept { return kernel_size_feature_t; }
 
     /** Returns the convolution stride */
-    int getStride() const noexcept { return stride_t; }
+    RTNEURAL_REALTIME int getStride() const noexcept { return stride_t; }
 
     /** Returns the convolution dilation rate */
-    int getDilationRate() const noexcept { return dilation_rate_t; }
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return dilation_rate_t; }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[num_filters_out_t * num_features_out];
 

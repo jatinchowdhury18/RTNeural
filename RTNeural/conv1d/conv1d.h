@@ -10,6 +10,7 @@
 #else
 #include "../Layer.h"
 #include "../common.h"
+#include "../config.h"
 #include <vector>
 
 namespace RTNEURAL_NAMESPACE
@@ -44,13 +45,13 @@ public:
     virtual ~Conv1D();
 
     /** Resets the layer state. */
-    void reset() override;
+    RTNEURAL_REALTIME void reset() override;
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
     {
         // insert input into a circular buffer
         std::copy(input, input + Layer<T>::in_size, state[state_ptr]);
@@ -85,20 +86,20 @@ public:
      *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
      *
      * The bias vector must have size bias[out_size]
      */
-    void setBias(const std::vector<T>& biasVals);
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& biasVals);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size; }
 
     /** Returns the convolution dilation rate. */
-    int getDilationRate() const noexcept { return dilation_rate; }
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return dilation_rate; }
 
 private:
     const int dilation_rate;
@@ -157,10 +158,10 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Resets the layer state. */
-    void reset();
+    RTNEURAL_REALTIME void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T (&ins)[in_size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const T (&ins)[in_size]) noexcept
     {
         // insert input into a circular buffer
         std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
@@ -195,20 +196,20 @@ public:
      *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
      *
      * The bias vector must have size bias[out_size]
      */
-    void setBias(const std::vector<T>& biasVals);
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& biasVals);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size; }
 
     /** Returns the convolution dilation rate. */
-    int getDilationRate() const noexcept { return dilation_rate; }
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return dilation_rate; }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 

@@ -2,6 +2,7 @@
 #define DENSEXSIMD_H_INCLUDED
 
 #include "../Layer.h"
+#include "../config.h"
 #include <xsimd/xsimd.hpp>
 
 namespace RTNEURAL_NAMESPACE
@@ -47,7 +48,7 @@ public:
     std::string getName() const noexcept override { return "dense"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* out) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         for(int l = 0; l < Layer<T>::out_size; ++l)
         {
@@ -66,7 +67,7 @@ public:
      * The dimension of the weights vector must be
      * weights[out_size][in_size]
      */
-    void setWeights(const std::vector<std::vector<T>>& newWeights)
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             for(int k = 0; k < Layer<T>::in_size; ++k)
@@ -79,7 +80,7 @@ public:
      * The dimension of the weights array must be
      * weights[out_size][in_size]
      */
-    void setWeights(T** newWeights)
+    RTNEURAL_REALTIME void setWeights(T** newWeights)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             for(int k = 0; k < Layer<T>::in_size; ++k)
@@ -90,17 +91,17 @@ public:
      * Sets the layer bias from a given array of size
      * bias[out_size]
      */
-    void setBias(const T* b)
+    RTNEURAL_REALTIME void setBias(const T* b)
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
             bias[i] = b[i];
     }
 
     /** Returns the weights value at the given indices. */
-    T getWeight(int i, int k) const noexcept { return weights[i][k]; }
+    RTNEURAL_REALTIME T getWeight(int i, int k) const noexcept { return weights[i][k]; }
 
     /** Returns the bias value at the given index. */
-    T getBias(int i) const noexcept { return bias[i]; }
+    RTNEURAL_REALTIME T getBias(int i) const noexcept { return bias[i]; }
 
 private:
     using vec_type = std::vector<T, xsimd::aligned_allocator<T>>;
@@ -149,10 +150,10 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Reset is a no-op, since Dense does not have state. */
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const v_type (&ins)[v_in_size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         static constexpr auto v_size_inner = std::min(v_size, in_size);
 
@@ -177,7 +178,7 @@ public:
      * The dimension of the weights vector must be
      * weights[out_size][in_size]
      */
-    void setWeights(const std::vector<std::vector<T>>& newWeights)
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < out_size; ++i)
         {
@@ -194,7 +195,7 @@ public:
      * The dimension of the weights array must be
      * weights[out_size][in_size]
      */
-    void setWeights(T** newWeights)
+    RTNEURAL_REALTIME void setWeights(T** newWeights)
     {
         for(int i = 0; i < out_size; ++i)
         {
@@ -209,7 +210,7 @@ public:
      * Sets the layer bias from a given array of size
      * bias[out_size]
      */
-    void setBias(const T* b)
+    RTNEURAL_REALTIME void setBias(const T* b)
     {
         for(int i = 0; i < out_size; ++i)
             bias[i / v_size] = set_value(bias[i / v_size], i % v_size, b[i]);
@@ -248,9 +249,9 @@ public:
     std::string getName() const noexcept { return "dense"; }
     constexpr bool isActivation() const noexcept { return false; }
 
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
-    inline void forward(const v_type (&ins)[v_in_size]) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type (&ins)[v_in_size]) noexcept
     {
         v_type y {};
         for(int k = 0; k < v_in_size; ++k)
@@ -259,7 +260,7 @@ public:
         outs[0] = v_type(xsimd::reduce_add(y) + bias);
     }
 
-    void setWeights(const std::vector<std::vector<T>>& newWeights)
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < out_size; ++i)
         {
@@ -271,7 +272,7 @@ public:
         }
     }
 
-    void setWeights(T** newWeights)
+    RTNEURAL_REALTIME void setWeights(T** newWeights)
     {
         for(int i = 0; i < out_size; ++i)
         {
@@ -283,7 +284,7 @@ public:
         }
     }
 
-    void setBias(const T* b)
+    RTNEURAL_REALTIME void setBias(const T* b)
     {
         bias = b[0];
     }
@@ -329,10 +330,10 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Reset is a no-op, since Dense does not have state. */
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const v_type (&ins)[1]) noexcept
+    RTNEURAL_REALTIME inline void forward(const v_type (&ins)[1]) noexcept
     {
         for(int i = 0; i < v_out_size; ++i)
             outs[i] = bias[i];
@@ -347,7 +348,7 @@ public:
      * The dimension of the weights vector must be
      * weights[out_size][in_size]
      */
-    void setWeights(const std::vector<std::vector<T>>& newWeights)
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<T>>& newWeights)
     {
         for(int i = 0; i < out_size; ++i)
             weights[i / v_size] = set_value(weights[i / v_size], i % v_size, newWeights[i][0]);
@@ -359,7 +360,7 @@ public:
      * The dimension of the weights array must be
      * weights[out_size][in_size]
      */
-    void setWeights(T** newWeights)
+    RTNEURAL_REALTIME void setWeights(T** newWeights)
     {
         for(int i = 0; i < out_size; ++i)
             weights[i / v_size] = set_value(weights[i / v_size], i % v_size, newWeights[i][0]);
@@ -369,7 +370,7 @@ public:
      * Sets the layer bias from a given array of size
      * bias[out_size]
      */
-    void setBias(const T* b)
+    RTNEURAL_REALTIME void setBias(const T* b)
     {
         for(int i = 0; i < out_size; ++i)
             bias[i / v_size] = set_value(bias[i / v_size], i % v_size, b[i]);

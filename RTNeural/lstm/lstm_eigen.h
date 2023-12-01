@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../common.h"
+#include "../config.h"
 #include "../maths/maths_eigen.h"
 
 namespace RTNEURAL_NAMESPACE
@@ -31,10 +32,10 @@ public:
     std::string getName() const noexcept override { return "lstm"; }
 
     /** Resets the state of the LSTM. */
-    void reset() override;
+    RTNEURAL_REALTIME void reset() override;
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
     {
         for(int i = 0; i < Layer<T>::in_size; ++i)
         {
@@ -70,21 +71,21 @@ public:
      *
      * The weights vector must have size weights[in_size][4 * out_size]
      */
-    void setWVals(const std::vector<std::vector<T>>& wVals);
+    RTNEURAL_REALTIME void setWVals(const std::vector<std::vector<T>>& wVals);
 
     /**
      * Sets the layer recurrent weights.
      *
      * The weights vector must have size weights[out_size][4 * out_size]
      */
-    void setUVals(const std::vector<std::vector<T>>& uVals);
+    RTNEURAL_REALTIME void setUVals(const std::vector<std::vector<T>>& uVals);
 
     /**
      * Sets the layer bias.
      *
      * The bias vector must have size weights[4 * out_size]
      */
-    void setBVals(const std::vector<T>& bVals);
+    RTNEURAL_REALTIME void setBVals(const std::vector<T>& bVals);
 
 private:
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> combinedWeights;
@@ -146,10 +147,10 @@ public:
     prepare(T delaySamples);
 
     /** Resets the state of the LSTM. */
-    void reset();
+    RTNEURAL_REALTIME void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const in_type& ins) noexcept
+    RTNEURAL_REALTIME inline void forward(const in_type& ins) noexcept
     {
         for(int i = 0; i < in_sizet; ++i)
         {
@@ -175,21 +176,21 @@ public:
      *
      * The weights vector must have size weights[in_size][4 * out_size]
      */
-    void setWVals(const std::vector<std::vector<T>>& wVals);
+    RTNEURAL_REALTIME void setWVals(const std::vector<std::vector<T>>& wVals);
 
     /**
      * Sets the layer recurrent weights.
      *
      * The weights vector must have size weights[out_size][4 * out_size]
      */
-    void setUVals(const std::vector<std::vector<T>>& uVals);
+    RTNEURAL_REALTIME void setUVals(const std::vector<std::vector<T>>& uVals);
 
     /**
      * Sets the layer bias.
      *
      * The bias vector must have size weights[4 * out_size]
      */
-    void setBVals(const std::vector<T>& bVals);
+    RTNEURAL_REALTIME void setBVals(const std::vector<T>& bVals);
 
     Eigen::Map<out_type, RTNeuralEigenAlignment> outs;
 

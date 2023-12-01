@@ -2,6 +2,7 @@
 #define RTNEURAL_CONV1D_STATELESS_XSIMD_H
 
 #include "../Layer.h"
+#include "../config.h"
 #include <xsimd/xsimd.hpp>
 
 namespace RTNEURAL_NAMESPACE
@@ -59,7 +60,7 @@ public:
     }
 
     /** Resets the layer state. */
-    void reset() override { }
+    RTNEURAL_REALTIME void reset() override { }
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d_stateless"; }
@@ -68,7 +69,7 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* output) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* output) noexcept override
     {
         if(valid_pad)
         {
@@ -159,13 +160,13 @@ public:
      *
      * The weights vector must have size weights[num_filters_out][num_filters_in][kernel_size]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size; }
 
     /** Returns the stride. */
-    int getStride() const noexcept { return stride; }
+    RTNEURAL_REALTIME int getStride() const noexcept { return stride; }
 
 private:
     const int num_filters_in;
@@ -226,11 +227,11 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Empty function, this layer has no state */
-    void reset() { }
+    RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for this layer if pad is "valid". */
     template <bool isValid = valid_pad_t>
-    inline typename std::enable_if<isValid, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<isValid, void>::type
     forward(const v_type (&inMatrix)[v_in_size]) noexcept
     {
         // @TODO: can we vectorize in the other direction if num_filters == 1?
@@ -257,7 +258,7 @@ public:
 
     /** Performs forward propagation for this layer if pad is "same" */
     template <bool isValid = valid_pad_t>
-    inline typename std::enable_if<!isValid, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<!isValid, void>::type
     forward(const v_type (&inMatrix)[v_in_size]) noexcept
     {
         int out_col_idx = 0;
@@ -330,13 +331,13 @@ public:
      *
      * The weights vector must have size weights[num_filters_out][num_filters_in][kernel_size]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& inWeights);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size_t; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size_t; }
 
     /** Returns the convolution dilation rate. */
-    int getStride() const noexcept { return stride_t; }
+    RTNEURAL_REALTIME int getStride() const noexcept { return stride_t; }
 
     v_type outs[v_out_size];
 

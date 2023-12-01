@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../common.h"
+#include "../config.h"
 #include "../maths/maths_eigen.h"
 
 namespace RTNEURAL_NAMESPACE
@@ -28,7 +29,7 @@ public:
     virtual ~GRULayer() = default;
 
     /** Resets the state of the GRU. */
-    void reset() override
+    RTNEURAL_REALTIME void reset() override
     {
         extendedHt1.setZero();
         extendedHt1(Layer<T>::out_size) = (T)1;
@@ -38,7 +39,7 @@ public:
     std::string getName() const noexcept override { return "gru"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
     {
         for(int i = 0; i < Layer<T>::in_size; ++i)
         {
@@ -89,34 +90,34 @@ public:
      *
      * The weights vector must have size weights[in_size][3 * out_size]
      */
-    void setWVals(T** wVals);
+    RTNEURAL_REALTIME void setWVals(T** wVals);
 
     /**
      * Sets the layer recurrent weights.
      *
      * The weights vector must have size weights[out_size][3 * out_size]
      */
-    void setUVals(T** uVals);
+    RTNEURAL_REALTIME void setUVals(T** uVals);
 
     /**
      * Sets the layer bias.
      *
      * The bias vector must have size weights[2][3 * out_size]
      */
-    void setBVals(T** bVals);
+    RTNEURAL_REALTIME void setBVals(T** bVals);
 
     /** Returns the kernel weight for the given indices. */
-    void setWVals(const std::vector<std::vector<T>>& wVals);
+    RTNEURAL_REALTIME void setWVals(const std::vector<std::vector<T>>& wVals);
 
     /** Returns the recurrent weight for the given indices. */
-    void setUVals(const std::vector<std::vector<T>>& uVals);
+    RTNEURAL_REALTIME void setUVals(const std::vector<std::vector<T>>& uVals);
 
     /** Returns the bias value for the given indices. */
-    void setBVals(const std::vector<std::vector<T>>& bVals);
+    RTNEURAL_REALTIME void setBVals(const std::vector<std::vector<T>>& bVals);
 
-    T getWVal(int i, int k) const noexcept;
-    T getUVal(int i, int k) const noexcept;
-    T getBVal(int i, int k) const noexcept;
+    RTNEURAL_REALTIME T getWVal(int i, int k) const noexcept;
+    RTNEURAL_REALTIME T getUVal(int i, int k) const noexcept;
+    RTNEURAL_REALTIME T getBVal(int i, int k) const noexcept;
 
 private:
     // Kernels
@@ -191,10 +192,10 @@ public:
     prepare(T delaySamples);
 
     /** Resets the state of the GRU. */
-    void reset();
+    RTNEURAL_REALTIME void reset();
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const in_type& ins) noexcept
+    RTNEURAL_REALTIME inline void forward(const in_type& ins) noexcept
     {
         for(int i = 0; i < in_sizet; ++i)
         {
@@ -241,21 +242,21 @@ public:
      *
      * The weights vector must have size weights[in_size][3 * out_size]
      */
-    void setWVals(const std::vector<std::vector<T>>& wVals);
+    RTNEURAL_REALTIME void setWVals(const std::vector<std::vector<T>>& wVals);
 
     /**
      * Sets the layer recurrent weights.
      *
      * The weights vector must have size weights[out_size][3 * out_size]
      */
-    void setUVals(const std::vector<std::vector<T>>& uVals);
+    RTNEURAL_REALTIME void setUVals(const std::vector<std::vector<T>>& uVals);
 
     /**
      * Sets the layer bias.
      *
      * The bias vector must have size weights[2][3 * out_size]
      */
-    void setBVals(const std::vector<std::vector<T>>& bVals);
+    RTNEURAL_REALTIME void setBVals(const std::vector<std::vector<T>>& bVals);
 
     Eigen::Map<out_type, RTNeuralEigenAlignment> outs;
 

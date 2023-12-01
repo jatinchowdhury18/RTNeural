@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../common.h"
+#include "../config.h"
 #include <numeric>
 #include <vector>
 
@@ -38,13 +39,13 @@ public:
     virtual ~Conv1D();
 
     /** Resets the layer state. */
-    void reset() override;
+    RTNEURAL_REALTIME void reset() override;
 
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d"; }
 
     /** Performs forward propagation for this layer. */
-    inline void forward(const T* input, T* h) noexcept override
+    RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
     {
         // insert input into a circular buffer
         vCopy(input, state[state_ptr].data(), Layer<T>::in_size);
@@ -75,20 +76,20 @@ public:
      *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
      *
      * The bias vector must have size bias[out_size]
      */
-    void setBias(const std::vector<T>& biasVals);
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& biasVals);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size; }
 
     /** Returns the convolution dilation rate. */
-    int getDilationRate() const noexcept { return dilation_rate; }
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return dilation_rate; }
 
 private:
     using vec_type = std::vector<T, xsimd::aligned_allocator<T>>;
@@ -157,11 +158,11 @@ public:
     constexpr bool isActivation() const noexcept { return false; }
 
     /** Resets the layer state. */
-    void reset();
+    RTNEURAL_REALTIME void reset();
 
     /** Performs forward propagation for this layer. */
     template <int DR = dilation_rate>
-    inline typename std::enable_if<(DR > 1), void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<(DR > 1), void>::type
     forward(const v_type (&ins)[v_in_size]) noexcept
     {
         // insert input into a circular buffer
@@ -205,7 +206,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <int DR = dilation_rate, int KS = kernel_size>
-    inline typename std::enable_if<(DR == 1 && KS > 1), void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<(DR == 1 && KS > 1), void>::type
     forward(const v_type (&ins)[v_in_size]) noexcept
     {
         // insert input into a circular buffer
@@ -241,7 +242,7 @@ public:
 
     /** Performs forward propagation for this layer. */
     template <int DR = dilation_rate, int KS = kernel_size>
-    inline typename std::enable_if<DR == 1 && KS == 1, void>::type
+    RTNEURAL_REALTIME inline typename std::enable_if<DR == 1 && KS == 1, void>::type
     forward(const v_type (&ins)[v_in_size]) noexcept
     {
         for(int i = 0; i < v_out_size; ++i)
@@ -266,20 +267,20 @@ public:
      *
      * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
      */
-    void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
 
     /**
      * Sets the layer biases.
      *
      * The bias vector must have size bias[out_size]
      */
-    void setBias(const std::vector<T>& biasVals);
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& biasVals);
 
     /** Returns the size of the convolution kernel. */
-    int getKernelSize() const noexcept { return kernel_size; }
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size; }
 
     /** Returns the convolution dilation rate. */
-    int getDilationRate() const noexcept { return dilation_rate; }
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return dilation_rate; }
 
     v_type outs[v_out_size];
 
