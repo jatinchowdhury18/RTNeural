@@ -293,6 +293,7 @@ Please thank the following individuals for their important contributions:
 - [DamRsn](https://github.com/DamRsn): Eigen implementations for Conv2D and BatchNorm2D layers.
 - [lHorvalds](https://github.com/IHorvalds): Eigen backend optimizations.
 - [davidtrevelyan](https://github.com/davidtrevelyan): Testing framework upgrade.
+- [purefunctor](https://github.com/purefunctor): Groups feature for Conv1D.
 
 ## Powered by RTNeural
 

@@ -7,6 +7,8 @@ rtneural_add_test(
         sample_rate_rnn_test.cpp
         templated_tests.cpp
         torch_conv1d_test.cpp
+        torch_conv1d_groups_test.cpp
         torch_lstm_test.cpp
         torch_gru_test.cpp
+        torch_microtcn_test.cpp
     DEPENDENCIES PRIVATE RTNeural)
