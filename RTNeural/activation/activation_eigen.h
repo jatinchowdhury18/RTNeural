@@ -464,6 +464,418 @@ private:
     T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
     v_type alpha;
 };
+
+/** Dynamic implementation of an approximated GeLU activation layer. */
+template <typename T, typename MathsProvider = DefaultMathsProvider>
+class GeLUActivation : public Activation<T>
+{
+public:
+    explicit GeLUActivation(int size)
+        : Activation<T>(size, {}, "gelu")
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    GeLUActivation(std::initializer_list<int> sizes)
+        : GeLUActivation(*sizes.begin())
+    {
+    }
+
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            input, Layer<T>::in_size, 1);
+
+        static const T sqrt_2_over_pi = T(0.45015815807);
+        outVec = inVec.array().unaryExpr([sqrt_2_over_pi](T x) {
+            T xCube = x * x * x;
+            return 0.5 * x * (1.0 + MathsProvider::tanh(sqrt_2_over_pi * (x + 0.044715 * xCube)));
+        });
+
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> outVec;
+};
+
+/** Static implementation of an approximated GeLU activation layer. */
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
+class GeLUActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    GeLUActivationT()
+        : outs(outs_internal)
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "gelu"; }
+
+    constexpr bool isActivation() const noexcept { return true; }
+
+    RTNEURAL_REALTIME void reset() { }
+
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
+    {
+        static const T sqrt_2_over_pi = T(0.45015815807);
+        outs = ins.array().unaryExpr([sqrt_2_over_pi](T x) {
+            T xCube = x * x * x;
+            return 0.5 * x * (1.0 + MathsProvider::tanh(sqrt_2_over_pi * (x + 0.044715 * xCube)));
+        });
+    }
+
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+};
+
+/** Dynamic implementation of a Swish activation layer. */
+template <typename T, typename MathsProvider = DefaultMathsProvider>
+class SwishActivation : public Activation<T>
+{
+public:
+    /** set optional beta parameter (default is 1) */ 
+    explicit SwishActivation(int size, T beta = (T)1)
+        : Activation<T>(size, {}, "swish"), beta(beta)
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    SwishActivation(std::initializer_list<int> sizes, T beta = (T)1)
+        : SwishActivation(*sizes.begin(), beta)
+    {
+    }
+
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            input, Layer<T>::in_size, 1);
+
+        /** apply swish: x * sigmoid(beta * x) */
+        outVec = inVec.array() * MathsProvider::sigmoid(beta * inVec.array());
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+
+private:
+    T beta;
+};
+
+/** Static implementation of a Swish activation layer. */
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
+class SwishActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    /** set optional beta parameter (default is 1) */ 
+    SwishActivationT(T beta = (T)1)
+        : outs(outs_internal), beta(beta)
+    {
+        outs = v_type::Zero(); // initialize output vector to zero
+    }
+
+    std::string getName() const noexcept { return "swish"; }
+
+    constexpr bool isActivation() const noexcept { return true; }
+
+    RTNEURAL_REALTIME void reset() { }
+
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
+    {
+        /** apply swish: x * sigmoid(beta * x) */
+        outs = ins.array() * MathsProvider::sigmoid(beta * ins.array());
+    }
+
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T beta;
+};
+
+/** Dynamic implementation of a Softplus activation layer. */
+template <typename T, typename MathsProvider = DefaultMathsProvider>
+class SoftplusActivation : public Activation<T>
+{
+public:
+    explicit SoftplusActivation(int size)
+        : Activation<T>(size, {}, "softplus")
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    SoftplusActivation(std::initializer_list<int> sizes)
+        : SoftplusActivation(*sizes.begin())
+    {
+    }
+
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            input, Layer<T>::in_size, 1);
+
+        /** Apply Softplus: ln(1 + exp(x)) */
+        outVec = (1 + MathsProvider::exp(inVec.array())).log(); //log() awaiting mathsprovider
+
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+};
+
+/** Static implementation of a Softplus activation layer. */
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
+class SoftplusActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    SoftplusActivationT()
+        : outs(outs_internal)
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "softplus"; }
+
+    constexpr bool isActivation() const noexcept { return true; }
+
+    RTNEURAL_REALTIME void reset() { }
+
+    /** Forward propagation for Softplus activation. */
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
+    {
+        /** Apply Softplus: ln(1 + exp(x)) */
+        outs = (1 + MathsProvider::exp(ins.array()).log(); //log() waiting for mathsprovider
+    }
+
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+
+private:
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+};
+
+/** Dynamic implementation of a Mish activation layer. */
+template <typename T, typename MathsProvider = DefaultMathsProvider>
+class MishActivation : public Activation<T>
+{
+public:
+    /** Constructor for Mish activation layer depending on the softplus activation internally */
+    explicit MishActivation(int size)
+        : Activation<T>(size, {}, "mish"), softplus(size)
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    MishActivation(std::initializer_list<int> sizes)
+        : MishActivation(*sizes.begin())
+    {
+    }
+
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            input, Layer<T>::in_size, 1);
+        /** mish = tanh(softplus(x)) */
+        Eigen::Matrix<T, Eigen::Dynamic, 1> softplusOut(Layer<T>::in_size);
+        softplus.forward(input, softplusOut.data());
+
+        outVec = MathsProvider::tanh(inVec.array() * softplusOut.array());
+
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+private:
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+    SoftplusActivation<T, MathsProvider> softplus; // Softplus instance
+};
+
+/** Static implementation of a Mish activation layer. */
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
+class MishActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>; 
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    MishActivationT()
+        : outs(outs_internal), softplus()
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "mish"; }
+
+    constexpr bool isActivation() const noexcept { return true; }
+
+    RTNEURAL_REALTIME void reset() { }
+
+    /** Forward propagation for Mish activation. */
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
+    {
+        v_type softplusOut = softplus.forward(ins); // Apply Softplus
+        outs = ins.array() * MathsProvider::tanh(softplusOut.array()); // Then apply tanh using MathsProvider
+    }
+
+private:
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs; 
+    SoftplusActivationT<T, size, MathsProvider> softplus; // Softplus instance
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size]; // Internal storage for outputs
+};
+
+/** Dynamic implementation of a CDELU activation layer. */
+template <typename T, typename MathsProvider = DefaultMathsProvider>
+class CDELUActivation : public Activation<T>
+{
+public:
+    /** Constructor for CDELU activation layer with alpha and beta parameters */
+    explicit CDELUActivation(int size, T alpha = (T)1, T beta = (T)0.1)
+        : Activation<T>(size, {}, "cdelu"), alpha(alpha), beta(beta)
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    /** Performs forward propagation for CDELU activation. */
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            input, Layer<T>::in_size, 1);
+        /** cdelu = x for x > 0; alpha * (exp(x) - 1) + beta * x for x <= 0 */
+        outVec = (inVec.array() > (T)0).select(inVec, alpha * (MathsProvider::exp(inVec.array()) - (T)1) + beta * inVec.array());
+
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+private:
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+    T alpha; // Parameter alpha
+    T beta;  // Parameter beta
+};
+
+/** Static implementation of a CDELU activation layer. */
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
+class CDELUActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    /** Constructor for static CDELU activation layer with alpha and beta parameters */
+    CDELUActivationT(T alpha = (T)1, T beta = (T)0.1)
+        : outs(outs_internal), alpha(alpha), beta(beta)
+    {
+        outs = v_type::Zero();
+    }
+
+    std::string getName() const noexcept { return "cdelu"; }
+
+    constexpr bool isActivation() const noexcept { return true; }
+
+    RTNEURAL_REALTIME void reset() { }
+
+    /** Forward propagation for CDELU activation. */
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
+    {
+        /** cdelu = x for x > 0; alpha * (exp(x) - 1) + beta * x for x <= 0 */
+        outs = (ins.array() > (T)0).select(ins, alpha * (MathsProvider::exp(ins.array()) - (T)1) + beta * ins.array());
+    }
+
+private:
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+    T alpha; // Parameter alpha
+    T beta;  // Parameter beta
+};
+
+/** Dynamic implementation of a SELU activation layer. */
+template <typename T, typename MathsProvider = DefaultMathsProvider>
+class SELUActivation : public Activation<T>
+{
+public:
+    explicit SELUActivation(int size)
+        : Activation<T>(size, {}, "selu")
+    {
+        inVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+        outVec = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(size, 1);
+    }
+
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        static const T alpha = T(1.67326324);
+        static const T lambda = T(1.05070098);
+
+        inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
+            input, Layer<T>::in_size, 1);
+
+        /** selu: lambda * x for x > 0; lambda * alpha * (exp(x) - 1) for x <= 0 */
+        outVec = (inVec.array() > (T)0).select(lambda * inVec.array(), lambda * alpha * (MathsProvider::exp(inVec.array()) - (T)1));
+
+        std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
+    }
+
+private:
+    Eigen::Matrix<T, Eigen::Dynamic, 1> inVec;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> outVec;
+};
+
+/** Static implementation of a SELU activation layer. */
+template <typename T, int size, typename MathsProvider = DefaultMathsProvider>
+class SELUActivationT
+{
+    using v_type = Eigen::Matrix<T, size, 1>;
+
+public:
+    static constexpr auto in_size = size;
+    static constexpr auto out_size = size;
+
+    SELUActivationT()
+        : outs(outs_internal)
+    {
+        outs = v_type::Zero();
+    }
+
+    RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
+    {
+        static const T alpha = T(1.67326324);
+        static const T lambda = T(1.05070098);
+
+        /** selu: lambda * x for x > 0; lambda * alpha * (exp(x) - 1) for x <= 0 */
+        outs = (ins.array() > (T)0).select(lambda * ins.array(), lambda * alpha * (MathsProvider::exp(ins.array()) - (T)1));
+    }
+
+private:
+    Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
+    T outs_internal alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
+};
+
 } // namespace RTNEURAL_NAMESPACE
 
 #endif // ACTIVATIONEIGEN_H_INCLUDED
