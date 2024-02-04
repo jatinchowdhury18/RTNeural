@@ -146,13 +146,14 @@ static inline void sigmoid(const T* in, T* out, int dim) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = MathsProvider::sigmoid(x_vec);
+        b_type y_vec {};
+        MathsProvider::sigmoid(x_vec, y_vec);
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = MathsProvider::sigmoid(in[i]);
+        MathsProvider::sigmoid(in[i], out[i]);
 }
 
 template <typename T, typename MathsProvider>
@@ -168,7 +169,8 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = MathsProvider::exp(x_vec);
+        b_type y_vec {};
+        MathsProvider::exp(x_vec, y_vec);
         exp_sum_vec += y_vec;
         xsimd::store_aligned(&out[i], y_vec);
     }
@@ -178,7 +180,7 @@ static inline void softmax(const T* in, T* out, int dim) noexcept
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
     {
-        out[i] = MathsProvider::exp(in[i]);
+        MathsProvider::exp(in[i], out[i]);
         exp_sum += out[i];
     }
 
@@ -208,13 +210,14 @@ static inline void tanh(const T* in, T* out, int dim) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = MathsProvider::tanh(x_vec);
+        b_type y_vec {};
+        MathsProvider::tanh(x_vec, y_vec);
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorize
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = MathsProvider::tanh(in[i]);
+        MathsProvider::tanh(in[i], out[i]);
 }
 
 template <typename T, typename MathsProvider>
@@ -228,13 +231,18 @@ static inline void elu(const T* in, T* out, int dim, T alpha) noexcept
     for(int i = 0; i < vec_size; i += inc)
     {
         b_type x_vec = xsimd::load_aligned(&in[i]);
-        b_type y_vec = xsimd::select(x_vec > (T)0, x_vec, alpha * (MathsProvider::exp(x_vec) - (T)1));
+        b_type y_vec {};
+        MathsProvider::exp(x_vec, y_vec);
+        y_vec = xsimd::select(x_vec > (T)0, x_vec, alpha * (y_vec - (T)1));
         xsimd::store_aligned(&out[i], y_vec);
     }
 
     // Remaining part that cannot be vectorized
     for(auto i = vec_size; i < dim; ++i)
-        out[i] = in[i] > (T)0 ? in[i] : (alpha * (MathsProvider::exp(in[i]) - (T)1));
+    {
+        MathsProvider::exp(in[i], out[i]);
+        out[i] = in[i] > (T)0 ? in[i] : (alpha * (out[i] - (T)1));
+    }
 }
 } // namespace RTNEURAL_NAMESPACE
 

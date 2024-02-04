@@ -176,19 +176,19 @@ public:
         recurrent_mat_mul(outs, Uf, ft);
         kernel_mat_mul(ins, Wf, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ft[i] = MathsProvider::sigmoid(ft[i] + bf[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(ft[i] + bf[i] + kernel_outs[i], ft[i]);
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
         kernel_mat_mul(ins, Wi, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            it[i] = MathsProvider::sigmoid(it[i] + bi[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(it[i] + bi[i] + kernel_outs[i], it[i]);
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
         kernel_mat_mul(ins, Wo, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ot[i] = MathsProvider::sigmoid(ot[i] + bo[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(ot[i] + bo[i] + kernel_outs[i], ot[i]);
 
         computeOutputs(ins);
     }
@@ -201,17 +201,17 @@ public:
         // compute ft
         recurrent_mat_mul(outs, Uf, ft);
         for(int i = 0; i < v_out_size; ++i)
-            ft[i] = MathsProvider::sigmoid(xsimd::fma(Wf_1[i], ins[0], ft[i] + bf[i]));
+            MathsProvider::sigmoid(xsimd::fma(Wf_1[i], ins[0], ft[i] + bf[i]), ft[i]);
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
         for(int i = 0; i < v_out_size; ++i)
-            it[i] = MathsProvider::sigmoid(xsimd::fma(Wi_1[i], ins[0], it[i] + bi[i]));
+            MathsProvider::sigmoid(xsimd::fma(Wi_1[i], ins[0], it[i] + bi[i]), it[i]);
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
         for(int i = 0; i < v_out_size; ++i)
-            ot[i] = MathsProvider::sigmoid(xsimd::fma(Wo_1[i], ins[0], ot[i] + bo[i]));
+            MathsProvider::sigmoid(xsimd::fma(Wo_1[i], ins[0], ot[i] + bo[i]), ot[i]);
 
         computeOutputs(ins);
     }
@@ -265,11 +265,18 @@ private:
         recurrent_mat_mul(outs, Uc, ht);
         kernel_mat_mul(ins, Wc, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ctVec[i] = xsimd::fma(it[i], MathsProvider::tanh(ht[i] + bc[i] + kernel_outs[i]), ft[i] * ct[i]);
+        {
+            v_type tanh_out {};
+            MathsProvider::tanh(ht[i] + bc[i] + kernel_outs[i], tanh_out);
+            ctVec[i] = xsimd::fma(it[i], tanh_out, ft[i] * ct[i]);
+        }
 
         // compute output
         for(int i = 0; i < v_out_size; ++i)
-            outsVec[i] = ot[i] * MathsProvider::tanh(ctVec[i]);
+        {
+            MathsProvider::tanh(ctVec[i], outsVec[i]);
+            outsVec[i] *= ot[i];
+        }
     }
 
     template <typename VecType, int N = in_size>
@@ -279,11 +286,18 @@ private:
         // compute ct
         recurrent_mat_mul(outs, Uc, ht);
         for(int i = 0; i < v_out_size; ++i)
-            ctVec[i] = xsimd::fma(it[i], MathsProvider::tanh(xsimd::fma(Wc_1[i], ins[0], ht[i] + bc[i])), ft[i] * ct[i]);
+        {
+            v_type tanh_out {};
+            MathsProvider::tanh(xsimd::fma(Wc_1[i], ins[0], ht[i] + bc[i]), tanh_out);
+            ctVec[i] = xsimd::fma(it[i], tanh_out, ft[i] * ct[i]);
+        }
 
         // compute output
         for(int i = 0; i < v_out_size; ++i)
-            outsVec[i] = ot[i] * MathsProvider::tanh(ctVec[i]);
+        {
+            MathsProvider::tanh(ctVec[i], outsVec[i]);
+            outsVec[i] *= ot[i];
+        }
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>

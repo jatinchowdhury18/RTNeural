@@ -61,7 +61,7 @@ public:
     RTNEURAL_REALTIME inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = MathsProvider::tanh(ins[i]);
+            MathsProvider::tanh(ins[i], outs[i]);
     }
 
     v_type outs[v_io_size];
@@ -185,7 +185,7 @@ public:
     RTNEURAL_REALTIME inline void forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = MathsProvider::sigmoid(ins[i]);
+            MathsProvider::sigmoid(ins[i], outs[i]);
     }
 
     v_type outs[v_io_size];
@@ -246,7 +246,7 @@ public:
         v_type exp_sum {};
         for(int i = 0; i < v_io_size; ++i)
         {
-            outs[i] = MathsProvider::exp(ins[i]);
+             MathsProvider::exp(ins[i], outs[i]);
             exp_sum += outs[i];
         }
 
@@ -315,7 +315,10 @@ public:
     forward(const v_type (&ins)[v_io_size]) noexcept
     {
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], MathsProvider::exp(ins[i]) - (T)1);
+        {
+            MathsProvider::exp(ins[i], outs[i]);
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], outs[i] - (T)1);
+        }
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
@@ -325,7 +328,10 @@ public:
     {
         static constexpr T alpha = (T)AlphaNumerator / (T)AlphaDenominator;
         for(int i = 0; i < v_io_size; ++i)
-            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], alpha * (MathsProvider::exp(ins[i]) - (T)1));
+        {
+            MathsProvider::exp(ins[i], outs[i]);
+            outs[i] = xsimd::select(ins[i] > (T)0, ins[i], alpha * (outs[i] - (T)1));
+        }
     }
 
     v_type outs[v_io_size];

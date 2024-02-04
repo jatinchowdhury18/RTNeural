@@ -202,19 +202,19 @@ public:
         recurrent_mat_mul(outs, Uz, zt);
         kernel_mat_mul(ins, Wz, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            zt[i] = MathsProvider::sigmoid(zt[i] + bz[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(zt[i] + bz[i] + kernel_outs[i], zt[i]);
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         kernel_mat_mul(ins, Wr, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            rt[i] = MathsProvider::sigmoid(rt[i] + br[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(rt[i] + br[i] + kernel_outs[i], rt[i]);
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
         kernel_mat_mul(ins, Wh, kernel_outs);
         for(int i = 0; i < v_out_size; ++i)
-            ht[i] = MathsProvider::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], bh0[i] + kernel_outs[i]));
+            MathsProvider::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], bh0[i] + kernel_outs[i]), ht[i]);
 
         computeOutput();
     }
@@ -227,17 +227,17 @@ public:
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
         for(int i = 0; i < v_out_size; ++i)
-            zt[i] = MathsProvider::sigmoid(xsimd::fma(Wz_1[i], ins[0], zt[i] + bz[i]));
+            MathsProvider::sigmoid(xsimd::fma(Wz_1[i], ins[0], zt[i] + bz[i]), zt[i]);
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         for(int i = 0; i < v_out_size; ++i)
-            rt[i] = MathsProvider::sigmoid(xsimd::fma(Wr_1[i], ins[0], rt[i] + br[i]));
+            MathsProvider::sigmoid(xsimd::fma(Wr_1[i], ins[0], rt[i] + br[i]), rt[i]);
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
         for(int i = 0; i < v_out_size; ++i)
-            ht[i] = MathsProvider::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], xsimd::fma(Wh_1[i], ins[0], bh0[i])));
+            MathsProvider::tanh(xsimd::fma(rt[i], ct[i] + bh1[i], xsimd::fma(Wh_1[i], ins[0], bh0[i])), ht[i]);
 
         computeOutput();
     }
