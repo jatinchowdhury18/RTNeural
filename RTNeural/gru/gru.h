@@ -49,9 +49,9 @@ public:
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {
-            zVec[i] = MathsProvider::sigmoid(vMult(zWeights.W[i], input, Layer<T>::in_size) + vMult(zWeights.U[i], ht1, Layer<T>::out_size) + zWeights.b[0][i] + zWeights.b[1][i]);
-            rVec[i] = MathsProvider::sigmoid(vMult(rWeights.W[i], input, Layer<T>::in_size) + vMult(rWeights.U[i], ht1, Layer<T>::out_size) + rWeights.b[0][i] + rWeights.b[1][i]);
-            cVec[i] = MathsProvider::tanh(vMult(cWeights.W[i], input, Layer<T>::in_size) + rVec[i] * (vMult(cWeights.U[i], ht1, Layer<T>::out_size) + cWeights.b[1][i]) + cWeights.b[0][i]);
+            MathsProvider::sigmoid(vMult(zWeights.W[i], input, Layer<T>::in_size) + vMult(zWeights.U[i], ht1, Layer<T>::out_size) + zWeights.b[0][i] + zWeights.b[1][i], zVec[i]);
+            MathsProvider::sigmoid(vMult(rWeights.W[i], input, Layer<T>::in_size) + vMult(rWeights.U[i], ht1, Layer<T>::out_size) + rWeights.b[0][i] + rWeights.b[1][i], rVec[i]);
+            MathsProvider::tanh(vMult(cWeights.W[i], input, Layer<T>::in_size) + rVec[i] * (vMult(cWeights.U[i], ht1, Layer<T>::out_size) + cWeights.b[1][i]) + cWeights.b[0][i], cVec[i]);
             h[i] = ((T)1 - zVec[i]) * cVec[i] + zVec[i] * ht1[i];
         }
 
@@ -183,19 +183,19 @@ public:
         recurrent_mat_mul(outs, Uz, zt);
         kernel_mat_mul(ins, Wz, kernel_outs);
         for(int i = 0; i < out_size; ++i)
-            zt[i] = MathsProvider::sigmoid(zt[i] + bz[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(zt[i] + bz[i] + kernel_outs[i], zt[i]);
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         kernel_mat_mul(ins, Wr, kernel_outs);
         for(int i = 0; i < out_size; ++i)
-            rt[i] = MathsProvider::sigmoid(rt[i] + br[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(rt[i] + br[i] + kernel_outs[i], rt[i]);
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
         kernel_mat_mul(ins, Wh, kernel_outs);
         for(int i = 0; i < out_size; ++i)
-            ht[i] = MathsProvider::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + kernel_outs[i]);
+            MathsProvider::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + kernel_outs[i], ht[i]);
 
         computeOutput();
     }
@@ -208,17 +208,17 @@ public:
         // compute zt
         recurrent_mat_mul(outs, Uz, zt);
         for(int i = 0; i < out_size; ++i)
-            zt[i] = MathsProvider::sigmoid(zt[i] + bz[i] + (Wz_1[i] * ins[0]));
+            MathsProvider::sigmoid(zt[i] + bz[i] + (Wz_1[i] * ins[0]), zt[i]);
 
         // compute rt
         recurrent_mat_mul(outs, Ur, rt);
         for(int i = 0; i < out_size; ++i)
-            rt[i] = MathsProvider::sigmoid(rt[i] + br[i] + (Wr_1[i] * ins[0]));
+            MathsProvider::sigmoid(rt[i] + br[i] + (Wr_1[i] * ins[0]), rt[i]);
 
         // compute h_hat
         recurrent_mat_mul(outs, Uh, ct);
         for(int i = 0; i < out_size; ++i)
-            ht[i] = MathsProvider::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + (Wh_1[i] * ins[0]));
+            MathsProvider::tanh(rt[i] * (ct[i] + bh1[i]) + bh0[i] + (Wh_1[i] * ins[0]), ht[i]);
 
         computeOutput();
     }

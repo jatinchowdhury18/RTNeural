@@ -59,10 +59,7 @@ class TanhActivation final : public Activation<T>
 public:
     /** Constructs a tanh activation layer for a given size. */
     explicit TanhActivation(int size)
-        : Activation<T>(
-            size, [](T x)
-            { return MathsProvider::tanh(x); },
-            "tanh")
+        : Activation<T>(size, {}, "tanh")
     {
     }
 
@@ -75,7 +72,7 @@ public:
     RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
-            out[i] = MathsProvider::tanh(input[i]);
+            MathsProvider::tanh(input[i], out[i]);
     }
 };
 
@@ -101,7 +98,7 @@ public:
     RTNEURAL_REALTIME inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
-            outs[i] = MathsProvider::tanh(ins[i]);
+            MathsProvider::tanh(ins[i], outs[i]);
     }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
@@ -115,9 +112,9 @@ public:
     /** Constructs a ReLU activation layer for a given size. */
     explicit ReLuActivation(int size)
         : Activation<T>(
-            size, [](T x)
-            { return std::max((T)0, x); },
-            "relu")
+              size, [](T x)
+              { return std::max((T)0, x); },
+              "relu")
     {
     }
 
@@ -162,16 +159,20 @@ class SigmoidActivation final : public Activation<T>
 public:
     /** Constructs a sigmoid activation layer for a given size. */
     explicit SigmoidActivation(int size)
-        : Activation<T>(
-            size, [](T x)
-            { return MathsProvider::sigmoid(x); },
-            "sigmoid")
+        : Activation<T>(size, {}, "sigmoid")
     {
     }
 
     SigmoidActivation(std::initializer_list<int> sizes)
         : SigmoidActivation(*sizes.begin())
     {
+    }
+
+    /** Performs forward propagation for sigmoid activation. */
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            MathsProvider::sigmoid(input[i], out[i]);
     }
 };
 
@@ -197,7 +198,7 @@ public:
     RTNEURAL_REALTIME inline void forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
-            outs[i] = MathsProvider::sigmoid(ins[i]);
+            MathsProvider::sigmoid(ins[i], outs[i]);
     }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[size];
@@ -211,9 +212,9 @@ public:
     /** Constructs a softmax activation layer for a given size. */
     explicit SoftmaxActivation(int size)
         : Activation<T>(
-            size, [](T x)
-            { return (T)0; },
-            "softmax")
+              size, [](T x)
+              { return (T)0; },
+              "softmax")
     {
     }
 
@@ -228,7 +229,7 @@ public:
         T exp_sum = 0;
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {
-            out[i] = MathsProvider::exp(input[i]);
+            MathsProvider::exp(input[i], out[i]);
             exp_sum += out[i];
         }
 
@@ -264,7 +265,7 @@ public:
         T exp_sum = 0;
         for(int i = 0; i < size; ++i)
         {
-            outs[i] = MathsProvider::exp(ins[i]);
+            MathsProvider::exp(ins[i], outs[i]);
             exp_sum += outs[i];
         }
 
@@ -285,10 +286,7 @@ class ELuActivation final : public Activation<T>
 public:
     /** Constructs a softmax activation layer for a given size. */
     explicit ELuActivation(int size)
-        : Activation<T>(
-            size, [this](T x)
-            { return x > (T)0 ? x : (alpha * (MathsProvider::exp(x) - (T)1)); },
-            "elu")
+        : Activation<T>(size, {}, "elu")
     {
     }
 
@@ -299,6 +297,17 @@ public:
 
     /** Sets a custom value for the layer's "alpha" parameter. */
     RTNEURAL_REALTIME void set_alpha(T newAlpha) { alpha = newAlpha; }
+
+    /** Performs forward propagation for elu activation. */
+    RTNEURAL_REALTIME inline void forward(const T* input, T* out) noexcept override
+    {
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+        {
+            T exp_x {};
+            MathsProvider::exp(input[i], exp_x);
+            out[i] = input[i] > (T)0 ? input[i] : (alpha * (exp_x - (T)1));
+        }
+    }
 
 private:
     T alpha = (T)1;
@@ -328,7 +337,11 @@ public:
     forward(const T (&ins)[size]) noexcept
     {
         for(int i = 0; i < size; ++i)
-            outs[i] = ins[i] > (T)0 ? ins[i] : (MathsProvider::exp(ins[i]) - (T)1);
+        {
+            T exp_x {};
+            MathsProvider::exp(ins[i], exp_x);
+            outs[i] = ins[i] > (T)0 ? ins[i] : (exp_x - (T)1);
+        }
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */

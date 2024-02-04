@@ -6,23 +6,23 @@ namespace RTNEURAL_NAMESPACE
 {
 struct DefaultMathsProvider
 {
-    template <typename Matrix>
-    static auto tanh(const Matrix& x)
+    template <typename MatrixX, typename MatrixY>
+    static auto tanh(const MatrixX& x, MatrixY& y)
     {
-        return x.array().tanh();
+        y =  x.array().tanh();
     }
 
-    template <typename Matrix>
-    static auto sigmoid(const Matrix& x)
+    template <typename MatrixX, typename MatrixY>
+    static auto sigmoid(const MatrixX& x, MatrixY& y)
     {
-        using T = typename Matrix::Scalar;
-        return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
+        using T = typename MatrixX::Scalar;
+        y = (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
     }
 
-    template <typename Matrix>
-    static auto exp(const Matrix& x)
+    template <typename MatrixX, typename MatrixY>
+    static auto exp(const MatrixX& x, MatrixY& y)
     {
-        return x.array().exp();
+        y = x.array().exp();
     }
 };
 }

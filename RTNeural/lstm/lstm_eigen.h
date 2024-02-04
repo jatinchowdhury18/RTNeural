@@ -51,12 +51,12 @@ public:
         fioctVecs.noalias() = combinedWeights * extendedInVecHt1;
 
         fioVecs = fioctVecs.segment(0, Layer<T>::out_size * 3);
-        ctVec = MathsProvider::tanh(fioctVecs.segment(Layer<T>::out_size * 3, Layer<T>::out_size));
+        MathsProvider::tanh(fioctVecs.segment(Layer<T>::out_size * 3, Layer<T>::out_size), ctVec);
 
-        fioVecs = MathsProvider::sigmoid(fioVecs);
+        MathsProvider::sigmoid(fioVecs, fioVecs);
 
         ct1 = fioVecs.segment(0, Layer<T>::out_size).cwiseProduct(ct1) + fioVecs.segment(Layer<T>::out_size, Layer<T>::out_size).cwiseProduct(ctVec);
-        cTanhVec = MathsProvider::tanh(ct1);
+        MathsProvider::tanh(ct1, cTanhVec);
 
         ht1 = fioVecs.segment(Layer<T>::out_size * 2, Layer<T>::out_size).cwiseProduct(cTanhVec);
 
@@ -165,8 +165,8 @@ public:
          */
         fioctsVecs.noalias() = combinedWeights * extendedInHt1Vec;
 
-        fioVecs = MathsProvider::sigmoid(fioctsVecs.segment(0, 3 * out_sizet));
-        ctVec = MathsProvider::tanh(fioctsVecs.segment(3 * out_sizet, out_sizet));
+        MathsProvider::sigmoid(fioctsVecs.segment(0, 3 * out_sizet), fioVecs);
+        MathsProvider::tanh(fioctsVecs.segment(3 * out_sizet, out_sizet), ctVec);
 
         computeOutputs();
     }
@@ -233,7 +233,7 @@ private:
             + fioVecs.segment(out_sizet, out_sizet)
                   .cwiseProduct(ctVec);
 
-        cTanhVec = MathsProvider::tanh(cVecLocal);
+        MathsProvider::tanh(cVecLocal, cTanhVec);
         outsVec.noalias() = fioVecs.segment(out_sizet * 2, out_sizet).cwiseProduct(cTanhVec);
     }
 

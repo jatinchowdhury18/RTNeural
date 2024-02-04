@@ -47,12 +47,13 @@ public:
     {
         for(int i = 0; i < Layer<T>::out_size; ++i)
         {
-            fVec[i] = MathsProvider::sigmoid(vMult(fWeights.W[i], input, Layer<T>::in_size) + vMult(fWeights.U[i], ht1, Layer<T>::out_size) + fWeights.b[i]);
-            iVec[i] = MathsProvider::sigmoid(vMult(iWeights.W[i], input, Layer<T>::in_size) + vMult(iWeights.U[i], ht1, Layer<T>::out_size) + iWeights.b[i]);
-            oVec[i] = MathsProvider::sigmoid(vMult(oWeights.W[i], input, Layer<T>::in_size) + vMult(oWeights.U[i], ht1, Layer<T>::out_size) + oWeights.b[i]);
-            ctVec[i] = MathsProvider::tanh(vMult(cWeights.W[i], input, Layer<T>::in_size) + vMult(cWeights.U[i], ht1, Layer<T>::out_size) + cWeights.b[i]);
+            MathsProvider::sigmoid(vMult(fWeights.W[i], input, Layer<T>::in_size) + vMult(fWeights.U[i], ht1, Layer<T>::out_size) + fWeights.b[i], fVec[i]);
+            MathsProvider::sigmoid(vMult(iWeights.W[i], input, Layer<T>::in_size) + vMult(iWeights.U[i], ht1, Layer<T>::out_size) + iWeights.b[i], iVec[i]);
+            MathsProvider::sigmoid(vMult(oWeights.W[i], input, Layer<T>::in_size) + vMult(oWeights.U[i], ht1, Layer<T>::out_size) + oWeights.b[i], oVec[i]);
+            MathsProvider::tanh(vMult(cWeights.W[i], input, Layer<T>::in_size) + vMult(cWeights.U[i], ht1, Layer<T>::out_size) + cWeights.b[i], ctVec[i]);
             cVec[i] = fVec[i] * ct1[i] + iVec[i] * ctVec[i];
-            h[i] = oVec[i] * MathsProvider::tanh(cVec[i]);
+            MathsProvider::tanh(cVec[i], h[i]);
+            h[i] *= oVec[i];
         }
 
         std::copy(cVec, cVec + Layer<T>::out_size, ct1);
@@ -156,19 +157,19 @@ public:
         recurrent_mat_mul(outs, Uf, ft);
         kernel_mat_mul(ins, Wf, kernel_outs);
         for(int i = 0; i < out_size; ++i)
-            ft[i] = MathsProvider::sigmoid(ft[i] + bf[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(ft[i] + bf[i] + kernel_outs[i], ft[i]);
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
         kernel_mat_mul(ins, Wi, kernel_outs);
         for(int i = 0; i < out_size; ++i)
-            it[i] = MathsProvider::sigmoid(it[i] + bi[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(it[i] + bi[i] + kernel_outs[i], it[i]);
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
         kernel_mat_mul(ins, Wo, kernel_outs);
         for(int i = 0; i < out_size; ++i)
-            ot[i] = MathsProvider::sigmoid(ot[i] + bo[i] + kernel_outs[i]);
+            MathsProvider::sigmoid(ot[i] + bo[i] + kernel_outs[i], ot[i]);
 
         computeOutputs(ins);
     }
@@ -181,17 +182,17 @@ public:
         // compute ft
         recurrent_mat_mul(outs, Uf, ft);
         for(int i = 0; i < out_size; ++i)
-            ft[i] = MathsProvider::sigmoid(ft[i] + bf[i] + (Wf_1[i] * ins[0]));
+            MathsProvider::sigmoid(ft[i] + bf[i] + (Wf_1[i] * ins[0]), ft[i]);
 
         // compute it
         recurrent_mat_mul(outs, Ui, it);
         for(int i = 0; i < out_size; ++i)
-            it[i] = MathsProvider::sigmoid(it[i] + bi[i] + (Wi_1[i] * ins[0]));
+            MathsProvider::sigmoid(it[i] + bi[i] + (Wi_1[i] * ins[0]), it[i]);
 
         // compute ot
         recurrent_mat_mul(outs, Uo, ot);
         for(int i = 0; i < out_size; ++i)
-            ot[i] = MathsProvider::sigmoid(ot[i] + bo[i] + (Wo_1[i] * ins[0]));
+            MathsProvider::sigmoid(ot[i] + bo[i] + (Wo_1[i] * ins[0]), ot[i]);
 
         computeOutputs(ins);
     }
@@ -245,11 +246,18 @@ private:
         recurrent_mat_mul(outs, Uc, ht);
         kernel_mat_mul(ins, Wc, kernel_outs);
         for(int i = 0; i < out_size; ++i)
-            ctVec[i] = it[i] * MathsProvider::tanh(ht[i] + bc[i] + kernel_outs[i]) + ft[i] * ct[i];
+        {
+            T tanh_out {};
+            MathsProvider::tanh(ht[i] + bc[i] + kernel_outs[i], tanh_out);
+            ctVec[i] = it[i] * tanh_out + ft[i] * ct[i];
+        }
 
         // compute output
         for(int i = 0; i < out_size; ++i)
-            outsVec[i] = ot[i] * MathsProvider::tanh(ctVec[i]);
+        {
+            MathsProvider::tanh(ctVec[i], outsVec[i]);
+            outsVec[i] *= ot[i];
+        }
     }
 
     template <typename VecType, int N = in_size>
@@ -259,11 +267,18 @@ private:
         // compute ct
         recurrent_mat_mul(outs, Uc, ht);
         for(int i = 0; i < out_size; ++i)
-            ctVec[i] = it[i] * MathsProvider::tanh(ht[i] + bc[i] + (Wc_1[i] * ins[0])) + ft[i] * ct[i];
+        {
+            T tanh_out {};
+            MathsProvider::tanh(ht[i] + bc[i] + (Wc_1[i] * ins[0]), tanh_out);
+            ctVec[i] = it[i] * tanh_out + ft[i] * ct[i];
+        }
 
         // compute output
         for(int i = 0; i < out_size; ++i)
-            outsVec[i] = ot[i] * MathsProvider::tanh(ctVec[i]);
+        {
+            MathsProvider::tanh(ctVec[i], outsVec[i]);
+            outsVec[i] *= ot[i];
+        }
     }
 
     template <SampleRateCorrectionMode srCorr = sampleRateCorr>

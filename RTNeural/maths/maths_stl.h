@@ -7,21 +7,21 @@ namespace RTNEURAL_NAMESPACE
 struct DefaultMathsProvider
 {
     template <typename T>
-    static T tanh(T x)
+    static void tanh(const T& x, T& y)
     {
-        return std::tanh(x);
+        y = std::tanh(x);
     }
 
     template <typename T>
-    static T sigmoid(T x)
+    static void sigmoid(const T& x, T& y)
     {
-        return (T)1 / ((T)1 + std::exp(-x));
+        y = (T)1 / ((T)1 + std::exp(-x));
     }
 
     template <typename T>
-    static T exp(T x)
+    static void exp(const T& x, T& y)
     {
-        return std::exp(x);
+        y =  std::exp(x);
     }
 };
 }

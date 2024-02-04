@@ -31,7 +31,7 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
-        outVec = MathsProvider::tanh(inVec);
+        MathsProvider::tanh(inVec, outVec);
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
@@ -67,7 +67,7 @@ public:
     /** Performs forward propagation for tanh activation. */
     RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
-        outs = MathsProvider::tanh(ins);
+        MathsProvider::tanh(ins, outs);
     }
 
     Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
@@ -168,7 +168,7 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
-        outVec = MathsProvider::sigmoid(inVec);
+        MathsProvider::sigmoid(inVec, outVec);
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
@@ -204,7 +204,7 @@ public:
     /** Performs forward propagation for sigmoid activation. */
     RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
-        outs = MathsProvider::sigmoid(ins);
+        MathsProvider::sigmoid(ins, outs);
     }
 
     Eigen::Map<v_type, RTNeuralEigenAlignment> outs;
@@ -236,7 +236,7 @@ public:
     {
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
-        outVec = MathsProvider::exp(inVec);
+        MathsProvider::exp(inVec, outVec);
         outVec = outVec / outVec.sum();
 
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
@@ -273,7 +273,7 @@ public:
     /** Performs forward propagation for softmax activation. */
     RTNEURAL_REALTIME inline void forward(const v_type& ins) noexcept
     {
-        outs = MathsProvider::exp(ins);
+        MathsProvider::exp(ins, outs);
         outs = outs / outs.sum();
     }
 
@@ -308,7 +308,8 @@ public:
         inVec = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>, RTNeuralEigenAlignment>(
             input, Layer<T>::in_size, 1);
 
-        outVec = (inVec.array() > (T)0).select(inVec, alpha * (MathsProvider::exp(inVec) - ones.array()));
+        MathsProvider::exp(inVec, outVec);
+        outVec = (inVec.array() > (T)0).select(inVec, alpha * (outVec.array() - ones.array()));
         std::copy(outVec.data(), outVec.data() + Layer<T>::in_size, out);
     }
 
@@ -352,7 +353,8 @@ public:
     RTNEURAL_REALTIME inline typename std::enable_if<A_N == 1 && A_D == 1, void>::type
     forward(const v_type& ins) noexcept
     {
-        outs = (ins.array() > (T)0).select(ins, MathsProvider::exp(ins) - ones.array());
+        MathsProvider::exp(ins, outs);
+        outs = (ins.array() > (T)0).select(ins, outs.array() - ones.array());
     }
 
     /** Performs forward propagation for elu activation (with custom alpha parameter). */
