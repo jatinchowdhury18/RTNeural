@@ -37,7 +37,7 @@ void testTorchConv1DModel()
     }
 
     std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_y_python.csv" };
-    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T> (modelOutputsFile));
+    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelOutputsFile));
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {

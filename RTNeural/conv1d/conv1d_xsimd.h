@@ -4,9 +4,9 @@
 #include "../Layer.h"
 #include "../common.h"
 #include "../config.h"
+#include <iostream>
 #include <numeric>
 #include <vector>
-#include <iostream>
 
 namespace RTNEURAL_NAMESPACE
 {
@@ -54,7 +54,7 @@ public:
         // set state pointers to particular columns of the buffer
         setStatePointers();
 
-        if (groups == 1)
+        if(groups == 1)
         {
             // copy selected columns to a helper variable
             for(int k = 0; k < kernel_size; ++k)
@@ -220,10 +220,10 @@ public:
                 {
                     // copy selected columns to a helper variable
                     // @TODO: I'm not sure the reinterpret_casts are 100% safe here, but they seem to work in testing!
-                    const auto& column = reinterpret_cast<std::array<T, in_size>&> (state[state_ptrs[j]]);
+                    const auto& column = reinterpret_cast<std::array<T, in_size>&>(state[state_ptrs[j]]);
                     const auto column_begin = column.begin() + ii;
                     const auto column_end = column_begin + filters_per_group;
-                    std::copy(column_begin, column_end, reinterpret_cast<std::array<T, filters_per_group>&> (state_cols[j]).begin());
+                    std::copy(column_begin, column_end, reinterpret_cast<std::array<T, filters_per_group>&>(state_cols[j]).begin());
 
                     accum += std::inner_product(
                         subWeights[j].begin(),
