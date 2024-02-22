@@ -29,9 +29,9 @@ namespace modelt_detail
 
     /** Functions to do a function for each element in the tuple */
     template <typename Fn, typename Tuple, size_t... Ix>
-    constexpr void forEachInTuple(Fn&& fn, Tuple&& tuple, std::index_sequence<Ix...>) noexcept(noexcept(std::initializer_list<int> { (fn(std::get<Ix>(tuple), Ix), 0)... }))
+    constexpr void forEachInTuple(Fn&& fn, Tuple&& tuple, std::index_sequence<Ix...>) noexcept(noexcept(std::initializer_list<int> { (fn(std::get<Ix>(tuple), std::integral_constant<size_t, Ix>()), 0)... }))
     {
-        (void)std::initializer_list<int> { ((void)fn(std::get<Ix>(tuple), Ix), 0)... };
+        (void)std::initializer_list<int> { ((void)fn(std::get<Ix>(tuple), std::integral_constant<size_t, Ix>()), 0)... };
     }
 
     template <typename T>

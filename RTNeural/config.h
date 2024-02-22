@@ -31,7 +31,7 @@
     for which instructions may be found in the RADSan repository above.
 */
 #ifdef RTNEURAL_RADSAN_ENABLED
-  #define RTNEURAL_REALTIME [[clang::realtime]]
+#define RTNEURAL_REALTIME [[clang::realtime]]
 #else
-  #define RTNEURAL_REALTIME
+#define RTNEURAL_REALTIME
 #endif

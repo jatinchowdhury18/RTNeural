@@ -59,7 +59,7 @@ public:
         // set state pointers to particular columns of the buffer
         setStatePointers();
 
-        if (groups == 1)
+        if(groups == 1)
         {
             // copy selected columns to a helper variable
             for(int k = 0; k < kernel_size; ++k)
@@ -198,7 +198,7 @@ public:
     /** Resets the layer state. */
     RTNEURAL_REALTIME void reset();
 
-    template<int _groups = groups, std::enable_if_t<_groups == 1, bool> = true>
+    template <int _groups = groups, std::enable_if_t<_groups == 1, bool> = true>
     /** Performs forward propagation for this layer. */
     RTNEURAL_REALTIME inline void forward(const T (&ins)[in_size]) noexcept
     {
@@ -230,7 +230,7 @@ public:
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
     }
 
-    template<int _groups = groups, std::enable_if_t<_groups != 1, bool> = true>
+    template <int _groups = groups, std::enable_if_t<_groups != 1, bool> = true>
     /** Performs forward propagation for this layer. */
     inline void forward(const T (&ins)[in_size]) noexcept
     {

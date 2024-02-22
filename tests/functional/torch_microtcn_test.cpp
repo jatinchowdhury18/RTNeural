@@ -3,7 +3,7 @@
 #include "RTNeural/RTNeural.h"
 #include "load_csv.hpp"
 
-#if ! (RTNEURAL_USE_EIGEN || RTNEURAL_USE_XSIMD)
+#if !(RTNEURAL_USE_EIGEN || RTNEURAL_USE_XSIMD)
 
 namespace
 {

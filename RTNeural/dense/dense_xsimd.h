@@ -338,7 +338,7 @@ public:
         for(int i = 0; i < v_out_size; ++i)
             outs[i] = bias[i];
 
-        const auto in = ins[0].get (0);
+        const auto in = ins[0].get(0);
         for(int i = 0; i < v_out_size; ++i)
             outs[i] += in * weights[i];
     }

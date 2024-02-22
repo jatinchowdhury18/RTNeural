@@ -52,7 +52,7 @@ public:
         // set state pointers to the particular columns of the buffer
         setStatePointers();
 
-        if (groups == 1)
+        if(groups == 1)
         {
             // copy selected columns to a helper variable
             for(int k = 0; k < kernel_size; ++k)
@@ -175,7 +175,7 @@ public:
     RTNEURAL_REALTIME void reset();
 
     /** Performs forward propagation for this layer. */
-    template<int _groups = groups, std::enable_if_t<_groups == 1, bool> = true>
+    template <int _groups = groups, std::enable_if_t<_groups == 1, bool> = true>
     RTNEURAL_REALTIME inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         // insert input into a circular buffer
@@ -196,7 +196,7 @@ public:
     }
 
     /** Performs forward propagation for this layer (groups > 1). */
-    template<int _groups = groups, std::enable_if_t<_groups != 1, bool> = true>
+    template <int _groups = groups, std::enable_if_t<_groups != 1, bool> = true>
     RTNEURAL_REALTIME inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         // insert input into a circular buffer
