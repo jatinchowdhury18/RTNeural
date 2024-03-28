@@ -72,10 +72,17 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
 
 
     def save_layer(layer):
+        try:
+            outshape = layer.output_shape # this is the original code, but sometimes doesn't work
+        except:
+            outshape = layer.output.shape # if not, use this and make sure it's a tuple so it can be JSON encoded
+            if type(outshape) != tuple:  
+                outshape = tuple(outshape.as_list())
+                
         layer_dict = {
             "type"       : get_layer_type(layer),
             "activation" : get_layer_activation(layer),
-            "shape"      : layer.output_shape,
+            "shape"      : outshape, # modified to use the outshape above
         }
 
         if layer_dict["type"] == "conv1d":
