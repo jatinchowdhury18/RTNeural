@@ -166,6 +166,37 @@ RTNeural::torch_helpers::loadDense(modelJson, "name_of_layer.", model.get<0>());
 For more examples, see the
 [`examples/torch`](./examples/torch) directory.
 
+### Loading Layers Manually
+
+RTNeural can also be used to load layer weights from any
+source, through weight-setting interfaces that are specific
+to each layer. Each function that can be used for setting
+a layer's weights also contains documentation describing how
+the weights matrices should be formatted (see, for example
+[`RTNeural::DenseT::setWeights`](https://github.com/jatinchowdhury18/RTNeural/blob/main/RTNeural/dense/dense.h#L221).
+
+```cpp
+RTNeural::ModelT<double, 8, 1
+    RTNeural::DenseT<double, 8, 8>,
+    RTNeural::TanhActivationT<double, 8>,
+    RTNeural::DenseT<double, 8, 1>
+> modelT;
+
+// access individual layers
+auto& denseIn = modelT.get<0>();
+auto& tanhActivation = modelT.get<1>();
+auto& denseOut = modelT.get<2>();
+
+// set the weights for each layer
+denseIn.setWeights (denseInWeights);
+denseIn.setBias (denseInWeights);
+
+// The tanh layer has no weights for us to set!
+
+denseOut.setWeights (denseOutWeights);
+denseOut.setBias (denseOutWeights);
+```
+
 ## Building with CMake
 
 `RTNeural` is built with CMake, and the easiest way to link
