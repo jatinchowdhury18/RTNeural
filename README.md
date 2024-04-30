@@ -182,19 +182,23 @@ RTNeural::ModelT<double, 8, 1
     RTNeural::DenseT<double, 8, 1>
 > modelT;
 
-// access individual layers
+// access the individual layers
 auto& denseIn = modelT.get<0>();
 auto& tanhActivation = modelT.get<1>();
 auto& denseOut = modelT.get<2>();
 
 // set the weights for each layer
+auto denseInWeights = std::vector<std::vector<float>> (denseIn.out_size, std::vector<float> (denseIn.in_size));
 denseIn.setWeights (denseInWeights);
-denseIn.setBias (denseInWeights);
+auto denseInBias = std::vector<float> (denseIn.out_size);
+denseIn.setBias (denseInBias);
 
 // The tanh layer has no weights for us to set!
 
+auto denseOutWeights = std::vector<std::vector<float>> (denseOut.out_size, std::vector<float> (denseOut.in_size));
 denseOut.setWeights (denseOutWeights);
-denseOut.setBias (denseOutWeights);
+auto denseOutBias = std::vector<float> (denseOut.out_size);
+denseOut.setBias (denseOutBias);
 ```
 
 ## Building with CMake
