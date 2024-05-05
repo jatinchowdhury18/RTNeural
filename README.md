@@ -305,6 +305,7 @@ RTNeural is currently being used by several audio plugins and other projects:
 - [Chow Centaur](https://github.com/jatinchowdhury18/KlonCentaur): A guitar pedal emulation plugin, using a real-time recurrent neural network.
 - [Chow Tape Model](https://github.com/jatinchowdhury18/AnalogTapeModel): An analog tape emulation, using a real-time dense neural network.
 - [cppTimbreID](https://github.com/domenicostefani/cpp-timbreID): An audio feature extraction library.
+- [guitarix](https://github.com/brummer10/guitarix): A guitarix effects suite, including neural network amplifier models.
 - [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
 - [MLTerror15](https://github.com/IHorvalds/MLTerror15): Deeply learned simulator for the Orange Tiny Terror with Recurrent Neural Networks.
 - [NeuralNote](https://github.com/DamRsn/NeuralNote): An audio-to-MIDI transcription plugin using Spotify's [basic-pitch](https://github.com/spotify/basic-pitch) model.
