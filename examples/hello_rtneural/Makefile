@@ -1,4 +1,4 @@
-CXXFLAGS = -O3 -I../../ -std=c++17 -DRTNEURAL_DEFAULT_ALIGNMENT=16 -DRTNEURAL_NAMESPACE=RTNeural
+CXXFLAGS = -O3 -I../../ -std=c++17 -DRTNEURAL_DEFAULT_ALIGNMENT=16
 
 # Extra flags for compiling with Eigen backend
 # CXXFLAGS += -DRTNEURAL_USE_EIGEN=1 -I../../modules/Eigen
