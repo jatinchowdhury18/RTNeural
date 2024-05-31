@@ -6,8 +6,9 @@
 #include <limits>
 
 // RTNeural includes:
+#include "config.h"
+
 #include "Model.h"
 #include "ModelT.h"
-#include "config.h"
 #include "model_loader.h"
 #include "torch_helpers.h"
