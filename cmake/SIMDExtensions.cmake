@@ -1,6 +1,10 @@
 option(RTNEURAL_USE_AVX "Enables AVX SIMD Support" OFF)
 if(NOT RTNEURAL_USE_AVX)
-    target_compile_definitions(RTNeural PUBLIC RTNEURAL_DEFAULT_ALIGNMENT=16)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7")
+        target_compile_definitions(RTNeural PUBLIC RTNEURAL_DEFAULT_ALIGNMENT=8)
+    else()
+        target_compile_definitions(RTNeural PUBLIC RTNEURAL_DEFAULT_ALIGNMENT=16)
+    endif()
 else()
     message(STATUS "RTNeural -- Attempting to enable AVX...")
 
