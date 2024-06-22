@@ -50,9 +50,13 @@ static inline T tanh_approx(T x) noexcept
 namespace RTNeural
 {
 #if RTNEURAL_DEFAULT_ALIGNMENT == 32
-constexpr auto RTNeuralEigenAlignment = Eigen::Aligned32;
+    constexpr auto RTNeuralEigenAlignment = Eigen::Aligned32;
+#elif RTNEURAL_DEFAULT_ALIGNMENT == 16
+    constexpr auto RTNeuralEigenAlignment = Eigen::Aligned16;
+#elif RTNEURAL_DEFAULT_ALIGNMENT == 8
+    constexpr auto RTNeuralEigenAlignment = Eigen::Aligned8;
 #else
-constexpr auto RTNeuralEigenAlignment = Eigen::Aligned16;
+    #error "Unsupported alignment"
 #endif
 
 template <typename T>
