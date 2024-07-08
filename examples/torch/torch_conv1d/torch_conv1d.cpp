@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 std::string getRootDir(fs::path path)
 {
-    while((--path.end())->string() != "RTNeural")
+    while(path.filename() != "RTNeural")
         path = path.parent_path();
     return path.string();
 }

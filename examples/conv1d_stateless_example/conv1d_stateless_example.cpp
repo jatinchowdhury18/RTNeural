@@ -8,14 +8,11 @@ namespace fs = std::filesystem;
 
 std::string getFileFromRoot(fs::path exe_path, const std::string& path)
 {
-    // get path of RTNeural root directory
-    while((--exe_path.end())->string() != "RTNeural")
-        exe_path = exe_path.parent_path();
+    auto root_path = exe_path.parent_path();
+    while(root_path.filename() != "RTNeural")
+        root_path = root_path.parent_path();
 
-    // get path of model file
-    exe_path.append(path);
-
-    return exe_path.string();
+    return root_path.append(path).string();
 }
 
 int main(int /*argc*/, char* argv[])
