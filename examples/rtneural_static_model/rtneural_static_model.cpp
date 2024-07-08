@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 std::string getModelFile (fs::path path)
 {
     // get path of RTNeural root directory
-    while((--path.end())->string() != "RTNeural")
+    while(path.filename() != "RTNeural")
         path = path.parent_path();
 
     // get path of model file
