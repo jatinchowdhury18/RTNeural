@@ -37,13 +37,13 @@ constexpr T ceil_div(T num, T den)
 namespace RTNEURAL_NAMESPACE
 {
 #if RTNEURAL_DEFAULT_ALIGNMENT == 32
-    constexpr auto RTNeuralEigenAlignment = Eigen::Aligned32;
+constexpr auto RTNeuralEigenAlignment = Eigen::Aligned32;
 #elif RTNEURAL_DEFAULT_ALIGNMENT == 16
-    constexpr auto RTNeuralEigenAlignment = Eigen::Aligned16;
+constexpr auto RTNeuralEigenAlignment = Eigen::Aligned16;
 #elif RTNEURAL_DEFAULT_ALIGNMENT == 8
-    constexpr auto RTNeuralEigenAlignment = Eigen::Aligned8;
+constexpr auto RTNeuralEigenAlignment = Eigen::Aligned8;
 #else
-    #error "Unsupported alignment"
+#error "Unsupported alignment"
 #endif
 } // namespace RTNEURAL_NAMESPACE
 
