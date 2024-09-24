@@ -50,6 +50,19 @@ public:
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d"; }
 
+
+    /** Performs a stride step for this layer. */
+    RTNEURAL_REALTIME inline void skip(const T* input)
+    {
+        // insert input into a circular buffer
+        std::copy(input, input + Layer<T>::in_size, state[state_ptr]);
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
     /** Performs forward propagation for this layer. */
     RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
     {

@@ -1,0 +1,156 @@
+#include <gmock/gmock.h>
+
+#include "load_csv.hpp"
+#include <RTNeural/RTNeural.h>
+
+namespace
+{
+template <typename T>
+void expectNear(T const& expected, T const& actual)
+{
+    EXPECT_THAT(
+        static_cast<double>(expected),
+        testing::DoubleNear(static_cast<double>(actual), 2e-5));
+}
+
+template <typename T,int IN_SIZE,int OUT_SIZE,int KERNEL_SIZE,int PADDING, int DILATION,int GROUPS,int STRIDE>
+void testTorchConvTranspose1DModel(const std::string model_file_path,
+                              const std::string model_input_file_path,
+                              const std::string model_output_file_path)
+{ 
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + model_file_path;
+    std::ifstream jsonStream(std::string(model_file), std::ifstream::binary);
+    nlohmann::json modelJson;
+    jsonStream >> modelJson;
+    // Use Dynamic Layer Class, several layers are too big to be implemented as Static.
+    RTNeural::Conv1D<T> model(IN_SIZE, OUT_SIZE, KERNEL_SIZE, DILATION, GROUPS);
+
+    RTNeural::torch_helpers::loadConvTranspose1D<T>(modelJson, "", model);
+    model.reset();
+    std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path};
+    const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
+    std::vector<std::array<T, OUT_SIZE>> outputs {};
+    const size_t out_base_size = (inputs.size()-1)*STRIDE - PADDING + 1;
+    static constexpr size_t tconv_side_padding = DILATION * (KERNEL_SIZE - 1) - PADDING;
+    outputs.resize(out_base_size + tconv_side_padding, {});
+
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<T,IN_SIZE> zeroentry = {0};
+
+    for(size_t i = 0; i < out_base_size+PADDING; ++i)
+    {
+        if(i < PADDING)
+        {
+            if((i % STRIDE) == 0)
+                model.skip(inputs[i/STRIDE].data());
+            else //Feed zeroes to input
+                model.skip(zeroentry.data());
+        }
+        else
+        {
+            if((i % STRIDE) == 0)
+                model.forward(inputs[i/STRIDE].data(),outputs[i-PADDING].data());
+            else //Feed zeroes to input
+                model.forward(zeroentry.data(),outputs[i-PADDING].data());
+        }
+        //std::cout << "Written at " << i-PADDING <<" " << outputs[i-PADDING][0] <<std::endl;
+    }
+    for(size_t i = 0; i < tconv_side_padding ; ++i)
+    {
+        // Feed the same zeropad to the model
+        model.forward(zeroentry.data(),outputs[out_base_size+i].data());
+        //std::cout << "Written at " << out_base_size+i <<" " << outputs[out_base_size+i][0] <<std::endl;
+    }
+    std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + model_output_file_path };
+    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelOutputsFile));
+
+    for(size_t n = 0; n < expected_y.size(); ++n)
+    {
+        for(size_t j = 0; j < outputs[n].size(); ++j)
+        {
+            expectNear(outputs[n][j], expected_y[n][j]);
+        }
+    }
+}
+
+
+template <typename T,int IN_SIZE,int OUT_SIZE,int KERNEL_SIZE,int PADDING, int DILATION,int GROUPS,int STRIDE>
+void testStreamingTorchConvTranspose1DModel(const std::string model_file_path,
+                              const std::string model_input_file_path,
+                              const std::string model_output_file_path)
+{
+    const auto model_file = std::string { RTNEURAL_ROOT_DIR } + model_file_path;
+    std::ifstream jsonStream(std::string(model_file), std::ifstream::binary);
+    nlohmann::json modelJson;
+    jsonStream >> modelJson;
+    // Use Dynamic Layer Class, several layers are too big to be implemented as Static.
+    RTNeural::Conv1D<T> model(IN_SIZE, OUT_SIZE, KERNEL_SIZE, DILATION, GROUPS);
+
+    RTNeural::torch_helpers::loadConvTranspose1D<T>(modelJson, "", model);
+    model.reset();
+    std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path};
+    const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
+    std::vector<std::array<T, OUT_SIZE>> outputs {};
+    const size_t out_base_size = (inputs.size()-1)*STRIDE - PADDING + 1;
+    static constexpr size_t tconv_side_padding = DILATION * (KERNEL_SIZE - 1) - PADDING;
+    outputs.resize(out_base_size + tconv_side_padding, {});
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<T,IN_SIZE> zeroentry = {0};
+
+    for(size_t i = 0; i < out_base_size; ++i)
+    {
+        if((i % STRIDE) == 0)
+            model.forward(inputs[i/STRIDE].data(),outputs[i].data());
+        else
+            // Stride in ConvTranspose1d does zero-stuffing
+            model.forward(zeroentry.data(),outputs[i].data());
+    }
+    for(size_t i = 0; i < tconv_side_padding ; ++i)
+    {
+        // Feed the same zeropad to the model
+        model.forward(zeroentry.data(),outputs[out_base_size+i].data());
+    }
+    std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + model_output_file_path };
+    const auto expected_y = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelOutputsFile));
+
+    for(size_t n = 0; n < expected_y.size(); ++n)
+    {
+        for(size_t j = 0; j < outputs[n].size(); ++j)
+        {
+            expectNear(outputs[n][j], expected_y[n][j]);
+        }
+    }
+}
+
+}
+
+TEST(TestTorchConvTranspose1D, modelOutputMatchesPythonImplementationForFloats)
+{
+    testTorchConvTranspose1DModel<float,4,15,5,3,1,1,3>(
+        "models/convtranspose1d_torch.json",
+    "test_data/convtranspose1d_torch_x_python.csv",
+    "test_data/convtranspose1d_torch_y_python.csv");
+}
+
+TEST(TestTorchConvTranspose1D, modelOutputMatchesPythonImplementationForDoubles)
+{
+    testTorchConvTranspose1DModel<float,4,15,5,3,1,1,3>(
+        "models/convtranspose1d_torch.json",
+    "test_data/convtranspose1d_torch_x_python.csv",
+    "test_data/convtranspose1d_torch_y_python.csv");
+}
+
+
+TEST(TestTorchConvTranspose1D, streaming_modelOutputMatchesPythonImplementationForFloats)
+{
+    testStreamingTorchConvTranspose1DModel<float,4,15,5,3,1,1,3>(
+        "models/convtranspose1d_torch.json",
+    "test_data/convtranspose1d_torch_x_python_cc.csv",
+    "test_data/convtranspose1d_torch_y_python_cc.csv");
+}
+
+TEST(TestTorchConvTranspose1D, streaming_modelOutputMatchesPythonImplementationForDoubles)
+{
+    testStreamingTorchConvTranspose1DModel<float,4,15,5,3,1,1,3>(
+        "models/convtranspose1d_torch.json",
+    "test_data/convtranspose1d_torch_x_python_cc.csv",
+    "test_data/convtranspose1d_torch_y_python_cc.csv");
+}

@@ -21,6 +21,28 @@ namespace torch_helpers
             }
         }
 
+        template <typename T>
+        std::vector<std::vector<std::vector<T>>>
+            reverseChannels(std::vector<std::vector<std::vector<T>>>& conv_weights)
+        {
+            std::vector<std::vector<std::vector<T>>> aux {conv_weights[0].size()};
+
+            // Reverse channels in auxiliary variable
+            for(size_t j = 0; j < conv_weights[0].size();j++)
+            {
+                aux[j].resize(conv_weights.size());
+                for(size_t i = 0; i < conv_weights.size();i++)
+                {
+                    aux[j][i].resize(conv_weights[i][j].size());
+                    std::copy(conv_weights[i][j].begin(),
+                              conv_weights[i][j].end(),
+                              aux[j][i].begin());
+                }
+            }
+
+            return aux;
+        }
+
         /** Transposes the rows and columns of a matrix stored as a 2D vector. */
         template <typename T>
         std::vector<std::vector<T>> transpose(const std::vector<std::vector<T>>& x)
@@ -63,6 +85,26 @@ namespace torch_helpers
         {
             const std::vector<T> dense_bias((size_t)dense.out_size, (T)0);
             dense.setBias(dense_bias.data());
+        }
+    }
+
+    /** Loads a ConvTranspose1D layer from a JSON object containing a PyTorch state_dict. */
+    template <typename T, typename Conv1DType>
+    void loadConvTranspose1D(const nlohmann::json& modelJson, const std::string& layerPrefix, Conv1DType& conv, bool hasBias = true)
+    {
+        std::vector<std::vector<std::vector<T>>> conv_weights = modelJson.at(layerPrefix + "weight");
+        conv_weights = detail::reverseChannels<T>(conv_weights);
+        conv.setWeights(conv_weights);
+
+        if(hasBias)
+        {
+            std::vector<T> conv_bias = modelJson.at(layerPrefix + "bias");
+            conv.setBias(conv_bias);
+        }
+        else
+        {
+            std::vector<T> conv_bias((size_t)conv.out_size, (T)0);
+            conv.setBias(conv_bias);
         }
     }
 
