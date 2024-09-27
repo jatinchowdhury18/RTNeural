@@ -30,7 +30,8 @@ void testTorchConvTranspose1DModel(const std::string& model_file_path,
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
 #endif
@@ -100,7 +101,8 @@ void testTorchConvTranspose1DModelComptime(const std::string& model_file_path,
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
 #endif
@@ -229,7 +231,8 @@ void testStreamingTorchConvTranspose1DModel(const std::string& model_file_path,
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
 #endif
@@ -284,7 +287,8 @@ void testStreamingTorchConvTranspose1DModelComptime(const std::string& model_fil
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
 #endif

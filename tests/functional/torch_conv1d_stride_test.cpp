@@ -30,9 +30,10 @@ void testTorchConv1DModel()
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_x_python_stride_3.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
 #if RTNEURAL_USE_XSIMD
-    std::vector<std::array<T, RTNeural::ceil_div(OUT_CH, xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+    using Array = std::array<T, RTNeural::ceil_div(OUT_CH, xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
-    std::vector<std::array<T, OUT_SIZE>> outputs {};
+    std::vector<std::array<T, OUT_CH>> outputs {};
 #endif
     const size_t start_point = KS - 1;
     outputs.resize((inputs.size() - start_point) / STRIDE, {});
@@ -75,9 +76,10 @@ void testTorchConv1DModelComptime()
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_x_python_stride_3.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
 #if RTNEURAL_USE_XSIMD
-    std::vector<std::array<T, RTNeural::ceil_div(OUT_CH, xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+    using Array = std::array<T, RTNeural::ceil_div(OUT_CH, xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
-    std::vector<std::array<T, OUT_SIZE>> outputs {};
+    std::vector<std::array<T, OUT_CH>> outputs {};
 #endif
     const size_t start_point = KS - 1;
     outputs.resize((inputs.size() - start_point) / STRIDE, {});
