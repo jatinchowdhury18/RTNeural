@@ -20,7 +20,7 @@ void testTorchConv1DModel()
     std::ifstream jsonStream(model_file, std::ifstream::binary);
     nlohmann::json modelJson;
     jsonStream >> modelJson;
-    const size_t STRIDE = 3, KS = 5, OUT_CH = 12;
+    static constexpr size_t STRIDE = 3, KS = 5, OUT_CH = 12;
 
     // Use dynamic model.
     RTNeural::StrideConv1D<T> model(1, OUT_CH, KS, 1, STRIDE, 1);
@@ -29,7 +29,11 @@ void testTorchConv1DModel()
 
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_x_python_stride_3.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
-    std::vector<std::array<T, OUT_CH>> outputs {};
+#if RTNEURAL_USE_XSIMD
+    std::vector<std::array<T, RTNeural::ceil_div(OUT_CH, xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+#else
+    std::vector<std::array<T, OUT_SIZE>> outputs {};
+#endif
     const size_t start_point = KS - 1;
     outputs.resize((inputs.size() - start_point) / STRIDE, {});
     // std::cout << "Out size " << outputs.size() << "\n";
@@ -48,7 +52,7 @@ void testTorchConv1DModel()
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < outputs[n].size(); ++j)
+        for(size_t j = 0; j < OUT_CH; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -70,7 +74,11 @@ void testTorchConv1DModelComptime()
 
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_x_python_stride_3.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
-    std::vector<std::array<T, OUT_CH>> outputs {};
+#if RTNEURAL_USE_XSIMD
+    std::vector<std::array<T, RTNeural::ceil_div(OUT_CH, xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+#else
+    std::vector<std::array<T, OUT_SIZE>> outputs {};
+#endif
     const size_t start_point = KS - 1;
     outputs.resize((inputs.size() - start_point) / STRIDE, {});
     // std::cout << "Out size " << outputs.size() << "\n";
@@ -97,9 +105,12 @@ void testTorchConv1DModelComptime()
 
         const auto out_idx = (i - start_point) / STRIDE;
 #if RTNEURAL_USE_XSIMD
-        std::copy(reinterpret_cast<T*>(std::begin(model.outs)),
-            reinterpret_cast<T*>(std::end(model.outs)),
-            std::begin(outputs[out_idx]));
+        int batch_idx = 0;
+        for (auto& batch : model.outs)
+        {
+            batch.store_aligned (outputs[out_idx].data() + batch_idx);
+            batch_idx += xsimd::batch<T>::size;
+        }
 #else
         std::copy(std::begin(model.outs),
             std::end(model.outs),
@@ -112,7 +123,7 @@ void testTorchConv1DModelComptime()
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < outputs[n].size(); ++j)
+        for(size_t j = 0; j < OUT_CH; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }

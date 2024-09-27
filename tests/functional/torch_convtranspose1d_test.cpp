@@ -29,11 +29,16 @@ void testTorchConvTranspose1DModel(const std::string& model_file_path,
     model.reset();
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
+#if RTNEURAL_USE_XSIMD
+    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+#else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
+#endif
     const size_t out_base_size = (inputs.size() - 1) * STRIDE - PADDING + 1;
     static constexpr size_t tconv_side_padding = DILATION * (KERNEL_SIZE - 1) - PADDING;
     outputs.resize(out_base_size + tconv_side_padding, {});
 
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<T, IN_SIZE> input_data = { 0 };
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<T, IN_SIZE> zeroentry = { 0 };
 
     for(size_t i = 0; i < out_base_size + PADDING; ++i)
@@ -41,14 +46,20 @@ void testTorchConvTranspose1DModel(const std::string& model_file_path,
         if(i < PADDING)
         {
             if((i % STRIDE) == 0)
-                model.skip(inputs[i / STRIDE].data());
+            {
+                std::copy(std::begin(inputs[i / STRIDE]), std::end(inputs[i / STRIDE]), std::begin(input_data));
+                model.skip(input_data.data());
+            }
             else // Feed zeroes to input
                 model.skip(zeroentry.data());
         }
         else
         {
             if((i % STRIDE) == 0)
-                model.forward(inputs[i / STRIDE].data(), outputs[i - PADDING].data());
+            {
+                std::copy(std::begin(inputs[i / STRIDE]), std::end(inputs[i / STRIDE]), std::begin(input_data));
+                model.forward(input_data.data(), outputs[i - PADDING].data());
+            }
             else // Feed zeroes to input
                 model.forward(zeroentry.data(), outputs[i - PADDING].data());
         }
@@ -65,7 +76,7 @@ void testTorchConvTranspose1DModel(const std::string& model_file_path,
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < outputs[n].size(); ++j)
+        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -88,7 +99,11 @@ void testTorchConvTranspose1DModelComptime(const std::string& model_file_path,
     model.reset();
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
+#if RTNEURAL_USE_XSIMD
+    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+#else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
+#endif
     const size_t out_base_size = (inputs.size() - 1) * STRIDE - PADDING + 1;
     static constexpr size_t tconv_side_padding = DILATION * (KERNEL_SIZE - 1) - PADDING;
     outputs.resize(out_base_size + tconv_side_padding, {});
@@ -190,7 +205,7 @@ void testTorchConvTranspose1DModelComptime(const std::string& model_file_path,
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < outputs[n].size(); ++j)
+        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -213,16 +228,24 @@ void testStreamingTorchConvTranspose1DModel(const std::string& model_file_path,
     model.reset();
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
+#if RTNEURAL_USE_XSIMD
+    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+#else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
+#endif
     const size_t out_base_size = (inputs.size() - 1) * STRIDE - PADDING + 1;
     static constexpr size_t tconv_side_padding = DILATION * (KERNEL_SIZE - 1) - PADDING;
     outputs.resize(out_base_size + tconv_side_padding, {});
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<T, IN_SIZE> input_data = { 0 };
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<T, IN_SIZE> zeroentry = { 0 };
 
     for(size_t i = 0; i < out_base_size; ++i)
     {
         if((i % STRIDE) == 0)
-            model.forward(inputs[i / STRIDE].data(), outputs[i].data());
+        {
+            std::copy(std::begin(inputs[i / STRIDE]), std::end(inputs[i / STRIDE]), std::begin(input_data));
+            model.forward(input_data.data(), outputs[i].data());
+        }
         else
             // Stride in ConvTranspose1d does zero-stuffing
             model.forward(zeroentry.data(), outputs[i].data());
@@ -237,7 +260,7 @@ void testStreamingTorchConvTranspose1DModel(const std::string& model_file_path,
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < outputs[n].size(); ++j)
+        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -260,7 +283,11 @@ void testStreamingTorchConvTranspose1DModelComptime(const std::string& model_fil
     model.reset();
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
+#if RTNEURAL_USE_XSIMD
+    std::vector<std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>, xsimd::aligned_allocator<T>> outputs {};
+#else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
+#endif
     const size_t out_base_size = (inputs.size() - 1) * STRIDE - PADDING + 1;
     static constexpr size_t tconv_side_padding = DILATION * (KERNEL_SIZE - 1) - PADDING;
     outputs.resize(out_base_size + tconv_side_padding, {});
@@ -339,7 +366,7 @@ void testStreamingTorchConvTranspose1DModelComptime(const std::string& model_fil
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < outputs[n].size(); ++j)
+        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -397,7 +424,7 @@ TEST(TestTorchConvTranspose1D, streaming_modelOutputMatchesPythonImplementationF
 
 TEST(TestTorchConvTranspose1D, streaming_modelOutputMatchesPythonImplementationForDoublesRuntime)
 {
-    testStreamingTorchConvTranspose1DModel<float, 4, 15, 5, 3, 1, 1, 3>(
+    testStreamingTorchConvTranspose1DModel<double, 4, 15, 5, 3, 1, 1, 3>(
         "models/convtranspose1d_torch.json",
         "test_data/convtranspose1d_torch_x_python_cc.csv",
         "test_data/convtranspose1d_torch_y_python_cc.csv");
@@ -405,7 +432,7 @@ TEST(TestTorchConvTranspose1D, streaming_modelOutputMatchesPythonImplementationF
 
 TEST(TestTorchConvTranspose1D, streaming_modelOutputMatchesPythonImplementationForDoublesComptime)
 {
-    testStreamingTorchConvTranspose1DModelComptime<float, 4, 15, 5, 3, 1, 1, 3>(
+    testStreamingTorchConvTranspose1DModelComptime<double, 4, 15, 5, 3, 1, 1, 3>(
         "models/convtranspose1d_torch.json",
         "test_data/convtranspose1d_torch_x_python_cc.csv",
         "test_data/convtranspose1d_torch_y_python_cc.csv");
