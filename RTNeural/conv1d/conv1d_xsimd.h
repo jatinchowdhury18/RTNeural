@@ -207,6 +207,18 @@ public:
     /** Resets the layer state. */
     RTNEURAL_REALTIME void reset();
 
+    /** Performs a stride step for this layer. */
+    RTNEURAL_REALTIME inline void skip(const v_type (&ins)[v_in_size])
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
     /** Performs forward propagation for this layer. */
     template <int G = groups>
     RTNEURAL_REALTIME inline typename std::enable_if<(G > 1), void>::type

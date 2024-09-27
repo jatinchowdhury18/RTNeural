@@ -187,6 +187,18 @@ public:
     /** Resets the layer state. */
     RTNEURAL_REALTIME void reset();
 
+    /** Performs a stride step for this layer. */
+    RTNEURAL_REALTIME inline void skip(const Eigen::Matrix<T, in_size, 1>& ins)
+    {
+        // insert input into a circular buffer
+        state.col(state_ptr) = ins;
+
+        // set state pointers to the particular columns of the buffer
+        setStatePointers();
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
     /** Performs forward propagation for this layer. */
     template <int _groups = groups, std::enable_if_t<_groups == 1, bool> = true>
     RTNEURAL_REALTIME inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
