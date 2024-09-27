@@ -99,7 +99,7 @@ void testTorchConvTranspose1DModelComptime(const std::string& model_file_path,
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) Eigen::Matrix<T, IN_SIZE, 1> input_data {};
         input_data.setZero();
 #elif RTNEURAL_USE_XSIMD
-        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[IN_SIZE / xsimd::batch<T>::size] {};
+        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[RTNeural::ceil_div(IN_SIZE, (int) xsimd::batch<T>::size)] {};
 #else
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) T input_data[IN_SIZE] {};
 #endif
@@ -170,7 +170,7 @@ void testTorchConvTranspose1DModelComptime(const std::string& model_file_path,
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) Eigen::Matrix<T, IN_SIZE, 1> input_data {};
         input_data.setZero();
 #elif RTNEURAL_USE_XSIMD
-        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[IN_SIZE / xsimd::batch<T>::size] {};
+        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[RTNeural::ceil_div(IN_SIZE, (int) xsimd::batch<T>::size)] {};
 #else
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) T input_data[IN_SIZE] {};
 #endif
@@ -271,7 +271,7 @@ void testStreamingTorchConvTranspose1DModelComptime(const std::string& model_fil
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) Eigen::Matrix<T, IN_SIZE, 1> input_data {};
         input_data.setZero();
 #elif RTNEURAL_USE_XSIMD
-        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[IN_SIZE / xsimd::batch<T>::size] {};
+        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[RTNeural::ceil_div(IN_SIZE, (int) xsimd::batch<T>::size)] {};
 #else
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) T input_data[IN_SIZE] {};
 #endif
@@ -319,7 +319,7 @@ void testStreamingTorchConvTranspose1DModelComptime(const std::string& model_fil
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) Eigen::Matrix<T, IN_SIZE, 1> input_data {};
         input_data.setZero();
 #elif RTNEURAL_USE_XSIMD
-        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[IN_SIZE / xsimd::batch<T>::size] {};
+        alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[RTNeural::ceil_div(IN_SIZE, (int) xsimd::batch<T>::size)] {};
 #else
         alignas(RTNEURAL_DEFAULT_ALIGNMENT) T input_data[IN_SIZE] {};
 #endif
