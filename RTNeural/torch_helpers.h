@@ -21,6 +21,7 @@ namespace torch_helpers
             }
         }
 
+        /** Reverses the channel order for 1D convolutional layer weights */
         template <typename T>
         std::vector<std::vector<std::vector<T>>>
         reverseChannels(std::vector<std::vector<std::vector<T>>>& conv_weights)

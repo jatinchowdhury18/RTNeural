@@ -1,3 +1,5 @@
+#include "conv1d.h"
+
 namespace RTNEURAL_NAMESPACE
 {
 

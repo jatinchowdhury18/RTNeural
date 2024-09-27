@@ -23,7 +23,7 @@ void testTorchConv1DModel()
     static constexpr size_t STRIDE = 3, KS = 5, OUT_CH = 12;
 
     // Use dynamic model.
-    RTNeural::StrideConv1D<T> model(1, OUT_CH, KS, 1, STRIDE, 1);
+    RTNeural::StridedConv1D<T> model(1, OUT_CH, KS, 1, STRIDE, 1);
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model);
     model.reset();
 
@@ -69,7 +69,7 @@ void testTorchConv1DModelComptime()
     jsonStream >> modelJson;
     static constexpr size_t STRIDE = 3, KS = 5, OUT_CH = 12;
 
-    RTNeural::StrideConv1DT<T, 1, OUT_CH, KS, 1, STRIDE> model;
+    RTNeural::StridedConv1DT<T, 1, OUT_CH, KS, 1, STRIDE> model;
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model);
     model.reset();
 
