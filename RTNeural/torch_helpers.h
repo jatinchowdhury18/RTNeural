@@ -23,20 +23,20 @@ namespace torch_helpers
 
         template <typename T>
         std::vector<std::vector<std::vector<T>>>
-            reverseChannels(std::vector<std::vector<std::vector<T>>>& conv_weights)
+        reverseChannels(std::vector<std::vector<std::vector<T>>>& conv_weights)
         {
-            std::vector<std::vector<std::vector<T>>> aux {conv_weights[0].size()};
+            std::vector<std::vector<std::vector<T>>> aux { conv_weights[0].size() };
 
             // Reverse channels in auxiliary variable
-            for(size_t j = 0; j < conv_weights[0].size();j++)
+            for(size_t j = 0; j < conv_weights[0].size(); j++)
             {
                 aux[j].resize(conv_weights.size());
-                for(size_t i = 0; i < conv_weights.size();i++)
+                for(size_t i = 0; i < conv_weights.size(); i++)
                 {
                     aux[j][i].resize(conv_weights[i][j].size());
                     std::copy(conv_weights[i][j].begin(),
-                              conv_weights[i][j].end(),
-                              aux[j][i].begin());
+                        conv_weights[i][j].end(),
+                        aux[j][i].begin());
                 }
             }
 

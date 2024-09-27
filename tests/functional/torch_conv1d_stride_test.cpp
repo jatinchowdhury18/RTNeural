@@ -21,7 +21,7 @@ void testTorchConv1DModel()
     nlohmann::json modelJson;
     jsonStream >> modelJson;
     const size_t STRIDE = 3, KS = 5, OUT_CH = 12;
-    
+
     // Use dynamic model.
     RTNeural::StrideConv1D<T> model(1, OUT_CH, KS, 1, STRIDE, 1);
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model);
@@ -30,17 +30,17 @@ void testTorchConv1DModel()
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_x_python_stride_3.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
     std::vector<std::array<T, OUT_CH>> outputs {};
-    const size_t start_point = KS-1;
-    outputs.resize((inputs.size() - start_point)/ STRIDE, {});
-    //std::cout << "Out size " << outputs.size() << "\n";
-    
+    const size_t start_point = KS - 1;
+    outputs.resize((inputs.size() - start_point) / STRIDE, {});
+    // std::cout << "Out size " << outputs.size() << "\n";
+
     for(size_t i = 0; i < start_point; ++i)
         model.skip(&inputs[i]);
 
     for(size_t i = start_point; i < inputs.size(); ++i)
     {
-        const auto out_idx = (i-start_point)/STRIDE;
-        model.forward(&inputs[i],outputs[out_idx].data());
+        const auto out_idx = (i - start_point) / STRIDE;
+        model.forward(&inputs[i], outputs[out_idx].data());
     }
 
     std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_y_python_stride_3.csv" };
@@ -71,15 +71,15 @@ void testTorchConv1DModelComptime()
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_x_python_stride_3.csv" };
     const auto inputs = load_csv::loadFile<T>(modelInputsFile);
     std::vector<std::array<T, OUT_CH>> outputs {};
-    const size_t start_point = KS-1;
-    outputs.resize((inputs.size() - start_point)/ STRIDE, {});
-    //std::cout << "Out size " << outputs.size() << "\n";
+    const size_t start_point = KS - 1;
+    outputs.resize((inputs.size() - start_point) / STRIDE, {});
+    // std::cout << "Out size " << outputs.size() << "\n";
 
 #if RTNEURAL_USE_EIGEN
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) Eigen::Matrix<T, 1, 1> input_data {};
     input_data.setZero();
 #elif RTNEURAL_USE_XSIMD
-    alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[RTNeural::ceil_div(1, (int) xsimd::batch<T>::size)] {};
+    alignas(RTNEURAL_DEFAULT_ALIGNMENT) xsimd::batch<T> input_data[RTNeural::ceil_div(1, (int)xsimd::batch<T>::size)] {};
 #else
     alignas(RTNEURAL_DEFAULT_ALIGNMENT) T input_data[1] {};
 #endif
@@ -95,7 +95,7 @@ void testTorchConv1DModelComptime()
         input_data[0] = inputs[i];
         model.forward(input_data);
 
-        const auto out_idx = (i-start_point)/STRIDE;
+        const auto out_idx = (i - start_point) / STRIDE;
 #if RTNEURAL_USE_XSIMD
         std::copy(reinterpret_cast<T*>(std::begin(model.outs)),
             reinterpret_cast<T*>(std::end(model.outs)),
