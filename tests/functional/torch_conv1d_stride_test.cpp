@@ -23,7 +23,8 @@ void testTorchConv1DModel()
     const size_t STRIDE = 3, KS = 5, OUT_CH = 12;
     
     // Use dynamic model. Call model.skip() for striding.
-    RTNeural::Conv1D<T> model(1, OUT_CH, KS, 1, 1);
+    RTNeural::StrideConv1D<T> model(1, OUT_CH, KS, 1, STRIDE, 1);
+    // RTNeural::Conv1D<T> model(1, OUT_CH, KS, 1, 1);
     RTNeural::torch_helpers::loadConv1D<T>(modelJson, "", model);
     model.reset();
 
@@ -39,10 +40,8 @@ void testTorchConv1DModel()
 
     for(size_t i = start_point; i < inputs.size(); ++i)
     {
-        if(((i-start_point) % STRIDE) == 0)
-            model.forward(&inputs[i],outputs[(i-start_point)/STRIDE].data());
-        else
-            model.skip(&inputs[i]);
+        const auto out_idx = (i-start_point)/STRIDE;
+        model.forward(&inputs[i],outputs[out_idx].data());
     }
 
     std::ifstream modelOutputsFile { std::string { RTNEURAL_ROOT_DIR } + "test_data/conv1d_torch_y_python_stride_3.csv" };

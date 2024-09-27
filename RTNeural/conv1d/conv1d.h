@@ -346,3 +346,98 @@ private:
 } // namespace RTNEURAL_NAMESPACE
 #endif
 #endif // CONV1D_H_INCLUDED
+
+namespace RTNEURAL_NAMESPACE
+{
+template <typename T>
+class StrideConv1D final : public Layer<T>
+{
+public:
+    StrideConv1D(int in_size, int out_size, int kernel_size, int dilation, int stride, int groups = 1)
+        : Layer<T>(in_size, out_size)
+        , internal(in_size, out_size, kernel_size, dilation, groups)
+        , stride(stride)
+    {
+        skip_output.resize(out_size, T {});
+    }
+
+    StrideConv1D(std::initializer_list<int> sizes)
+        : StrideConv1D<T>(*sizes.begin(), *(sizes.begin() + 1), *(sizes.begin() + 2),
+              *(sizes.begin() + 3), *(sizes.begin() + 4), *(sizes.begin() + 5))
+    {
+    }
+
+    StrideConv1D(const StrideConv1D& other) = default;
+    StrideConv1D& operator=(const StrideConv1D& other) = default;
+
+    /** Resets the layer state. */
+    RTNEURAL_REALTIME void reset() override
+    {
+        strides_counter = 0;
+        std::fill(std::begin(skip_output), std::end(skip_output), T {});
+        internal.reset();
+    }
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept override { return "strided_conv1d"; }
+
+    /** Performs a stride step for this layer. */
+    RTNEURAL_REALTIME inline void skip(const T* input)
+    {
+        internal.skip(input);
+    }
+
+    /** Performs forward propagation for this layer. */
+    RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
+    {
+        if(strides_counter == 0)
+        {
+            internal.forward(input, h);
+            std::copy(h, h + Layer<T>::out_size, std::begin(skip_output));
+        }
+        else
+        {
+            internal.skip(input);
+            std::copy(std::begin(skip_output), std::end(skip_output), h);
+        }
+
+        strides_counter = (strides_counter == stride - 1) ? 0 : strides_counter + 1;
+    }
+
+    /**
+     * Sets the layer weights.
+     *
+     * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
+     */
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& weights)
+    {
+        internal.setWeights(weights);
+    }
+
+    /**
+     * Sets the layer biases.
+     *
+     * The bias vector must have size bias[out_size]
+     */
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& biasVals)
+    {
+        internal.setBias(biasVals);
+    }
+
+    /** Returns the size of the convolution kernel. */
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return internal.getKernelSize(); }
+
+    /** Returns the convolution dilation rate. */
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return internal.getDilationRate(); }
+
+    /** Returns the number of "groups" in the convolution. */
+    int getGroups() const noexcept { return internal.getGroups(); }
+
+private:
+    Conv1D<T> internal;
+
+    const int stride;
+    int strides_counter = 0;
+    std::vector<T> skip_output {};
+};
+}
