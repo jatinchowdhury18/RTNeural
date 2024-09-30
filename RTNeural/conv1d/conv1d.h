@@ -50,6 +50,18 @@ public:
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d"; }
 
+    /** Performs a stride step for this layer. */
+    RTNEURAL_REALTIME inline void skip(const T* input)
+    {
+        // insert input into a circular buffer
+        std::copy(input, input + Layer<T>::in_size, state[state_ptr]);
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
     /** Performs forward propagation for this layer. */
     RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
     {
@@ -171,8 +183,8 @@ private:
  * @param out_sizet: the output size for the layer
  * @param kernel_size: the size of the convolution kernel
  * @param dilation_rate: the dilation rate to use for dilated convolution
- * @param dynamic_state: use dynamically allocated layer state
  * @param groups: controls connections between inputs and outputs
+ * @param dynamic_state: use dynamically allocated layer state
  */
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, int groups = 1, bool dynamic_state = false>
 class Conv1DT
@@ -197,6 +209,18 @@ public:
 
     /** Resets the layer state. */
     RTNEURAL_REALTIME void reset();
+
+    /** Performs a stride step for this layer. */
+    RTNEURAL_REALTIME inline void skip(const T (&ins)[in_size])
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
 
     template <int _groups = groups, std::enable_if_t<_groups == 1, bool> = true>
     /** Performs forward propagation for this layer. */

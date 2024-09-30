@@ -13,10 +13,10 @@ class EncodeTensor(JSONEncoder,Dataset):
 
 np.random.seed(1001)
 torch.manual_seed(0)
-
+out_channels = 12
 x = np.random.uniform(-1, 1, 1000)
-
-conv = torch.nn.Conv1d(1, 12, 5, dilation=1, padding='valid', bias=True, dtype=torch.float64)
+# Fails if it doesn't have bias
+conv = torch.nn.Conv1d(1, out_channels, 5, dilation=1, stride=3, padding='valid', bias=True, dtype=torch.float64)
 y = conv(torch.from_numpy(x).reshape(1, 1, -1)).detach().numpy()[0]
 
 print(torch.from_numpy(x).reshape(1, 1, -1).shape)
@@ -26,10 +26,10 @@ plt.plot(x)
 plt.plot(y[0, :])
 # plt.show()
 
-np.savetxt('test_data/conv1d_torch_x_python.csv', x, delimiter=',')
-np.savetxt('test_data/conv1d_torch_y_python.csv', y, delimiter=',')
+np.savetxt('test_data/conv1d_torch_x_python_stride_3.csv', x, delimiter=',')
+np.savetxt('test_data/conv1d_torch_y_python_stride_3.csv', y, delimiter=',')
 
-with open('models/conv1d_torch.json', 'w') as json_file:
+with open('models/conv1d_torch_stride_3.json', 'w') as json_file:
     json.dump(conv.state_dict(), json_file,cls=EncodeTensor)
 
 # print(x[:5])
