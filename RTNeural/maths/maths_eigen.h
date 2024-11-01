@@ -16,7 +16,8 @@ struct DefaultMathsProvider
     static auto sigmoid(const Matrix& x)
     {
         using T = typename Matrix::Scalar;
-        return (T)1 / (((T)-1 * x.array()).array().exp() + (T)1);
+
+        return ((x.array() / (T)2).array().tanh() + (T)1) / (T)2;
     }
 
     template <typename Matrix>
