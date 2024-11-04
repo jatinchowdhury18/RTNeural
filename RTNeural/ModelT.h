@@ -163,8 +163,8 @@ namespace modelt_detail
         }
     }
 
-    template <typename T, int in_size, int out_size, SampleRateCorrectionMode mode>
-    void loadLayer(GRULayerT<T, in_size, out_size, mode>& gru, int& json_stream_idx, const nlohmann::json& l,
+    template <typename T, int in_size, int out_size, SampleRateCorrectionMode mode, typename MathsProvider>
+    void loadLayer(GRULayerT<T, in_size, out_size, mode, MathsProvider>& gru, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;
@@ -179,8 +179,8 @@ namespace modelt_detail
         json_stream_idx++;
     }
 
-    template <typename T, int in_size, int out_size, SampleRateCorrectionMode mode>
-    void loadLayer(LSTMLayerT<T, in_size, out_size, mode>& lstm, int& json_stream_idx, const nlohmann::json& l,
+    template <typename T, int in_size, int out_size, SampleRateCorrectionMode mode, typename MathsProvider>
+    void loadLayer(LSTMLayerT<T, in_size, out_size, mode, MathsProvider>& lstm, int& json_stream_idx, const nlohmann::json& l,
         const std::string& type, int layerDims, bool debug)
     {
         using namespace json_parser;

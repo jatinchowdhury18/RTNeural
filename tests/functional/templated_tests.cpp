@@ -2,7 +2,7 @@
 
 #include "load_csv.hpp"
 #include "test_configs.hpp"
-#include <RTNeural/RTNeural.h>
+#include "test_maths_provider.hpp"
 
 namespace
 {
@@ -58,6 +58,22 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForDense)
     runTestTemplated<TestType, ModelType>(tests.at("dense"));
 }
 
+TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForDenseWithMathsProvider)
+{
+    using ModelType = ModelT<TestType, 1, 1,
+        DenseT<TestType, 1, 8>,
+        TanhActivationT<TestType, 8, TestMathsProvider>,
+        DenseT<TestType, 8, 8>,
+        ReLuActivationT<TestType, 8>,
+        DenseT<TestType, 8, 8>,
+        ELuActivationT<TestType, 8, 1, 1, TestMathsProvider>,
+        DenseT<TestType, 8, 8>,
+        SoftmaxActivationT<TestType, 8, TestMathsProvider>,
+        DenseT<TestType, 8, 1>>;
+
+    runTestTemplated<TestType, ModelType>(tests.at("dense"));
+}
+
 TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForConv1D)
 {
     using ModelType = ModelT<TestType, 1, 1,
@@ -92,12 +108,36 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRU)
     runTestTemplated<TestType, ModelType>(tests.at("gru"));
 }
 
+TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRUWithMathsProvider)
+{
+    using ModelType = ModelT<TestType, 1, 1,
+        DenseT<TestType, 1, 8>,
+        TanhActivationT<TestType, 8, TestMathsProvider>,
+        GRULayerT<TestType, 8, 8, RTNeural::SampleRateCorrectionMode::None, TestMathsProvider>,
+        DenseT<TestType, 8, 8>,
+        SigmoidActivationT<TestType, 8, TestMathsProvider>,
+        DenseT<TestType, 8, 1>>;
+
+    runTestTemplated<TestType, ModelType>(tests.at("gru"));
+}
+
 TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRU1D)
 {
     using ModelType = ModelT<TestType, 1, 1,
         GRULayerT<TestType, 1, 8>,
         DenseT<TestType, 8, 8>,
         SigmoidActivationT<TestType, 8>,
+        DenseT<TestType, 8, 1>>;
+
+    runTestTemplated<TestType, ModelType>(tests.at("gru_1d"));
+}
+
+TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRU1DWithMathsProvider)
+{
+    using ModelType = ModelT<TestType, 1, 1,
+        GRULayerT<TestType, 1, 8, RTNeural::SampleRateCorrectionMode::None, TestMathsProvider>,
+        DenseT<TestType, 8, 8>,
+        SigmoidActivationT<TestType, 8, TestMathsProvider>,
         DenseT<TestType, 8, 1>>;
 
     runTestTemplated<TestType, ModelType>(tests.at("gru_1d"));
@@ -114,10 +154,30 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForLSTM)
     runTestTemplated<TestType, ModelType>(tests.at("lstm"));
 }
 
+TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForLSTMWithMathsProvider)
+{
+    using ModelType = ModelT<TestType, 1, 1,
+        DenseT<TestType, 1, 8>,
+        TanhActivationT<TestType, 8, TestMathsProvider>,
+        LSTMLayerT<TestType, 8, 8, RTNeural::SampleRateCorrectionMode::None, TestMathsProvider>,
+        DenseT<TestType, 8, 1>>;
+
+    runTestTemplated<TestType, ModelType>(tests.at("lstm"));
+}
+
 TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForLSTM1D)
 {
     using ModelType = ModelT<TestType, 1, 1,
         LSTMLayerT<TestType, 1, 8>,
+        DenseT<TestType, 8, 1>>;
+
+    runTestTemplated<TestType, ModelType>(tests.at("lstm_1d"));
+}
+
+TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForLSTM1DWithMathsProvider)
+{
+    using ModelType = ModelT<TestType, 1, 1,
+        LSTMLayerT<TestType, 1, 8, RTNeural::SampleRateCorrectionMode::None, TestMathsProvider>,
         DenseT<TestType, 8, 1>>;
 
     runTestTemplated<TestType, ModelType>(tests.at("lstm_1d"));
