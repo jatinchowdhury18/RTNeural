@@ -132,7 +132,6 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRU1D)
     runTestTemplated<TestType, ModelType>(tests.at("gru_1d"));
 }
 
-
 TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRU1DWithMathsProvider)
 {
     using ModelType = ModelT<TestType, 1, 1,

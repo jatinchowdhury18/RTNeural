@@ -33,7 +33,7 @@ public:
 
     StridedConv1D(std::initializer_list<int> sizes)
         : StridedConv1D<T>(*sizes.begin(), *(sizes.begin() + 1), *(sizes.begin() + 2),
-              *(sizes.begin() + 3), *(sizes.begin() + 4), *(sizes.begin() + 5))
+            *(sizes.begin() + 3), *(sizes.begin() + 4), *(sizes.begin() + 5))
     {
     }
 

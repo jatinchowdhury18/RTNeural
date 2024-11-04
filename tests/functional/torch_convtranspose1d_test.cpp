@@ -30,7 +30,7 @@ void testTorchConvTranspose1DModel(const std::string& model_file_path,
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int)xsimd::batch<T>::size) * xsimd::batch<T>::size>;
     std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
@@ -77,7 +77,7 @@ void testTorchConvTranspose1DModel(const std::string& model_file_path,
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
+        for(size_t j = 0; j < (size_t)OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -101,7 +101,7 @@ void testTorchConvTranspose1DModelComptime(const std::string& model_file_path,
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int)xsimd::batch<T>::size) * xsimd::batch<T>::size>;
     std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
@@ -207,7 +207,7 @@ void testTorchConvTranspose1DModelComptime(const std::string& model_file_path,
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
+        for(size_t j = 0; j < (size_t)OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -231,7 +231,7 @@ void testStreamingTorchConvTranspose1DModel(const std::string& model_file_path,
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int)xsimd::batch<T>::size) * xsimd::batch<T>::size>;
     std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
@@ -263,7 +263,7 @@ void testStreamingTorchConvTranspose1DModel(const std::string& model_file_path,
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
+        for(size_t j = 0; j < (size_t)OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }
@@ -287,7 +287,7 @@ void testStreamingTorchConvTranspose1DModelComptime(const std::string& model_fil
     std::ifstream modelInputsFile { std::string { RTNEURAL_ROOT_DIR } + model_input_file_path };
     const auto inputs = RTNeural::torch_helpers::detail::transpose(load_csv::loadFile2d<T>(modelInputsFile));
 #if RTNEURAL_USE_XSIMD
-    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int) xsimd::batch<T>::size) * xsimd::batch<T>::size>;
+    using Array = std::array<T, RTNeural::ceil_div(OUT_SIZE, (int)xsimd::batch<T>::size) * xsimd::batch<T>::size>;
     std::vector<Array, xsimd::aligned_allocator<Array>> outputs {};
 #else
     std::vector<std::array<T, OUT_SIZE>> outputs {};
@@ -370,7 +370,7 @@ void testStreamingTorchConvTranspose1DModelComptime(const std::string& model_fil
 
     for(size_t n = 0; n < expected_y.size(); ++n)
     {
-        for(size_t j = 0; j < (size_t) OUT_SIZE; ++j)
+        for(size_t j = 0; j < (size_t)OUT_SIZE; ++j)
         {
             expectNear(outputs[n][j], expected_y[n][j]);
         }

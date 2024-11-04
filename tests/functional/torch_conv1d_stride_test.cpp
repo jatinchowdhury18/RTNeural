@@ -108,9 +108,9 @@ void testTorchConv1DModelComptime()
         const auto out_idx = (i - start_point) / STRIDE;
 #if RTNEURAL_USE_XSIMD
         int batch_idx = 0;
-        for (auto& batch : model.outs)
+        for(auto& batch : model.outs)
         {
-            batch.store_aligned (outputs[out_idx].data() + batch_idx);
+            batch.store_aligned(outputs[out_idx].data() + batch_idx);
             batch_idx += xsimd::batch<T>::size;
         }
 #else
