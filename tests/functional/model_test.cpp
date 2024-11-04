@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 
 #include "load_csv.hpp"
-#include <RTNeural/RTNeural.h>
+#include "test_maths_provider.hpp"
 
 using namespace testing;
 
@@ -49,6 +49,21 @@ auto loadTemplatedModel()
     modelT.parseJson(jsonStream, true);
     return modelT;
 }
+
+auto loadTemplatedModelWithMathsProvider()
+{
+    auto modelT = RTNeural::ModelT<TestType, 1, 1,
+        RTNeural::DenseT<TestType, 1, 8>,
+        RTNeural::TanhActivationT<TestType, 8, TestMathsProvider>,
+        RTNeural::Conv1DT<TestType, 8, 4, 3, 2>,
+        RTNeural::TanhActivationT<TestType, 4, TestMathsProvider>,
+        RTNeural::GRULayerT<TestType, 4, 8, RTNeural::SampleRateCorrectionMode::None, TestMathsProvider>,
+        RTNeural::DenseT<TestType, 8, 1>> {};
+
+    std::ifstream jsonStream(model_file, std::ifstream::binary);
+    modelT.parseJson(jsonStream, true);
+    return modelT;
+}
 }
 
 TEST(TestModel, templateModelOutputMatchesDynamicModel)
@@ -63,6 +78,23 @@ TEST(TestModel, templateModelOutputMatchesDynamicModel)
     processModel(*modelRef.get(), xData, yRefData);
 
     auto modelT = loadTemplatedModel();
+    processModel(modelT, xData, yData);
+
+    EXPECT_THAT(yData, Pointwise(DoubleNear(threshold), yRefData));
+}
+
+TEST(TestModel, templateModelWithMathsProviderOutputMatchesDynamicModel)
+{
+    constexpr double threshold = 1.0e-12;
+
+    auto xData = loadInputData();
+    auto yRefData = std::vector<TestType>(xData.size(), TestType { 0 });
+    auto yData = std::vector<TestType>(xData.size(), TestType { 0 });
+
+    auto modelRef = loadDynamicModel();
+    processModel(*modelRef.get(), xData, yRefData);
+
+    auto modelT = loadTemplatedModelWithMathsProvider();
     processModel(modelT, xData, yData);
 
     EXPECT_THAT(yData, Pointwise(DoubleNear(threshold), yRefData));
