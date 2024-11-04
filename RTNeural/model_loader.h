@@ -385,10 +385,10 @@ namespace json_parser
     }
 
     /** Creates a LSTMLayer from a json representation of the layer weights. */
-    template <typename T>
-    std::unique_ptr<LSTMLayer<T>> createLSTM(int in_size, int out_size, const nlohmann::json& weights)
+    template <typename T, typename MathsProvider = DefaultMathsProvider >
+    std::unique_ptr<LSTMLayer<T, MathsProvider>> createLSTM(int in_size, int out_size, const nlohmann::json& weights)
     {
-        auto lstm = std::make_unique<LSTMLayer<T>>(in_size, out_size);
+        auto lstm = std::make_unique<LSTMLayer<T, MathsProvider>>(in_size, out_size);
         loadLSTM<T>(*lstm.get(), weights);
         return std::move(lstm);
     }
@@ -602,7 +602,7 @@ namespace json_parser
     }
 
     /** Creates a neural network model from a json stream. */
-    template <typename T>
+    template <typename T, typename MathsProvider = DefaultMathsProvider>
     std::unique_ptr<Model<T>> parseJson(const nlohmann::json& parent, const bool debug = false)
     {
         auto shape = parent.at("in_shape");
@@ -688,7 +688,7 @@ namespace json_parser
             }
             else if(type == "lstm")
             {
-                auto lstm = createLSTM<T>(model->getNextInSize(), layerDims, weights);
+                auto lstm = createLSTM<T, MathsProvider>(model->getNextInSize(), layerDims, weights);
                 model->addLayer(lstm.release());
             }
             else if(type == "prelu")
