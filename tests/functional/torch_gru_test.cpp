@@ -56,3 +56,9 @@ TEST(TestTorchGRU, modelOutputMatchesPythonImplementationForDoubles)
 {
     testTorchGRUModel<double>();
 }
+
+#include <stdfloat>
+TEST(TestTorchGRU, modelOutputMatchesPythonImplementationForFloat16)
+{
+    testTorchGRUModel<std::bfloat16_t>();
+}
