@@ -308,8 +308,10 @@ RTNeural is currently being used by several audio plugins and other projects:
 - [guitarix](https://github.com/brummer10/guitarix): A guitarix effects suite, including neural network amplifier models.
 - [GuitarML](https://guitarml.com/): GuitarML plugins use machine learning to model guitar amplifiers and effects.
 - [MLTerror15](https://github.com/IHorvalds/MLTerror15): Deeply learned simulator for the Orange Tiny Terror with Recurrent Neural Networks.
+- [neural-amp-modeler-lv2](https://github.com/mikeoliphant/neural-amp-modeler-lv2): LV2 plugin for using neural network machine learning amp models.
 - [NeuralNote](https://github.com/DamRsn/NeuralNote): An audio-to-MIDI transcription plugin using Spotify's [basic-pitch](https://github.com/spotify/basic-pitch) model.
 - [rt-neural-lv2](https://github.com/AidaDSP/aidadsp-lv2): A headless lv2 plugin using RTNeural to model guitar pedals and amplifiers.
+- [stompbox](https://github.com/mikeoliphant/stompbox): Guitar amplification and effects pedalboard simulation.
 - Tone Empire plugins:
   - [LVL - 01](https://tone-empire.com/shop/lvl-01/): An A.I./M.L.-based compressor effect.
   - [TM700](https://tone-empire.com/shop/tm700/): A machine learning tape emulation effect.
