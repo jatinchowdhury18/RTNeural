@@ -3,6 +3,7 @@
 
 #include "../Layer.h"
 #include "../config.h"
+#include "../common.h"
 #include <Eigen/Dense>
 
 namespace RTNEURAL_NAMESPACE
@@ -118,12 +119,12 @@ private:
  * Static implementation of a fully-connected (dense) layer,
  * with no activation.
  */
-template <typename T, int in_sizet, int out_sizet>
+template <typename T, int in_sizet, int out_sizet, bool has_bias = true>
 class DenseT
 {
     using out_vec_type = Eigen::Matrix<T, out_sizet, 1>;
-    using in_vec_type = Eigen::Matrix<T, in_sizet + 1, 1>;
-    using mat_type = Eigen::Matrix<T, out_sizet, in_sizet + 1>;
+    using in_vec_type = typename std::conditional<has_bias, Eigen::Matrix<T, in_sizet + 1, 1>, Empty>::type;
+    using mat_type = Eigen::Matrix<T, out_sizet, in_sizet + (has_bias ? 1 : 0)>;
 
 public:
     static constexpr auto in_size = in_sizet;
@@ -133,8 +134,11 @@ public:
         : outs(outs_internal)
     {
         weights = mat_type::Zero();
-        ins_internal = in_vec_type::Zero();
-        ins_internal(in_size, 0) = (T)1;
+        if constexpr (has_bias)
+        {
+            ins_internal = in_vec_type::Zero();
+            ins_internal(in_size, 0) = (T)1;
+        }
         outs = out_vec_type::Zero();
     }
 
@@ -148,7 +152,8 @@ public:
     RTNEURAL_REALTIME void reset() { }
 
     /** Performs forward propagation for this layer. */
-    RTNEURAL_REALTIME inline void forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
+    template <bool b = has_bias>
+    RTNEURAL_REALTIME inline typename std::enable_if<b>::type forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         for(int i = 0; i < in_size; ++i)
             ins_internal(i, 0) = ins(i, 0);
@@ -158,6 +163,13 @@ public:
          *                 | 1     |
          */
         outs.noalias() = weights * ins_internal;
+    }
+
+    /** Performs forward propagation for this layer (no bias). */
+    template <bool b = has_bias>
+    RTNEURAL_REALTIME inline typename std::enable_if<! b>::type forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
+    {
+        outs.noalias() = weights * ins;
     }
 
     /**
