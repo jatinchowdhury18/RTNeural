@@ -30,7 +30,9 @@ constexpr T ceil_div(T num, T den)
     return (num + den - 1) / den;
 }
 
-struct Empty {};
+struct Empty
+{
+};
 } // namespace RTNEURAL_NAMESPACE
 
 #if RTNEURAL_USE_EIGEN

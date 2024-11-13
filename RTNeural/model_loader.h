@@ -53,9 +53,9 @@ namespace json_parser
         dense.setWeights(denseWeights);
 
         // load biases
-        RTNEURAL_IF_CONSTEXPR (DenseType::dense_has_bias)
+        RTNEURAL_IF_CONSTEXPR(DenseType::dense_has_bias)
         {
-            if (weights.size() >= 2)
+            if(weights.size() >= 2)
             {
                 std::vector<T> denseBias = weights.at(1).get<std::vector<T>>();
                 dense.setBias(denseBias.data());
@@ -391,7 +391,7 @@ namespace json_parser
     }
 
     /** Creates a LSTMLayer from a json representation of the layer weights. */
-    template <typename T, typename MathsProvider = DefaultMathsProvider >
+    template <typename T, typename MathsProvider = DefaultMathsProvider>
     std::unique_ptr<LSTMLayer<T, MathsProvider>> createLSTM(int in_size, int out_size, const nlohmann::json& weights)
     {
         auto lstm = std::make_unique<LSTMLayer<T, MathsProvider>>(in_size, out_size);

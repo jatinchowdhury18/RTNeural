@@ -200,7 +200,7 @@ public:
 
     /** Performs forward propagation for this layer (no bias). */
     template <bool b = has_bias>
-    RTNEURAL_REALTIME inline typename std::enable_if<! b>::type forward(const T (&ins)[in_size]) noexcept
+    RTNEURAL_REALTIME inline typename std::enable_if<!b>::type forward(const T (&ins)[in_size]) noexcept
     {
         for(int i = 0; i < out_size; ++i)
             outs[i] = std::inner_product(ins, ins + in_size, &weights[i * in_size], (T)0);
