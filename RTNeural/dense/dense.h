@@ -49,7 +49,7 @@ public:
 
 private:
     const int in_size;
-    T bias;
+    T bias {};
 
     T* weights;
 };
