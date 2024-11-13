@@ -211,13 +211,13 @@ public:
      */
 #if RTNEURAL_HAS_CPP17
     template <bool b = has_bias>
-    RTNEURAL_REALTIME inline typename std::enable_if<b>::type setBias(const T* b)
+    RTNEURAL_REALTIME inline typename std::enable_if<b>::type setBias(const T* bias_vals)
 #else
-    RTNEURAL_REALTIME inline void setBias(const T* b)
+    RTNEURAL_REALTIME inline void setBias(const T* bias_vals)
 #endif
     {
         for(int i = 0; i < out_size; ++i)
-            weights(i, in_size) = b[i];
+            weights(i, in_size) = bias_vals[i];
     }
 
     Eigen::Map<out_vec_type, RTNeuralEigenAlignment> outs;
