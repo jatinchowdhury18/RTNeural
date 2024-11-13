@@ -53,6 +53,9 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForDense)
         ELuActivationT<TestType, 8>,
         DenseT<TestType, 8, 8>,
         SoftmaxActivationT<TestType, 8>,
+        DenseT<TestType, 8, 1>,
+        DenseT<TestType, 1, 8, false>,
+        DenseT<TestType, 8, 8, false>,
         DenseT<TestType, 8, 1, false>>;
 
     runTestTemplated<TestType, ModelType>(tests.at("dense"));
@@ -69,6 +72,9 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForDenseWithMath
         ELuActivationT<TestType, 8, 1, 1, TestMathsProvider>,
         DenseT<TestType, 8, 8>,
         SoftmaxActivationT<TestType, 8, TestMathsProvider>,
+        DenseT<TestType, 8, 1>,
+        DenseT<TestType, 1, 8, false>,
+        DenseT<TestType, 8, 8, false>,
         DenseT<TestType, 8, 1, false>>;
 
     runTestTemplated<TestType, ModelType>(tests.at("dense"));

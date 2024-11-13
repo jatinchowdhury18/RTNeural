@@ -18,6 +18,9 @@ model.add(keras.layers.Dense(8, kernel_initializer='orthogonal', bias_initialize
 model.add(keras.layers.Activation('elu'))
 model.add(keras.layers.Dense(8, kernel_initializer='orthogonal', bias_initializer='random_normal'))
 model.add(keras.layers.Activation('softmax'))
+model.add(keras.layers.Dense(1, kernel_initializer='orthogonal'))
+model.add(keras.layers.Dense(8, kernel_initializer='orthogonal', use_bias=False))
+model.add(keras.layers.Dense(8, kernel_initializer='orthogonal', use_bias=False))
 model.add(keras.layers.Dense(1, kernel_initializer='orthogonal', use_bias=False))
 
 # construct signals
