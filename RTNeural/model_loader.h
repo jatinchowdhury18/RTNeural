@@ -42,7 +42,7 @@ namespace json_parser
         for(auto& w : denseWeights)
             w.resize(dense.in_size, (T)0);
 
-        auto layerWeights = weights.at(0);
+        const auto& layerWeights = weights.at(0);
         for(size_t i = 0; i < layerWeights.size(); ++i)
         {
             auto lw = layerWeights.at(i);
@@ -53,8 +53,14 @@ namespace json_parser
         dense.setWeights(denseWeights);
 
         // load biases
-        std::vector<T> denseBias = weights.at(1).get<std::vector<T>>();
-        dense.setBias(denseBias.data());
+        RTNEURAL_IF_CONSTEXPR (DenseType::dense_has_bias)
+        {
+            if (weights.size() >= 2)
+            {
+                std::vector<T> denseBias = weights.at(1).get<std::vector<T>>();
+                dense.setBias(denseBias.data());
+            }
+        }
     }
 
     /** Creates a Dense layer from a json representation of the layer weights. */

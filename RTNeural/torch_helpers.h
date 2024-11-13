@@ -77,15 +77,18 @@ namespace torch_helpers
         const std::vector<std::vector<T>> dense_weights = modelJson.at(layerPrefix + "weight");
         dense.setWeights(dense_weights);
 
-        if(hasBias)
+        RTNEURAL_IF_CONSTEXPR (DenseType::dense_has_bias)
         {
-            const std::vector<T> dense_bias = modelJson.at(layerPrefix + "bias");
-            dense.setBias(dense_bias.data());
-        }
-        else
-        {
-            const std::vector<T> dense_bias((size_t)dense.out_size, (T)0);
-            dense.setBias(dense_bias.data());
+            if(hasBias)
+            {
+                const std::vector<T> dense_bias = modelJson.at(layerPrefix + "bias");
+                dense.setBias(dense_bias.data());
+            }
+            else
+            {
+                const std::vector<T> dense_bias((size_t)dense.out_size, (T)0);
+                dense.setBias(dense_bias.data());
+            }
         }
     }
 
