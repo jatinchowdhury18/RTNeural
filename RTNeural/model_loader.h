@@ -42,7 +42,7 @@ namespace json_parser
         for(auto& w : denseWeights)
             w.resize(dense.in_size, (T)0);
 
-        auto layerWeights = weights.at(0);
+        const auto& layerWeights = weights.at(0);
         for(size_t i = 0; i < layerWeights.size(); ++i)
         {
             auto lw = layerWeights.at(i);
@@ -53,8 +53,14 @@ namespace json_parser
         dense.setWeights(denseWeights);
 
         // load biases
-        std::vector<T> denseBias = weights.at(1).get<std::vector<T>>();
-        dense.setBias(denseBias.data());
+        RTNEURAL_IF_CONSTEXPR(DenseType::dense_has_bias)
+        {
+            if(weights.size() >= 2)
+            {
+                std::vector<T> denseBias = weights.at(1).get<std::vector<T>>();
+                dense.setBias(denseBias.data());
+            }
+        }
     }
 
     /** Creates a Dense layer from a json representation of the layer weights. */
@@ -385,7 +391,7 @@ namespace json_parser
     }
 
     /** Creates a LSTMLayer from a json representation of the layer weights. */
-    template <typename T, typename MathsProvider = DefaultMathsProvider >
+    template <typename T, typename MathsProvider = DefaultMathsProvider>
     std::unique_ptr<LSTMLayer<T, MathsProvider>> createLSTM(int in_size, int out_size, const nlohmann::json& weights)
     {
         auto lstm = std::make_unique<LSTMLayer<T, MathsProvider>>(in_size, out_size);
