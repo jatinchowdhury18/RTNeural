@@ -2,8 +2,8 @@
 #define DENSEEIGEN_H_INCLUDED
 
 #include "../Layer.h"
-#include "../config.h"
 #include "../common.h"
+#include "../config.h"
 #include <Eigen/Dense>
 
 namespace RTNEURAL_NAMESPACE
@@ -17,6 +17,8 @@ template <typename T>
 class Dense : public Layer<T>
 {
 public:
+    static constexpr bool dense_has_bias = true;
+
     /** Constructs a dense layer for a given input and output size. */
     Dense(int in_size, int out_size)
         : Layer<T>(in_size, out_size)
@@ -123,18 +125,23 @@ template <typename T, int in_sizet, int out_sizet, bool has_bias = true>
 class DenseT
 {
     using out_vec_type = Eigen::Matrix<T, out_sizet, 1>;
+#if RTNEURAL_HAS_CPP17
     using in_vec_type = typename std::conditional<has_bias, Eigen::Matrix<T, in_sizet + 1, 1>, Empty>::type;
+#else
+    using in_vec_type = Eigen::Matrix<T, in_sizet + 1, 1>;
+#endif
     using mat_type = Eigen::Matrix<T, out_sizet, in_sizet + (has_bias ? 1 : 0)>;
 
 public:
     static constexpr auto in_size = in_sizet;
     static constexpr auto out_size = out_sizet;
+    static constexpr bool dense_has_bias = has_bias;
 
     DenseT()
         : outs(outs_internal)
     {
         weights = mat_type::Zero();
-        if constexpr (has_bias)
+        RTNEURAL_IF_CONSTEXPR(has_bias)
         {
             ins_internal = in_vec_type::Zero();
             ins_internal(in_size, 0) = (T)1;
@@ -167,7 +174,7 @@ public:
 
     /** Performs forward propagation for this layer (no bias). */
     template <bool b = has_bias>
-    RTNEURAL_REALTIME inline typename std::enable_if<! b>::type forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
+    RTNEURAL_REALTIME inline typename std::enable_if<!b>::type forward(const Eigen::Matrix<T, in_size, 1>& ins) noexcept
     {
         outs.noalias() = weights * ins;
     }
@@ -202,7 +209,12 @@ public:
      * Sets the layer bias from a given array of size
      * bias[out_size]
      */
-    RTNEURAL_REALTIME void setBias(const T* b)
+#if RTNEURAL_HAS_CPP17
+    template <bool b = has_bias>
+    RTNEURAL_REALTIME inline typename std::enable_if<b>::type setBias(const T* b)
+#else
+    RTNEURAL_REALTIME inline void setBias(const T* b)
+#endif
     {
         for(int i = 0; i < out_size; ++i)
             weights(i, in_size) = b[i];

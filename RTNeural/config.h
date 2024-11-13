@@ -13,6 +13,19 @@
 #define RTNEURAL_DEFAULT_ALIGNMENT 16
 #endif
 
+#if defined(_MSVC_LANG)
+#define RTNEURAL_CPLUSPLUS _MSVC_LANG
+#elif defined(__cplusplus)
+#define RTNEURAL_CPLUSPLUS __cplusplus
+#endif
+
+#if defined(RTNEURAL_CPLUSPLUS) && RTNEURAL_CPLUSPLUS >= 201703L
+#define RTNEURAL_HAS_CPP17 1
+#define RTNEURAL_IF_CONSTEXPR if constexpr
+#else
+#define RTNEURAL_IF_CONSTEXPR if
+#endif
+
 /**
     Facilitate testing real-time safety with RealtimeSanitizer (RADSan)
 
