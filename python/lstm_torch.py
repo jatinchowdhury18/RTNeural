@@ -18,10 +18,12 @@ class Model(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.lstm = torch.nn.LSTM(1, 8)
+        self.lstm2 = torch.nn.LSTM(8, 8, num_layers=3)
         self.dense = torch.nn.Linear(8, 1)
 
     def forward(self, torch_in):
         x, _ = self.lstm(torch_in)
+        x, _ = self.lstm2(x)
         return self.dense(x)
 
 x = np.random.uniform(-1, 1, 1000)
