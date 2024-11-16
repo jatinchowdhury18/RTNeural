@@ -143,12 +143,12 @@ namespace torch_helpers
         // For the kernel and recurrent weights, PyTorch stores the weights similar to the
         // Tensorflow format, but transposed, and with the "r" and "z" indexes swapped.
 
-        const std::vector<std::vector<T>> gru_ih_weights = modelJson.at(layerPrefix + "weight_ih_l" + std::to_string (layer_index));
+        const std::vector<std::vector<T>> gru_ih_weights = modelJson.at(layerPrefix + "weight_ih_l" + std::to_string(layer_index));
         auto wVals = detail::transpose(gru_ih_weights);
         detail::swap_rz(wVals, gru.out_size);
         gru.setWVals(wVals);
 
-        const std::vector<std::vector<T>> gru_hh_weights = modelJson.at(layerPrefix + "weight_hh_l" + std::to_string (layer_index));
+        const std::vector<std::vector<T>> gru_hh_weights = modelJson.at(layerPrefix + "weight_hh_l" + std::to_string(layer_index));
         auto uVals = detail::transpose(gru_hh_weights);
         detail::swap_rz(uVals, gru.out_size);
         gru.setUVals(uVals);
@@ -158,8 +158,8 @@ namespace torch_helpers
 
         if(hasBias)
         {
-            const std::vector<T> gru_ih_bias = modelJson.at(layerPrefix + "bias_ih_l" + std::to_string (layer_index));
-            const std::vector<T> gru_hh_bias = modelJson.at(layerPrefix + "bias_hh_l" + std::to_string (layer_index));
+            const std::vector<T> gru_ih_bias = modelJson.at(layerPrefix + "bias_ih_l" + std::to_string(layer_index));
+            const std::vector<T> gru_hh_bias = modelJson.at(layerPrefix + "bias_hh_l" + std::to_string(layer_index));
             std::vector<std::vector<T>> gru_bias { gru_ih_bias, gru_hh_bias };
             detail::swap_rz(gru_bias, gru.out_size);
             gru.setBVals(gru_bias);
