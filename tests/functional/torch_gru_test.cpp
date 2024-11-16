@@ -8,7 +8,12 @@ namespace
 template <typename T>
 void testTorchGRUModel()
 {
-    using ModelType = RTNeural::ModelT<T, 1, 1, RTNeural::GRULayerT<T, 1, 8>, RTNeural::DenseT<T, 8, 1>>;
+    using ModelType = RTNeural::ModelT<T, 1, 1,
+        RTNeural::GRULayerT<T, 1, 8>,
+        RTNeural::GRULayerT<T, 8, 8>,
+        RTNeural::GRULayerT<T, 8, 8>,
+        RTNeural::GRULayerT<T, 8, 8>,
+        RTNeural::DenseT<T, 8, 1>>;
 
     const auto loadModel = [](std::ifstream& jsonStream, ModelType& model)
     {
@@ -18,7 +23,14 @@ void testTorchGRUModel()
         auto& gru = model.template get<0>();
         RTNeural::torch_helpers::loadGRU<T>(modelJson, "gru.", gru);
 
-        auto& dense = model.template get<1>();
+        auto& gru2_l0 = model.template get<1>();
+        RTNeural::torch_helpers::loadGRU<T>(modelJson, "gru2.", gru2_l0, true, 0);
+        auto& gru2_l1 = model.template get<2>();
+        RTNeural::torch_helpers::loadGRU<T>(modelJson, "gru2.", gru2_l1, true, 1);
+        auto& gru2_l2 = model.template get<3>();
+        RTNeural::torch_helpers::loadGRU<T>(modelJson, "gru2.", gru2_l2, true, 2);
+
+        auto& dense = model.template get<4>();
         RTNeural::torch_helpers::loadDense<T>(modelJson, "dense.", dense);
     };
 
