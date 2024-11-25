@@ -109,4 +109,41 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups, dynamic
         bias(i) = biasVals[i];
 }
 
+//====================================================
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, 1, dynamic_state>::Conv1DT()
+    : outs(outs_internal)
+{
+    for(int k = 0; k < kernel_size; ++k)
+        weights[k] = weights_type::Zero();
+
+    bias = vec_type::Zero();
+
+    resize_state();
+    reset();
+}
+
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, 1, dynamic_state>::reset()
+{
+    state.setZero();
+    state_ptrs = state_ptrs_type::Zero();
+    state_ptr = 0;
+}
+
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, 1, dynamic_state>::setWeights(const std::vector<std::vector<std::vector<T>>>& ws)
+{
+    for(int i = 0; i < out_size; ++i)
+        for(int k = 0; k < filters_per_group; ++k)
+            for(int j = 0; j < kernel_size; ++j)
+                weights[j](k, i) = ws[i][k][j];
+}
+
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, bool dynamic_state>
+void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, 1, dynamic_state>::setBias(const std::vector<T>& biasVals)
+{
+    for(int i = 0; i < out_size; ++i)
+        bias(i) = biasVals[i];
+}
 } // namespace RTNEURAL_NAMESPACE
