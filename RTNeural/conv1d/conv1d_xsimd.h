@@ -177,6 +177,288 @@ private:
  * @param dilation_rate: the dilation rate to use for dilated convolution
  * @param dynamic_state: use dynamically allocated layer state
  */
+#define CONV1D_EXPERIMENT 1
+#if CONV1D_EXPERIMENT
+template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, int groups = 1, bool dynamic_state = false>
+class Conv1DT
+{
+    using v_type = xsimd::simd_type<T>;
+    static constexpr auto v_size = (int)v_type::size;
+    static constexpr auto state_size = (kernel_size - 1) * dilation_rate + 1;
+    static constexpr auto v_in_size = ceil_div(in_sizet, v_size);
+    static constexpr auto v_out_size = ceil_div(out_sizet, v_size);
+
+    static_assert((in_sizet % groups == 0) && (out_sizet % groups == 0), "in_size and out_size must be divisible by groups!");
+
+public:
+    static constexpr auto in_size = in_sizet;
+    static constexpr auto out_size = out_sizet;
+    static constexpr auto filters_per_group = in_size / groups;
+    static constexpr auto channels_per_group = out_size / groups;
+    static constexpr auto v_filters_per_group = ceil_div(filters_per_group, v_size);
+
+    Conv1DT();
+
+    /** Returns the name of this layer. */
+    std::string getName() const noexcept { return "conv1d"; }
+
+    /** Returns false since convolution is not an activation layer. */
+    constexpr bool isActivation() const noexcept { return false; }
+
+    /** Resets the layer state. */
+    RTNEURAL_REALTIME void reset();
+
+    /** Performs a stride step for this layer. */
+    RTNEURAL_REALTIME inline void skip(const v_type (&ins)[v_in_size])
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
+    /** Performs forward propagation for this layer. */
+    template <int G = groups>
+    RTNEURAL_REALTIME inline typename std::enable_if<(G > 1), void>::type
+    forward(const v_type (&ins)[v_in_size]) noexcept
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // perform multi-channel convolution
+        weights_type state_cols {};
+        for(int i = 0; i < v_out_size; ++i)
+        {
+            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+            for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+            {
+                assert(i * v_size + k < out_size);
+                const auto& subWeights = weights[i * v_size + k];
+                v_type accum {};
+
+                const auto ii = (((i * v_size + k) / channels_per_group) * filters_per_group);
+                for(int j = 0; j < kernel_size; ++j)
+                {
+                    // copy selected columns to a helper variable
+                    // @TODO: I'm not sure the reinterpret_casts are 100% safe here, but they seem to work in testing!
+                    const auto& column = reinterpret_cast<std::array<T, in_size>&>(state[state_ptrs[j]]);
+                    const auto column_begin = column.begin() + ii;
+                    const auto column_end = column_begin + filters_per_group;
+                    std::copy(column_begin, column_end, reinterpret_cast<std::array<T, filters_per_group>&>(state_cols[j]).begin());
+
+                    accum += std::inner_product(
+                        subWeights[j].begin(),
+                        subWeights[j].end(),
+                        state_cols[j].begin(),
+                        v_type {});
+                }
+                out_sum[k] = xsimd::reduce_add(accum);
+            }
+
+            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        }
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
+    /** Performs forward propagation for this layer. */
+    template <int DR = dilation_rate, int G = groups>
+    RTNEURAL_REALTIME inline typename std::enable_if<(DR > 1 && G == 1), void>::type
+    forward(const v_type (&ins)[v_in_size]) noexcept
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // copy selected columns to a helper variable
+        alignas(RTNEURAL_DEFAULT_ALIGNMENT) std::array<std::array<T, v_in_size * v_size>, kernel_size> state_cols {};
+        for(int k = 0; k < kernel_size; ++k)
+        {
+            const auto& col = state[state_ptrs[k]];
+            std::copy(col.begin(), col.end(), reinterpret_cast<v_type*>(state_cols[k].data()));
+        }
+
+        // perform multi-channel convolution
+        std::copy (std::begin(bias), std::end(bias), std::begin(outs));
+        for(int j = 0; j < kernel_size; ++j)
+        {
+            const auto& subWeights = weights[j];
+            const auto& kernelState = state_cols[j];
+            for(int i = 0; i < v_in_size; ++i)
+            {
+                const auto& subSubWeights = subWeights[i];
+                for (int k = 0; k < v_out_size; ++k)
+                {
+                    for (int ii = 0; ii < v_size; ++ii)
+                        outs[k] = xsimd::fma(xsimd::broadcast(kernelState[i * v_size + ii]), subSubWeights[k], outs[k]);
+                }
+            }
+        }
+
+        // perform multi-channel convolution
+        // for(int i = 0; i < v_out_size; ++i)
+        // {
+        //     alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+        //     for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+        //     {
+        //         assert(i * v_size + k < out_size);
+        //         const auto& subWeights = weights[i * v_size + k];
+        //         v_type accum {};
+        //         for(int j = 0; j < kernel_size; ++j)
+        //         {
+        //             accum += std::inner_product(
+        //                 subWeights[j].begin(),
+        //                 subWeights[j].end(),
+        //                 state_cols[j].begin(),
+        //                 v_type {});
+        //         }
+        //         out_sum[k] = xsimd::reduce_add(accum);
+        //     }
+
+        //     outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        // }
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
+    /** Performs forward propagation for this layer. */
+    template <int DR = dilation_rate, int KS = kernel_size, int G = groups>
+    RTNEURAL_REALTIME inline typename std::enable_if<(DR == 1 && KS > 1 && G == 1), void>::type
+    forward(const v_type (&ins)[v_in_size]) noexcept
+    {
+        // insert input into a circular buffer
+        std::copy(std::begin(ins), std::end(ins), state[state_ptr].begin());
+
+        // set state pointers to particular columns of the buffer
+        setStatePointers();
+
+        // perform multi-channel convolution
+        std::copy (std::begin(bias), std::end(bias), std::begin(outs));
+        for(int j = 0; j < kernel_size; ++j)
+        {
+            const auto& subWeights = weights[j];
+            const auto* kernelState = reinterpret_cast<float*>(state[(state_ptr + state_size - j) % state_size].data());
+            for(int i = 0; i < v_in_size; ++i)
+            {
+                const auto& subSubWeights = subWeights[i];
+                for (int k = 0; k < v_out_size; ++k)
+                {
+                    for (int ii = 0; ii < v_size; ++ii)
+                        outs[k] = xsimd::fma(xsimd::broadcast(kernelState[i * v_size + ii]), subSubWeights[k], outs[k]);
+                }
+            }
+        }
+
+        // perform multi-channel convolution
+        // for(int i = 0; i < v_out_size; ++i)
+        // {
+        //     alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+        //     for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+        //     {
+        //         const auto& subWeights = weights[i * v_size + k];
+        //         v_type accum {};
+        //         for(int j = 0; j < kernel_size; ++j)
+        //         {
+        //             accum += std::inner_product(
+        //                 subWeights[j].begin(),
+        //                 subWeights[j].end(),
+        //                 state[(state_ptr + state_size - j) % state_size].begin(),
+        //                 v_type {});
+        //         }
+        //         out_sum[k] = xsimd::reduce_add(accum);
+        //     }
+
+        //     outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        // }
+
+        state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
+    }
+
+    /** Performs forward propagation for this layer. */
+    template <int DR = dilation_rate, int KS = kernel_size, int G = groups>
+    RTNEURAL_REALTIME inline typename std::enable_if<DR == 1 && KS == 1 && G == 1, void>::type
+    forward(const v_type (&ins)[v_in_size]) noexcept
+    {
+        // for(int i = 0; i < v_out_size; ++i)
+        // {
+        //     alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+        //     for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+        //     {
+        //         const auto& subWeights = weights[i * v_size + k][0];
+
+        //         v_type accum {};
+        //         for(int j = 0; j < v_in_size; ++j)
+        //             accum += subWeights[j] * ins[j];
+        //         out_sum[k] = xsimd::reduce_add(accum);
+        //     }
+
+        //     outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+        // }
+    }
+
+    /**
+     * Sets the layer weights.
+     *
+     * The weights vector must have size weights[out_size][in_size][kernel_size * dilation]
+     */
+    RTNEURAL_REALTIME void setWeights(const std::vector<std::vector<std::vector<T>>>& weights);
+
+    /**
+     * Sets the layer biases.
+     *
+     * The bias vector must have size bias[out_size]
+     */
+    RTNEURAL_REALTIME void setBias(const std::vector<T>& biasVals);
+
+    /** Returns the size of the convolution kernel. */
+    RTNEURAL_REALTIME int getKernelSize() const noexcept { return kernel_size; }
+
+    /** Returns the convolution dilation rate. */
+    RTNEURAL_REALTIME int getDilationRate() const noexcept { return dilation_rate; }
+
+    /** Returns the number of "groups" in the convolution. */
+    int getGroups() const noexcept { return groups; }
+
+    v_type outs[v_out_size];
+
+private:
+    template <int DS = dynamic_state>
+    typename std::enable_if<DS, void>::type resize_state()
+    {
+        state.resize(state_size, {});
+    }
+
+    template <int DS = dynamic_state>
+    typename std::enable_if<!DS, void>::type resize_state() { }
+
+    using state_col_type = std::array<v_type, v_in_size>;
+    using state_type = typename std::conditional<dynamic_state, std::vector<state_col_type, xsimd::aligned_allocator<state_col_type>>, std::array<state_col_type, state_size>>::type;
+    using weights_type = std::array<std::array<v_type, v_out_size>, in_size>;
+
+    state_type state {};
+
+    int state_ptr = 0;
+    std::array<int, kernel_size> state_ptrs {};
+
+    weights_type weights[kernel_size] {};
+    v_type bias[v_out_size] {};
+
+    /** Sets pointers to state array columns. */
+    inline void setStatePointers()
+    {
+        for(int k = 0; k < kernel_size; ++k)
+            state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
+    }
+};
+#else
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, int groups = 1, bool dynamic_state = false>
 class Conv1DT
 {
@@ -421,6 +703,7 @@ private:
             state_ptrs[k] = (state_ptr + state_size - k * dilation_rate) % state_size;
     }
 };
+#endif
 } // namespace RTNEURAL_NAMESPACE
 
 #endif // CONV1DXSIMD_H_INCLUDED

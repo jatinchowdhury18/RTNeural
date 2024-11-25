@@ -76,10 +76,10 @@ void Conv1D<T>::setBias(const std::vector<T>& biasVals)
 template <typename T, int in_sizet, int out_sizet, int kernel_size, int dilation_rate, int groups, bool dynamic_state>
 Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups, dynamic_state>::Conv1DT()
 {
-    for(int i = 0; i < out_size; ++i)
-        for(int j = 0; j < kernel_size; ++j)
-            for(int k = 0; k < v_filters_per_group; ++k)
-                weights[i][j][k] = v_type((T)0.0);
+    for(int i = 0; i < v_out_size; ++i)
+        for(int k = 0; k < filters_per_group; ++k)
+            for(int j = 0; j < kernel_size; ++j)
+                weights[j][k][i] = v_type((T)0.0);
 
     for(int i = 0; i < v_out_size; ++i)
         bias[i] = v_type((T)0.0);
@@ -98,10 +98,6 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups, dynamic
         for(int k = 0; k < v_in_size; ++k)
             state[i][k] = v_type((T)0.0);
 
-    for(int i = 0; i < kernel_size; ++i)
-        for(int k = 0; k < v_filters_per_group; ++k)
-            state_cols[i][k] = v_type((T)0.0);
-
     state_ptr = 0;
     for(int i = 0; i < kernel_size; ++i)
         state_ptrs[i] = 0;
@@ -116,8 +112,13 @@ void Conv1DT<T, in_sizet, out_sizet, kernel_size, dilation_rate, groups, dynamic
         {
             for(int j = 0; j < kernel_size; ++j)
             {
+#if CONV1D_EXPERIMENT
+                auto& w = weights[j][k][i / v_size];
+                w = set_value(w, i % v_size, ws[i][k][j]);
+#else
                 auto& w = weights[i][j][k / v_size];
                 w = set_value(w, k % v_size, ws[i][k][j]);
+#endif
             }
         }
     }
