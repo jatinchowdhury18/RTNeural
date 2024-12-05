@@ -445,6 +445,12 @@ public:
         return parseJson(parent, debug, custom_layers);
     }
 
+    /** Returns a reference to a tuple containing the model layers */
+    auto& getLayers() noexcept
+    {
+        return layers;
+    }
+
 private:
 #if RTNEURAL_USE_XSIMD
     using v_type = xsimd::simd_type<T>;
