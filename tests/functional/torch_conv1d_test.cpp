@@ -3,18 +3,22 @@
 #include "load_csv.hpp"
 #include <RTNeural/RTNeural.h>
 
+#if __cplusplus > 202002L
+#include <stdfloat>
+#endif
+
 namespace
 {
 template <typename T>
-void expectNear(T const& expected, T const& actual)
+void expectNear(T const& expected, T const& actual, double error_thresh)
 {
     EXPECT_THAT(
         static_cast<double>(expected),
-        testing::DoubleNear(static_cast<double>(actual), 1e-6));
+        testing::DoubleNear(static_cast<double>(actual), error_thresh));
 }
 
 template <typename T>
-void testTorchConv1DModel()
+void testTorchConv1DModel(double error_thresh = 1e-6)
 {
     const auto model_file = std::string { RTNEURAL_ROOT_DIR } + "models/conv1d_torch.json";
     std::ifstream jsonStream(model_file, std::ifstream::binary);
@@ -43,7 +47,7 @@ void testTorchConv1DModel()
     {
         for(size_t j = 0; j < outputs[n].size(); ++j)
         {
-            expectNear(outputs[n + 4][j], expected_y[n][j]);
+            expectNear(outputs[n + 4][j], expected_y[n][j], error_thresh);
         }
     }
 }
@@ -58,3 +62,17 @@ TEST(TestTorchConv1D, modelOutputMatchesPythonImplementationForDoubles)
 {
     testTorchConv1DModel<double>();
 }
+
+#if __STDCPP_FLOAT16_T__
+TEST(TestTorchConv1D, modelOutputMatchesPythonImplementationForFloat16)
+{
+    testTorchConv1DModel<std::float16_t>(1.0e-3);
+}
+#endif
+
+#if __STDCPP_BFLOAT16_T__
+TEST(TestTorchConv1D, modelOutputMatchesPythonImplementationForBFloat16)
+{
+    testTorchConv1DModel<std::bfloat16_t>(1.0e-2);
+}
+#endif
