@@ -35,6 +35,9 @@ jobs:
         - os: ubuntu-latest
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
+        - os: ubuntu-latest
+          name: "STL w/ half-precision floats"
+          backend: "-DRTNEURAL_STL=ON -DCMAKE_CXX_STANDARD=23"
         - os: windows-latest
           name: "Eigen"
           backend: "-DRTNEURAL_EIGEN=ON"
@@ -67,6 +70,13 @@ jobs:
           backend: "-DRTNEURAL_STL=ON"
     
     steps:
+    - name: Install Linux Deps
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
+
     - name: Get latest CMake
       uses: lukka/get-cmake@latest
 
