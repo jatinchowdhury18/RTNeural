@@ -36,8 +36,8 @@ jobs:
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
         - os: ubuntu-latest
-          name: "STL w/ half-precision floats"
-          backend: "-DRTNEURAL_STL=ON -DCMAKE_CXX_STANDARD=23"
+          name: "STL / C++23"
+          backend: "-DRTNEURAL_STL=ON -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13"
         - os: windows-latest
           name: "Eigen"
           backend: "-DRTNEURAL_EIGEN=ON"
@@ -75,7 +75,7 @@ jobs:
       run: |
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
           sudo apt update
-          sudo apt install g++-13 -y
+          sudo apt install gcc-13 g++-13 -y
 
     - name: Get latest CMake
       uses: lukka/get-cmake@latest
