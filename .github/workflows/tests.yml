@@ -35,6 +35,15 @@ jobs:
         - os: ubuntu-latest
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
+        - os: ubuntu-latest
+          name: "Eigen / C++23"
+          backend: "-DRTNEURAL_EIGEN=ON -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13"
+        # - os: ubuntu-latest
+        #   name: "XSIMD / C++23"
+        #   backend: "-DRTNEURAL_XSIMD=ON -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13"
+        - os: ubuntu-latest
+          name: "STL / C++23"
+          backend: "-DRTNEURAL_STL=ON -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13"
         - os: windows-latest
           name: "Eigen"
           backend: "-DRTNEURAL_EIGEN=ON"
@@ -67,6 +76,13 @@ jobs:
           backend: "-DRTNEURAL_STL=ON"
     
     steps:
+    - name: Install Linux Deps
+      if: runner.os == 'Linux'
+      run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+          sudo apt install gcc-13 g++-13 -y
+
     - name: Get latest CMake
       uses: lukka/get-cmake@latest
 
@@ -87,4 +103,4 @@ jobs:
 
     - name: Test
       shell: bash
-      run: ctest -C Release --test-dir build --parallel --output-on-failure
+      run: ctest -V -C Release --test-dir build --parallel --output-on-failure

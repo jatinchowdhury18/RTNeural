@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.11)
 project(RTNeural VERSION 1.0.0)
 include(cmake/CXXStandard.cmake)
 include(cmake/Sanitizers.cmake)

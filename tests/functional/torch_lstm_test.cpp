@@ -3,10 +3,14 @@
 #include "load_csv.hpp"
 #include <RTNeural/RTNeural.h>
 
+#if __cplusplus > 202002L
+#include <stdfloat>
+#endif
+
 namespace
 {
 template <typename T>
-void testTorchLSTMModel()
+void testTorchLSTMModel(double error_thresh = 1.0e-6)
 {
     using ModelType = RTNeural::ModelT<T, 1, 1,
         RTNeural::LSTMLayerT<T, 1, 8>,
@@ -55,7 +59,7 @@ void testTorchLSTMModel()
     const auto expected_y = load_csv::loadFile<T>(modelOutputsFile);
 
     using namespace testing;
-    EXPECT_THAT(outputs, Pointwise(DoubleNear(1e-6), expected_y));
+    EXPECT_THAT(outputs, Pointwise(DoubleNear(error_thresh), expected_y));
 }
 }
 
@@ -68,3 +72,17 @@ TEST(TestTorchLSTM, modelOutputMatchesPythonImplementationForDoubles)
 {
     testTorchLSTMModel<double>();
 }
+
+#if __STDCPP_FLOAT16_T__
+TEST(TestTorchLSTM, modelOutputMatchesPythonImplementationForFloat16)
+{
+    testTorchLSTMModel<std::float16_t>(1.0e-3);
+}
+#endif
+
+#if __STDCPP_BFLOAT16_T__
+TEST(TestTorchLSTM, modelOutputMatchesPythonImplementationForBFloat16)
+{
+    testTorchLSTMModel<std::bfloat16_t>(1.0e-2);
+}
+#endif
