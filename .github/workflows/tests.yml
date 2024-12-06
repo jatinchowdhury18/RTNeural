@@ -97,4 +97,4 @@ jobs:
 
     - name: Test
       shell: bash
-      run: ctest -C Release --test-dir build --parallel --output-on-failure
+      run: ctest -V -C Release --test-dir build --parallel --output-on-failure
