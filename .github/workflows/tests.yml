@@ -36,6 +36,12 @@ jobs:
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
         - os: ubuntu-latest
+          name: "Eigen / C++23"
+          backend: "-DRTNEURAL_EIGEN=ON -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13"
+        - os: ubuntu-latest
+          name: "XSIMD / C++23"
+          backend: "-DRTNEURAL_XSIMD=ON -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13"
+        - os: ubuntu-latest
           name: "STL / C++23"
           backend: "-DRTNEURAL_STL=ON -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13"
         - os: windows-latest
