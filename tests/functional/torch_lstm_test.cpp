@@ -7,7 +7,6 @@
 #include <stdfloat>
 #endif
 
-
 namespace
 {
 template <typename T>
