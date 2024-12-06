@@ -74,6 +74,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
+        sudo apt install gcc-13 g++-13
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
 
