@@ -37,7 +37,7 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
                 return 'batchnorm2d'
             else :
                 raise ValueError("Incorrect input_shape when saving batchnorm layer")
-        
+
         if isinstance(layer, keras.layers.Conv2D):
             return 'conv2d'
 
@@ -67,19 +67,30 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer)):
 
         if layer.activation == keras.activations.elu:
             return 'elu'
-        
+
         return ''
 
 
     def save_layer(layer):
         try:
-            outshape = layer.output_shape # this is the original code, but sometimes doesn't work
+            outshape = layer.output_shape  # this is the original code, but sometimes doesn't work
         except:
-            outshape = layer.output.shape # if not, use this and make sure it's a tuple so it can be JSON encoded
-            if type(outshape) != tuple:  
+            # Handle case where layer.output is a list (like LSTM with return_state=True)
+            if hasattr(layer, 'output') and isinstance(layer.output, list):
+                # Just use the first output's shape (the actual output, not the states)
+                outshape = layer.output[0].shape
+            elif hasattr(layer, 'output'):
+                outshape = layer.output.shape  # regular case
+            else:
+                # Fallback - try to infer output shape from the layer
+                outshape = layer._build_output_shape if hasattr(layer, '_build_output_shape') else None
+
+            # Make sure it's a tuple so it can be JSON encoded
+            if outshape is not None and type(outshape) != tuple:
                 outshape = tuple(outshape.as_list())
-                
+
         layer_dict = {
+            "name"       : layer.name,
             "type"       : get_layer_type(layer),
             "activation" : get_layer_activation(layer),
             "shape"      : outshape, # modified to use the outshape above
