@@ -27,4 +27,10 @@ static std::map<std::string, TestConfig> tests {
     { "lstm_1d",
         TestConfig { "LSTM-1D", "models/lstm_1d.json", "test_data/lstm_1d_x_python.csv",
             "test_data/lstm_1d_y_python.csv", 1.0e-6 } },
+    { "gru_torch",
+        TestConfig { "GRU Torch", "models/gru_torch_converted.json", "test_data/gru_torch_x_python.csv",
+            "test_data/gru_torch_y_python.csv", 1.0e-6 } },
+    { "lstm_torch",
+        TestConfig { "LSTM Torch", "models/lstm_torch_converted.json", "test_data/lstm_torch_x_python.csv",
+            "test_data/lstm_torch_y_python.csv", 1.0e-6 } },
 };

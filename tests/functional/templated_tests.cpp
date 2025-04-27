@@ -149,6 +149,18 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRU1DWithMath
     runTestTemplated<TestType, ModelType>(tests.at("gru_1d"));
 }
 
+TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForGRUTorch)
+{
+    using ModelType = ModelT<TestType, 1, 1,
+        GRULayerT<TestType, 1, 8>,
+        GRULayerT<TestType, 8, 8>,
+        GRULayerT<TestType, 8, 8>,
+        GRULayerT<TestType, 8, 8>,
+        DenseT<TestType, 8, 1>>;
+
+    runTestTemplated<TestType, ModelType>(tests.at("gru_torch"));
+}
+
 TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForLSTM)
 {
     using ModelType = ModelT<TestType, 1, 1,
@@ -187,4 +199,16 @@ TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForLSTM1DWithMat
         DenseT<TestType, 8, 1>>;
 
     runTestTemplated<TestType, ModelType>(tests.at("lstm_1d"));
+}
+
+TEST(TestTemplatedModels, modelOutputMatchesPythonImplementationForLSTMTorch)
+{
+    using ModelType = ModelT<TestType, 1, 1,
+        LSTMLayerT<TestType, 1, 8>,
+        LSTMLayerT<TestType, 8, 8>,
+        LSTMLayerT<TestType, 8, 8>,
+        LSTMLayerT<TestType, 8, 8>,
+        DenseT<TestType, 8, 1>>;
+
+    runTestTemplated<TestType, ModelType>(tests.at("lstm_torch"));
 }

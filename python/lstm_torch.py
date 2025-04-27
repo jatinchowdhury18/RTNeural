@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 from json import JSONEncoder
+from model_utils_torch import save_model
 
 class EncodeTensor(JSONEncoder,Dataset):
     def default(self, obj):
@@ -43,6 +44,8 @@ np.savetxt('test_data/lstm_torch_y_python.csv', y, delimiter=',')
 
 with open('models/lstm_torch.json', 'w') as json_file:
     json.dump(model.state_dict(), json_file,cls=EncodeTensor)
+
+save_model(model, 'models/lstm_torch_converted.json', torch_in.shape)
 
 # print(x[:5])
 # print(conv.state_dict())
