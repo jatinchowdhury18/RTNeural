@@ -129,7 +129,7 @@ API for defining an inferencing engine type at compile-time,
 which can significantly improve performance.
 ```cpp
 // define model type
-RTNeural::ModelT<double, 8, 1
+RTNeural::ModelT<double, 8, 1,
     RTNeural::DenseT<double, 8, 8>,
     RTNeural::TanhActivationT<double, 8>,
     RTNeural::DenseT<double, 8, 1>
@@ -141,7 +141,7 @@ modelT.parseJson(jsonStream);
 
 modelT.reset(); // reset state
 
-double input[] = { 1.0, 0.5, -0.1 }; // set up input vector
+double input[] = { 1.0, 0.5, -0.1, 0.0, 0.4, 0.9, -0.2, -0.3 }; // set up input vector
 double output = modelT.forward(input); // compute output
 ```
 
