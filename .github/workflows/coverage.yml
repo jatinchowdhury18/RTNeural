@@ -20,13 +20,13 @@ jobs:
       fail-fast: false # show all errors for each platform (vs. cancel jobs on error)
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             name: "Eigen"
             backend: "-DRTNEURAL_EIGEN=ON"
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             name: "xsimd"
             backend: "-DRTNEURAL_XSIMD=ON"
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             name: "STL"
             backend: "-DRTNEURAL_STL=ON"
 
@@ -63,7 +63,7 @@ jobs:
         shell: bash
         run: |
           lcov --directory . --capture --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' '/Applications/Xcode.app/*' "${HOME}"'/.cache/*' '*modules*' '*tests*' --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '/Applications/Xcode.app/*' "${HOME}"'/.cache/*' '*modules*' '*tests*' '*build*' --output-file coverage.info
 
       - name: Report Coverage Data
         shell: bash
