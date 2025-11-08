@@ -26,7 +26,7 @@ jobs:
 #        - os: ubuntu-latest
 #          name: "Eigen - AVX"
 #          backend: "-DRTNEURAL_EIGEN=ON -DRTNEURAL_USE_AVX=ON"
-        - os: ubuntu-latest
+        - os: ubuntu-22.04
           name: "xsimd"
           backend: "-DRTNEURAL_XSIMD=ON"
 #        - os: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
         - os: windows-latest
           name: "Eigen - AVX"
           backend: "-DRTNEURAL_EIGEN=ON -DRTNEURAL_USE_AVX=ON"
-        - os: windows-latest
+        - os: windows-2022
           name: "xsimd"
           backend: "-DRTNEURAL_XSIMD=ON"
         - os: windows-latest
@@ -74,7 +74,7 @@ jobs:
         - os: macos-latest
           name: "STL"
           backend: "-DRTNEURAL_STL=ON"
-    
+
     steps:
     - name: Install Linux Deps
       if: runner.os == 'Linux'
