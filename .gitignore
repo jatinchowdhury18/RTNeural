@@ -6,3 +6,6 @@ __pycache__
 .DS_Store
 /.idea
 /.venv
+.focus-config
+*.raddbg_project
+

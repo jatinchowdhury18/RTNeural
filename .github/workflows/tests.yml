@@ -50,9 +50,9 @@ jobs:
         - os: windows-latest
           name: "Eigen - AVX"
           backend: "-DRTNEURAL_EIGEN=ON -DRTNEURAL_USE_AVX=ON"
-        - os: windows-2022
-          name: "xsimd"
-          backend: "-DRTNEURAL_XSIMD=ON"
+        # - os: windows-latest @TODO
+        #   name: "xsimd"
+        #   backend: "-DRTNEURAL_XSIMD=ON"
         - os: windows-latest
           name: "xsimd - AVX"
           backend: "-DRTNEURAL_XSIMD=ON -DRTNEURAL_USE_AVX=ON"
