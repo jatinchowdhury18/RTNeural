@@ -275,34 +275,53 @@ public:
         // set state pointers to particular columns of the buffer
         setStatePointers();
 
-        // copy selected columns to a helper variable
-        for(int k = 0; k < kernel_size; ++k)
+        RTNEURAL_IF_CONSTEXPR(use_output_parallel)
         {
-            const auto& col = state[state_ptrs[k]];
-            std::copy(col.begin(), col.end(), state_cols[k].begin());
-        }
+            for(int i = 0; i < v_out_size; ++i)
+                outs[i] = bias[i];
 
-        // perform multi-channel convolution
-        for(int i = 0; i < v_out_size; ++i)
-        {
-            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
-            for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+            for(int j = 0; j < kernel_size; ++j)
             {
-                assert(i * v_size + k < out_size);
-                const auto& subWeights = weights[i * v_size + k];
-                v_type accum {};
-                for(int j = 0; j < kernel_size; ++j)
+                const auto& col = state[state_ptrs[j]];
+                for(int m = 0; m < v_in_size; ++m)
                 {
-                    accum += std::inner_product(
-                        subWeights[j].begin(),
-                        subWeights[j].end(),
-                        state_cols[j].begin(),
-                        v_type {});
+                    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T elements[v_size];
+                    col[m].store_aligned(elements);
+                    for(int lane = 0; lane < v_size && (m * v_size + lane) < in_size; ++lane)
+                    {
+                        const v_type bcast(elements[lane]);
+                        const int ic = m * v_size + lane;
+                        for(int i = 0; i < v_out_size; ++i)
+                            outs[i] += bcast * weights_ot[j][ic][i];
+                    }
                 }
-                out_sum[k] = xsimd::reduce_add(accum);
             }
+        }
+        else
+        {
+            for(int k = 0; k < kernel_size; ++k)
+                std::copy(state[state_ptrs[k]].begin(), state[state_ptrs[k]].end(), state_cols[k].begin());
 
-            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+            for(int i = 0; i < v_out_size; ++i)
+            {
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+                for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+                {
+                    const auto& subWeights = weights[i * v_size + k];
+                    v_type accum {};
+                    for(int j = 0; j < kernel_size; ++j)
+                    {
+                        accum += std::inner_product(
+                            subWeights[j].begin(),
+                            subWeights[j].end(),
+                            state_cols[j].begin(),
+                            v_type {});
+                    }
+                    out_sum[k] = xsimd::reduce_add(accum);
+                }
+
+                outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+            }
         }
 
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
@@ -319,26 +338,50 @@ public:
         // set state pointers to particular columns of the buffer
         setStatePointers();
 
-        // perform multi-channel convolution
-        for(int i = 0; i < v_out_size; ++i)
+        RTNEURAL_IF_CONSTEXPR(use_output_parallel)
         {
-            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
-            for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
-            {
-                const auto& subWeights = weights[i * v_size + k];
-                v_type accum {};
-                for(int j = 0; j < kernel_size; ++j)
-                {
-                    accum += std::inner_product(
-                        subWeights[j].begin(),
-                        subWeights[j].end(),
-                        state[(state_ptr + state_size - j) % state_size].begin(),
-                        v_type {});
-                }
-                out_sum[k] = xsimd::reduce_add(accum);
-            }
+            for(int i = 0; i < v_out_size; ++i)
+                outs[i] = bias[i];
 
-            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+            for(int j = 0; j < kernel_size; ++j)
+            {
+                const auto& col = state[(state_ptr + state_size - j) % state_size];
+                for(int m = 0; m < v_in_size; ++m)
+                {
+                    alignas(RTNEURAL_DEFAULT_ALIGNMENT) T elements[v_size];
+                    col[m].store_aligned(elements);
+                    for(int lane = 0; lane < v_size && (m * v_size + lane) < in_size; ++lane)
+                    {
+                        const v_type bcast(elements[lane]);
+                        const int ic = m * v_size + lane;
+                        for(int i = 0; i < v_out_size; ++i)
+                            outs[i] += bcast * weights_ot[j][ic][i];
+                    }
+                }
+            }
+        }
+        else
+        {
+            for(int i = 0; i < v_out_size; ++i)
+            {
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+                for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+                {
+                    const auto& subWeights = weights[i * v_size + k];
+                    v_type accum {};
+                    for(int j = 0; j < kernel_size; ++j)
+                    {
+                        accum += std::inner_product(
+                            subWeights[j].begin(),
+                            subWeights[j].end(),
+                            state[(state_ptr + state_size - j) % state_size].begin(),
+                            v_type {});
+                    }
+                    out_sum[k] = xsimd::reduce_add(accum);
+                }
+
+                outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+            }
         }
 
         state_ptr = (state_ptr == state_size - 1 ? 0 : state_ptr + 1); // iterate state pointer forwards
@@ -349,20 +392,41 @@ public:
     RTNEURAL_REALTIME inline typename std::enable_if<DR == 1 && KS == 1 && G == 1, void>::type
     forward(const v_type (&ins)[v_in_size]) noexcept
     {
-        for(int i = 0; i < v_out_size; ++i)
+        RTNEURAL_IF_CONSTEXPR(use_output_parallel)
         {
-            alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
-            for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+            for(int i = 0; i < v_out_size; ++i)
+                outs[i] = bias[i];
+
+            for(int m = 0; m < v_in_size; ++m)
             {
-                const auto& subWeights = weights[i * v_size + k][0];
-
-                v_type accum {};
-                for(int j = 0; j < v_in_size; ++j)
-                    accum += subWeights[j] * ins[j];
-                out_sum[k] = xsimd::reduce_add(accum);
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T elements[v_size];
+                ins[m].store_aligned(elements);
+                for(int lane = 0; lane < v_size && (m * v_size + lane) < in_size; ++lane)
+                {
+                    const v_type bcast(elements[lane]);
+                    const int ic = m * v_size + lane;
+                    for(int i = 0; i < v_out_size; ++i)
+                        outs[i] += bcast * weights_ot[0][ic][i];
+                }
             }
+        }
+        else
+        {
+            for(int i = 0; i < v_out_size; ++i)
+            {
+                alignas(RTNEURAL_DEFAULT_ALIGNMENT) T out_sum[v_size] {};
+                for(int k = 0; k < v_size && (i * v_size + k) < out_size; ++k)
+                {
+                    const auto& subWeights = weights[i * v_size + k][0];
 
-            outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+                    v_type accum {};
+                    for(int j = 0; j < v_in_size; ++j)
+                        accum += subWeights[j] * ins[j];
+                    out_sum[k] = xsimd::reduce_add(accum);
+                }
+
+                outs[i] = xsimd::load_aligned(out_sum) + bias[i];
+            }
         }
     }
 
@@ -401,9 +465,15 @@ private:
     template <int DS = dynamic_state>
     typename std::enable_if<!DS, void>::type resize_state() { }
 
+    // Output-parallel computation is beneficial when at least one matrix
+    // dimension fits in a single SIMD register. Larger matrices retain the
+    // input-parallel kernel to avoid extra scalar broadcasts.
+    static constexpr bool use_output_parallel = groups == 1 && (v_in_size == 1 || v_out_size == 1);
+
     using state_col_type = std::array<v_type, v_in_size>;
     using state_type = typename std::conditional<dynamic_state, std::vector<state_col_type, xsimd::aligned_allocator<state_col_type>>, std::array<state_col_type, state_size>>::type;
     using weights_type = std::array<std::array<v_type, v_filters_per_group>, kernel_size>;
+    using weights_storage_type = std::array<weights_type, use_output_parallel ? 0 : out_size>;
 
     state_type state {};
     weights_type state_cols {};
@@ -411,8 +481,14 @@ private:
     int state_ptr = 0;
     std::array<int, kernel_size> state_ptrs {};
 
-    weights_type weights[out_size] {};
+    weights_storage_type weights {};
     v_type bias[v_out_size] {};
+
+    // Transposed weights for output-parallel computation.
+    // weights_ot[kernel_pos][in_channel][out_simd_group]
+    // Each v_type spans v_size output channels.
+    using weights_ot_col_type = std::array<v_type, use_output_parallel ? v_out_size : 0>;
+    weights_ot_col_type weights_ot[kernel_size][in_size] {};
 
     /** Sets pointers to state array columns. */
     inline void setStatePointers()
