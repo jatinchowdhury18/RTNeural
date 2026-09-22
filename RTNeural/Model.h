@@ -1,6 +1,7 @@
 #ifndef MODEL_H_INCLUDED
 #define MODEL_H_INCLUDED
 
+#include <cassert>
 #include <vector>
 
 #include "Layer.h"
@@ -77,6 +78,43 @@ public:
     {
         for(auto* l : layers)
             l->reset();
+    }
+
+    /** Resets the state of the network layers to the given values. */
+    RTNEURAL_REALTIME void reset(const T* state)
+    {
+        for(auto* l : layers)
+            l->reset(state);
+    }
+
+    /** Resets the state of the network layers to the values in the given vector. */
+    RTNEURAL_REALTIME void reset(const std::vector<T>& state)
+    {
+        assert((int)state.size() == getStateSize());
+        reset(state.data());
+    }
+
+    /** Writes the state of the network layers to the given buffer. */
+    RTNEURAL_REALTIME void getState(T* state) const
+    {
+        for(auto* l : layers)
+            l->getState(state);
+    }
+
+    /** Writes the state of the network layers to the given vector. */
+    void getState(std::vector<T>& state) const
+    {
+        state.resize((size_t)getStateSize());
+        getState(state.data());
+    }
+
+    /** Returns the size of the network state. */
+    int getStateSize() const noexcept
+    {
+        int size = 0;
+        for(auto* l : layers)
+            size += l->getStateSize();
+        return size;
     }
 
     /** Performs forward propagation for this model. */

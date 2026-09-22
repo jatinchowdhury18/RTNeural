@@ -42,6 +42,29 @@ public:
     /** Resets the layer state. */
     RTNEURAL_REALTIME void reset() override;
 
+    /** Resets the layer state to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept override
+    {
+        for(int j = 0; j < state_size; ++j)
+            std::copy(statePtr + j * Layer<T>::in_size, statePtr + (j + 1) * Layer<T>::in_size, state[j].begin());
+        state_ptr = 0; // state_ptr: this layer's ring-buffer index; statePtr: cursor into the caller's state buffer
+        statePtr += state_size * Layer<T>::in_size;
+    }
+
+    /** Writes the layer state to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept override
+    {
+        for(int j = 0; j < state_size; ++j)
+        {
+            const auto& col = state[(state_ptr + j) % state_size]; // state_ptr: this layer's ring-buffer index; statePtr: cursor into the caller's state buffer
+            std::copy(col.begin(), col.begin() + Layer<T>::in_size, statePtr + j * Layer<T>::in_size);
+        }
+        statePtr += state_size * Layer<T>::in_size;
+    }
+
+    /** Returns the size of the layer state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept override { return state_size * Layer<T>::in_size; }
+
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv1d"; }
 
@@ -205,6 +228,37 @@ public:
 
     /** Resets the layer state. */
     RTNEURAL_REALTIME void reset();
+
+    /** Resets the layer state to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept
+    {
+        T scalar alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_in_size * v_size] {};
+        for(int j = 0; j < state_size; ++j)
+        {
+            std::copy(statePtr + j * in_size, statePtr + (j + 1) * in_size, scalar);
+            for(int k = 0; k < v_in_size; ++k)
+                state[j][k] = xsimd::load_aligned(scalar + k * v_size);
+        }
+        state_ptr = 0; // state_ptr: this layer's ring-buffer index; statePtr: cursor into the caller's state buffer
+        statePtr += state_size * in_size;
+    }
+
+    /** Writes the layer state to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept
+    {
+        T scalar alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_in_size * v_size] {};
+        for(int j = 0; j < state_size; ++j)
+        {
+            const auto& col = state[(state_ptr + j) % state_size]; // state_ptr: this layer's ring-buffer index; statePtr: cursor into the caller's state buffer
+            for(int k = 0; k < v_in_size; ++k)
+                xsimd::store_aligned(scalar + k * v_size, col[k]);
+            std::copy(scalar, scalar + in_size, statePtr + j * in_size);
+        }
+        statePtr += state_size * in_size;
+    }
+
+    /** Returns the size of the layer state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept { return state_size * in_size; }
 
     /** Performs a stride step for this layer. */
     RTNEURAL_REALTIME inline void skip(const v_type (&ins)[v_in_size])

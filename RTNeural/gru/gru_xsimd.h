@@ -36,6 +36,23 @@ public:
     /** Resets the state of the GRU. */
     RTNEURAL_REALTIME void reset() override { std::fill(ht1.begin(), ht1.end(), (T)0); }
 
+    /** Resets the state of the GRU to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept override
+    {
+        std::copy(statePtr, statePtr + Layer<T>::out_size, ht1.begin());
+        statePtr += Layer<T>::out_size;
+    }
+
+    /** Writes the state of the GRU to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept override
+    {
+        std::copy(ht1.begin(), ht1.begin() + Layer<T>::out_size, statePtr);
+        statePtr += Layer<T>::out_size;
+    }
+
+    /** Returns the size of the GRU state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept override { return Layer<T>::out_size; }
+
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "gru"; }
 
@@ -272,6 +289,37 @@ public:
      * The bias vector must have size weights[2][3 * out_size]
      */
     RTNEURAL_REALTIME void setBVals(const std::vector<std::vector<T>>& bVals);
+
+    /** Resets the state of the GRU to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept
+    {
+        T scalar alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_out_size * v_size] {};
+        std::copy(statePtr, statePtr + out_size, scalar);
+        for(int i = 0; i < v_out_size; ++i)
+            outs[i] = xsimd::load_aligned(scalar + i * v_size);
+
+        if(sampleRateCorr != SampleRateCorrectionMode::None)
+        {
+            for(auto& x : outs_delayed)
+                for(int i = 0; i < v_out_size; ++i)
+                    x[i] = outs[i];
+        }
+
+        statePtr += out_size;
+    }
+
+    /** Writes the state of the GRU to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept
+    {
+        T scalar alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_out_size * v_size] {};
+        for(int i = 0; i < v_out_size; ++i)
+            xsimd::store_aligned(scalar + i * v_size, outs[i]);
+        std::copy(scalar, scalar + out_size, statePtr);
+        statePtr += out_size;
+    }
+
+    /** Returns the size of the GRU state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept { return out_size; }
 
     v_type outs[v_out_size];
 
