@@ -48,6 +48,32 @@ public:
         internal.reset();
     }
 
+    /** Resets the layer state to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept override
+    {
+        internal.reset(statePtr);
+        strides_counter = (int)(*statePtr + (T)0.5);
+        ++statePtr;
+        std::copy(statePtr, statePtr + Layer<T>::out_size, std::begin(skip_output));
+        statePtr += Layer<T>::out_size;
+    }
+
+    /** Writes the layer state to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept override
+    {
+        internal.getState(statePtr);
+        *statePtr = (T)strides_counter;
+        ++statePtr;
+        std::copy(std::begin(skip_output), std::end(skip_output), statePtr);
+        statePtr += Layer<T>::out_size;
+    }
+
+    /** Returns the size of the layer state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept override
+    {
+        return internal.getStateSize() + 1 + Layer<T>::out_size;
+    }
+
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "strided_conv1d"; }
 
@@ -156,6 +182,32 @@ public:
         internal.reset();
     }
 
+    /** Resets the layer state to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept
+    {
+        internal.reset(statePtr);
+        strides_counter = (int)(*statePtr + (T)0.5);
+        ++statePtr;
+        setHeldOutput(statePtr);
+        statePtr += out_size;
+    }
+
+    /** Writes the layer state to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept
+    {
+        internal.getState(statePtr);
+        *statePtr = (T)strides_counter;
+        ++statePtr;
+        getHeldOutput(statePtr);
+        statePtr += out_size;
+    }
+
+    /** Returns the size of the layer state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept
+    {
+        return internal.getStateSize() + 1 + out_size;
+    }
+
     /** Performs a stride step for this layer. */
     template <typename Inputs>
     RTNEURAL_REALTIME inline void skip(const Inputs& ins) noexcept
@@ -206,5 +258,42 @@ public:
 
     /** Reference to the internal layer weights. */
     decltype(internal.outs)& outs;
+
+private:
+    /** Writes the held output to the given buffer. */
+    RTNEURAL_REALTIME void getHeldOutput(T* dest) const noexcept
+    {
+#if RTNEURAL_USE_EIGEN
+        for(int i = 0; i < out_size; ++i)
+            dest[i] = internal.outs(i);
+#elif RTNEURAL_USE_XSIMD
+        constexpr auto v_size = (int)xsimd::simd_type<T>::size;
+        const int v_out_size = (out_size + v_size - 1) / v_size;
+        T scalar alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_out_size * v_size];
+        for(int i = 0; i < v_out_size; ++i)
+            xsimd::store_aligned(scalar + i * v_size, internal.outs[i]);
+        std::copy(scalar, scalar + out_size, dest);
+#else
+        std::copy(internal.outs, internal.outs + out_size, dest);
+#endif
+    }
+
+    /** Sets the held output from the given buffer. */
+    RTNEURAL_REALTIME void setHeldOutput(const T* src) noexcept
+    {
+#if RTNEURAL_USE_EIGEN
+        for(int i = 0; i < out_size; ++i)
+            internal.outs(i) = src[i];
+#elif RTNEURAL_USE_XSIMD
+        constexpr auto v_size = (int)xsimd::simd_type<T>::size;
+        const int v_out_size = (out_size + v_size - 1) / v_size;
+        T scalar alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_out_size * v_size] {};
+        std::copy(src, src + out_size, scalar);
+        for(int i = 0; i < v_out_size; ++i)
+            internal.outs[i] = xsimd::load_aligned(scalar + i * v_size);
+#else
+        std::copy(src, src + out_size, internal.outs);
+#endif
+    }
 };
 }

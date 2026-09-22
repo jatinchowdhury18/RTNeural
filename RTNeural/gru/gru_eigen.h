@@ -40,6 +40,25 @@ public:
         extendedHt1(Layer<T>::out_size) = (T)1;
     }
 
+    /** Resets the state of the GRU to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept override
+    {
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            extendedHt1(i) = statePtr[i];
+        statePtr += Layer<T>::out_size;
+    }
+
+    /** Writes the state of the GRU to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept override
+    {
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            statePtr[i] = extendedHt1(i);
+        statePtr += Layer<T>::out_size;
+    }
+
+    /** Returns the size of the GRU state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept override { return Layer<T>::out_size; }
+
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "gru"; }
 
@@ -267,6 +286,35 @@ public:
      * The bias vector must have size weights[2][3 * out_size]
      */
     RTNEURAL_REALTIME void setBVals(const std::vector<std::vector<T>>& bVals);
+
+    /** Resets the state of the GRU to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept
+    {
+        for(int i = 0; i < out_sizet; ++i)
+        {
+            outs(i) = statePtr[i];
+            extendedHt1(i) = statePtr[i];
+        }
+
+        if(sampleRateCorr != SampleRateCorrectionMode::None)
+        {
+            for(auto& x : outs_delayed)
+                x = outs;
+        }
+
+        statePtr += out_sizet;
+    }
+
+    /** Writes the state of the GRU to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept
+    {
+        for(int i = 0; i < out_sizet; ++i)
+            statePtr[i] = extendedHt1(i);
+        statePtr += out_sizet;
+    }
+
+    /** Returns the size of the GRU state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept { return out_sizet; }
 
     Eigen::Map<out_type, RTNeuralEigenAlignment> outs;
 

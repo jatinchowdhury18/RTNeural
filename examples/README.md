@@ -7,4 +7,5 @@ demonstrate usage of the RTNeural library:
 - `rtneural_static_model`: Demonstrates how to use the RTNeural compile-time API to load and run a static model.
 - `rtneural_dynamic_model`: Demonstrates how to use the RTNeural run-time API to load and run a model from a file.
 - `custom_layer_model`: Demonstrates how to extend RTNeural's compile-time API with custom layers.
+- `rest_state_example`: Generates a model's rest state at build time with `getState()` and uses it with `reset(state)` to avoid the startup transient, including the initial state of a one-pole DC blocker after the model.
 - `torch`: Demonstrates how to use the RTNeural compile-time API to import pytorch models. The exporting from python pytorch of the models used in those examples can be found in [RTNeural/python](../python/). They have a `_torch` postfix.

@@ -45,6 +45,34 @@ public:
         }
     };
 
+    /** Reset the layer's state to the given values */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept override
+    {
+        const int frame_size = num_filters_out * num_features_out;
+        for(int j = 0; j < receptive_field; ++j)
+            std::copy(statePtr + j * frame_size, statePtr + (j + 1) * frame_size, state[j].data());
+        state_index = 0;
+        statePtr += receptive_field * frame_size;
+    }
+
+    /** Writes the layer's state to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept override
+    {
+        const int frame_size = num_filters_out * num_features_out;
+        for(int j = 0; j < receptive_field; ++j)
+        {
+            const auto& frame = state[(state_index + j) % receptive_field];
+            std::copy(frame.data(), frame.data() + frame_size, statePtr + j * frame_size);
+        }
+        statePtr += receptive_field * frame_size;
+    }
+
+    /** Returns the size of the layer's state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept override
+    {
+        return receptive_field * num_filters_out * num_features_out;
+    }
+
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "conv2d"; }
 
@@ -178,6 +206,29 @@ public:
             state[i] = output_type::Zero();
         }
     };
+
+    /** Reset the layer's state to the given values */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept
+    {
+        for(int j = 0; j < receptive_field; ++j)
+            std::copy(statePtr + j * out_size, statePtr + (j + 1) * out_size, state[j].data());
+        state_index = 0;
+        statePtr += receptive_field * out_size;
+    }
+
+    /** Writes the layer's state to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept
+    {
+        for(int j = 0; j < receptive_field; ++j)
+        {
+            const auto& frame = state[(state_index + j) % receptive_field];
+            std::copy(frame.data(), frame.data() + out_size, statePtr + j * out_size);
+        }
+        statePtr += receptive_field * out_size;
+    }
+
+    /** Returns the size of the layer's state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept { return receptive_field * out_size; }
 
     /** Performs forward propagation for this layer. */
     RTNEURAL_REALTIME inline void forward(const input_type_flat& inMatrix) noexcept

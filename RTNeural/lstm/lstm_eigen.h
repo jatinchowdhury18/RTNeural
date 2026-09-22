@@ -39,6 +39,34 @@ public:
     /** Resets the state of the LSTM. */
     RTNEURAL_REALTIME void reset() override;
 
+    /** Resets the state of the LSTM to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept override
+    {
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+        {
+            ht1(i) = statePtr[i];
+            extendedInVecHt1(Layer<T>::in_size + i) = statePtr[i];
+        }
+
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            ct1(i) = statePtr[Layer<T>::out_size + i];
+
+        statePtr += 2 * Layer<T>::out_size;
+    }
+
+    /** Writes the state of the LSTM to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept override
+    {
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            statePtr[i] = ht1(i);
+        for(int i = 0; i < Layer<T>::out_size; ++i)
+            statePtr[Layer<T>::out_size + i] = ct1(i);
+        statePtr += 2 * Layer<T>::out_size;
+    }
+
+    /** Returns the size of the LSTM state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept override { return 2 * Layer<T>::out_size; }
+
     /** Performs forward propagation for this layer. */
     RTNEURAL_REALTIME inline void forward(const T* input, T* h) noexcept override
     {
@@ -201,6 +229,43 @@ public:
      * The bias vector must have size weights[4 * out_size]
      */
     RTNEURAL_REALTIME void setBVals(const std::vector<T>& bVals);
+
+    /** Resets the state of the LSTM to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept
+    {
+        for(int i = 0; i < out_sizet; ++i)
+        {
+            outs(i) = statePtr[i];
+            extendedInHt1Vec(in_sizet + i) = statePtr[i];
+        }
+
+        for(int i = 0; i < out_sizet; ++i)
+            cVec(i) = statePtr[out_sizet + i];
+
+        if(sampleRateCorr != SampleRateCorrectionMode::None)
+        {
+            for(auto& x : outs_delayed)
+                x = outs;
+
+            for(auto& x : ct_delayed)
+                x = cVec;
+        }
+
+        statePtr += 2 * out_sizet;
+    }
+
+    /** Writes the state of the LSTM to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept
+    {
+        for(int i = 0; i < out_sizet; ++i)
+            statePtr[i] = outs(i);
+        for(int i = 0; i < out_sizet; ++i)
+            statePtr[out_sizet + i] = cVec(i);
+        statePtr += 2 * out_sizet;
+    }
+
+    /** Returns the size of the LSTM state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept { return 2 * out_sizet; }
 
     Eigen::Map<out_type, RTNeuralEigenAlignment> outs;
 

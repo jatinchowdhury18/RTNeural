@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include "model_loader.h"
 
 namespace RTNEURAL_NAMESPACE
@@ -50,6 +52,60 @@ namespace modelt_detail
     constexpr void forEachInTupleRange(Fn&& fn, Tuple&& tuple) noexcept(noexcept(forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {})))
     {
         forEachInTuple(std::forward<Fn>(fn), std::forward<Tuple>(tuple), TupleIndexSequenceRange<start, num> {});
+    }
+
+    /** Functions to call a layer's state methods, with fallbacks for stateless layers */
+    template <typename LayerType, typename T>
+    auto reset_layer(LayerType& layer, const T*& statePtr, int) -> decltype(layer.reset(statePtr), void())
+    {
+        layer.reset(statePtr);
+    }
+
+    template <typename LayerType, typename T>
+    void reset_layer(LayerType& layer, const T*&, long)
+    {
+        layer.reset();
+    }
+
+    template <typename LayerType, typename T>
+    void reset_layer(LayerType& layer, const T*& statePtr)
+    {
+        reset_layer(layer, statePtr, 0);
+    }
+
+    template <typename LayerType, typename T>
+    auto get_state_layer(const LayerType& layer, T*& statePtr, int) -> decltype(layer.getState(statePtr), void())
+    {
+        layer.getState(statePtr);
+    }
+
+    template <typename LayerType, typename T>
+    void get_state_layer(const LayerType&, T*&, long)
+    {
+    }
+
+    template <typename LayerType, typename T>
+    void get_state_layer(const LayerType& layer, T*& statePtr)
+    {
+        get_state_layer(layer, statePtr, 0);
+    }
+
+    template <typename LayerType>
+    auto layer_state_size(const LayerType& layer, int) -> decltype(layer.getStateSize())
+    {
+        return layer.getStateSize();
+    }
+
+    template <typename LayerType>
+    int layer_state_size(const LayerType&, long)
+    {
+        return 0;
+    }
+
+    template <typename LayerType>
+    int layer_state_size(const LayerType& layer)
+    {
+        return layer_state_size(layer, 0);
     }
 
     // unrolled loop for forward inferencing
@@ -371,6 +427,46 @@ public:
             layers);
     }
 
+    /** Resets the state of the network layers to the given values. */
+    RTNEURAL_REALTIME void reset(const T* state)
+    {
+        modelt_detail::forEachInTuple([&state](auto& layer, size_t)
+            { modelt_detail::reset_layer(layer, state); },
+            layers);
+    }
+
+    /** Resets the state of the network layers to the values in the given vector. */
+    RTNEURAL_REALTIME void reset(const std::vector<T>& state)
+    {
+        assert((int)state.size() == getStateSize());
+        reset(state.data());
+    }
+
+    /** Writes the state of the network layers to the given buffer. */
+    RTNEURAL_REALTIME void getState(T* state) const
+    {
+        modelt_detail::forEachInTuple([&state](const auto& layer, size_t)
+            { modelt_detail::get_state_layer(layer, state); },
+            layers);
+    }
+
+    /** Writes the state of the network layers to the given vector. */
+    void getState(std::vector<T>& state) const
+    {
+        state.resize((size_t)getStateSize());
+        getState(state.data());
+    }
+
+    /** Returns the size of the network state. */
+    int getStateSize() const noexcept
+    {
+        int size = 0;
+        modelt_detail::forEachInTuple([&size](const auto& layer, size_t)
+            { size += modelt_detail::layer_state_size(layer); },
+            layers);
+        return size;
+    }
+
     /** Performs forward propagation for this model. */
     template <int N = in_size>
     RTNEURAL_REALTIME inline typename std::enable_if<(N > 1), T>::type
@@ -527,6 +623,46 @@ public:
         modelt_detail::forEachInTuple([&](auto& layer, size_t)
             { layer.reset(); },
             layers);
+    }
+
+    /** Resets the state of the network layers to the given values. */
+    void reset(const T* state)
+    {
+        modelt_detail::forEachInTuple([&state](auto& layer, size_t)
+            { modelt_detail::reset_layer(layer, state); },
+            layers);
+    }
+
+    /** Resets the state of the network layers to the values in the given vector. */
+    void reset(const std::vector<T>& state)
+    {
+        assert((int)state.size() == getStateSize());
+        reset(state.data());
+    }
+
+    /** Writes the state of the network layers to the given buffer. */
+    void getState(T* state) const
+    {
+        modelt_detail::forEachInTuple([&state](const auto& layer, size_t)
+            { modelt_detail::get_state_layer(layer, state); },
+            layers);
+    }
+
+    /** Writes the state of the network layers to the given vector. */
+    void getState(std::vector<T>& state) const
+    {
+        state.resize((size_t)getStateSize());
+        getState(state.data());
+    }
+
+    /** Returns the size of the network state. */
+    int getStateSize() const noexcept
+    {
+        int size = 0;
+        modelt_detail::forEachInTuple([&size](const auto& layer, size_t)
+            { size += modelt_detail::layer_state_size(layer); },
+            layers);
+        return size;
     }
 
     /** Performs forward propagation for this model. */

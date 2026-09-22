@@ -44,6 +44,25 @@ public:
     /** Resets the state of the LSTM. */
     RTNEURAL_REALTIME void reset() override;
 
+    /** Resets the state of the LSTM to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept override
+    {
+        std::copy(statePtr, statePtr + Layer<T>::out_size, ht1);
+        std::copy(statePtr + Layer<T>::out_size, statePtr + 2 * Layer<T>::out_size, ct1);
+        statePtr += 2 * Layer<T>::out_size;
+    }
+
+    /** Writes the state of the LSTM to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept override
+    {
+        std::copy(ht1, ht1 + Layer<T>::out_size, statePtr);
+        std::copy(ct1, ct1 + Layer<T>::out_size, statePtr + Layer<T>::out_size);
+        statePtr += 2 * Layer<T>::out_size;
+    }
+
+    /** Returns the size of the LSTM state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept override { return 2 * Layer<T>::out_size; }
+
     /** Returns the name of this layer. */
     std::string getName() const noexcept override { return "lstm"; }
 
@@ -226,6 +245,35 @@ public:
      * The bias vector must have size weights[4 * out_size]
      */
     RTNEURAL_REALTIME void setBVals(const std::vector<T>& bVals);
+
+    /** Resets the state of the LSTM to the given values. */
+    RTNEURAL_REALTIME void reset(const T*& statePtr) noexcept
+    {
+        std::copy(statePtr, statePtr + out_size, outs);
+        std::copy(statePtr + out_size, statePtr + 2 * out_size, ct);
+
+        if(sampleRateCorr != SampleRateCorrectionMode::None)
+        {
+            for(auto& x : outs_delayed)
+                std::copy(statePtr, statePtr + out_size, x.begin());
+
+            for(auto& x : ct_delayed)
+                std::copy(statePtr + out_size, statePtr + 2 * out_size, x.begin());
+        }
+
+        statePtr += 2 * out_size;
+    }
+
+    /** Writes the state of the LSTM to the given buffer. */
+    RTNEURAL_REALTIME void getState(T*& statePtr) const noexcept
+    {
+        std::copy(outs, outs + out_size, statePtr);
+        std::copy(ct, ct + out_size, statePtr + out_size);
+        statePtr += 2 * out_size;
+    }
+
+    /** Returns the size of the LSTM state. */
+    RTNEURAL_REALTIME int getStateSize() const noexcept { return 2 * out_size; }
 
     T outs alignas(RTNEURAL_DEFAULT_ALIGNMENT)[out_size];
 

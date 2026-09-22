@@ -27,6 +27,15 @@ public:
     /** Resets the state of this layer. */
     virtual void reset() { }
 
+    /** Resets the state of this layer to the given values. */
+    virtual void reset(const T*& state) { reset(); }
+
+    /** Writes the state of this layer to the given buffer. */
+    virtual void getState(T*& state) const noexcept { }
+
+    /** Returns the size of this layer's state (0 if it has none). */
+    virtual int getStateSize() const noexcept { return 0; }
+
     /** Implements the forward propagation step for this layer. */
     virtual void forward(const T* input, T* out) noexcept = 0;
 
