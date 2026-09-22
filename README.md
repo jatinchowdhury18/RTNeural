@@ -145,6 +145,19 @@ double input[] = { 1.0, 0.5, -0.1, 0.0, 0.4, 0.9, -0.2, -0.3 }; // set up input 
 double output = modelT.forward(input); // compute output
 ```
 
+### Custom state reset
+
+`reset()` sets every layer's state to zero, but a trained
+network usually settles at a non-zero state when it
+processes silence. Starting from zero can then produce an
+audible transient. To avoid it, capture the state once by
+processing some seconds of silence and then call `reset(state)`.
+See [`rest_state_example`](./examples/rest_state_example) for more information.
+
+The state is one flat buffer of `getStateSize()` values.
+Stateful layers read their part in forward order, and
+stateless layers take nothing.
+
 ### Loading Layers from PyTorch
 
 The above example code assumes that the trained model has
@@ -294,6 +307,7 @@ Please thank the following individuals for their important contributions:
 - [lHorvalds](https://github.com/IHorvalds): Eigen backend optimizations.
 - [davidtrevelyan](https://github.com/davidtrevelyan): Testing framework upgrade.
 - [purefunctor](https://github.com/purefunctor): Groups feature for Conv1D.
+- [Javiolonchelo](https://github.com/Javiolonchelo): Custom reset for stateful layers.
 
 ## Powered by RTNeural
 
