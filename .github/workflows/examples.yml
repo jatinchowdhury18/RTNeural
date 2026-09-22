@@ -73,6 +73,10 @@ jobs:
       shell: bash
       run: ./build/examples_out/conv1d_stateless_example
 
+    - name: RTNeural Rest State
+      shell: bash
+      run: ./build/examples_out/rest_state_example
+
     - name: Hello RTNeural with Makefile
       if: runner.os == 'Linux'
       shell: bash
