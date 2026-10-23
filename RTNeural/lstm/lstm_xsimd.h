@@ -5,6 +5,7 @@
 #include "../common.h"
 #include "../config.h"
 #include "../maths/maths_xsimd.h"
+#include <algorithm>
 #include <vector>
 
 namespace RTNEURAL_NAMESPACE
@@ -329,14 +330,18 @@ private:
         for(int i = 0; i < v_out_size; ++i)
             out[i] = v_type(0);
 
+		/**  Clamp the final SIMD batch to out_size to avoid reading past the */
+		/**  recurrent matrix when out_size is not a multiple of v_size. */
         T scalar_in alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
         for(int k = 0; k < v_out_size; ++k)
         {
             vec[k].store_aligned(scalar_in);
+            const int laneStart = k * v_size;
+            const int laneEnd = std::min(laneStart + v_size, out_size);
             for(int i = 0; i < v_out_size; ++i)
             {
-                for(int j = 0; j < v_size; ++j)
-                    out[i] += scalar_in[j] * mat[k * v_size + j][i];
+                for(int j = laneStart; j < laneEnd; ++j)
+                    out[i] += scalar_in[j - laneStart] * mat[j][i];
             }
         }
     }
@@ -346,14 +351,18 @@ private:
         for(int i = 0; i < v_out_size; ++i)
             out[i] = v_type(0);
 
+		/**  Clamp the final SIMD batch to in_size to avoid reading past */
+		/**  the input weights matrix when the input size is not SIMD-aligned. */
         T scalar_in alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
         for(int k = 0; k < v_in_size; ++k)
         {
             vec[k].store_aligned(scalar_in);
+            const int laneStart = k * v_size;
+            const int laneEnd = std::min(laneStart + v_size, in_size);
             for(int i = 0; i < v_out_size; ++i)
             {
-                for(int j = 0; j < v_size; ++j)
-                    out[i] += scalar_in[j] * mat[k * v_size + j][i];
+                for(int j = laneStart; j < laneEnd; ++j)
+                    out[i] += scalar_in[j - laneStart] * mat[j][i];
             }
         }
     }

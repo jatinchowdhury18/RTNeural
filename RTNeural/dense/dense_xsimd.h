@@ -162,19 +162,21 @@ public:
     template <bool b = has_bias>
     RTNEURAL_REALTIME inline typename std::enable_if<b>::type forward(const v_type (&ins)[v_in_size]) noexcept
     {
-        static constexpr auto v_size_inner = std::min(v_size, in_size);
-
         for(int i = 0; i < v_out_size; ++i)
             outs[i] = bias[i];
 
+		/** Clamp the final SIMD batch to the actual input size. The weights matrix */
+		/** has exactly in_size rows, which may not fill the final SIMD batch. */
         T scalar_in alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
         for(int k = 0; k < v_in_size; ++k)
         {
             ins[k].store_aligned(scalar_in);
+            const int laneStart = k * v_size;
+            const int laneEnd = std::min(laneStart + v_size, in_size);
             for(int i = 0; i < v_out_size; ++i)
             {
-                for(int j = 0; j < v_size_inner; ++j)
-                    outs[i] += scalar_in[j] * weights[k * v_size + j][i];
+                for(int j = laneStart; j < laneEnd; ++j)
+                    outs[i] += scalar_in[j - laneStart] * weights[j][i];
             }
         }
     }
@@ -183,19 +185,20 @@ public:
     template <bool b = has_bias>
     RTNEURAL_REALTIME inline typename std::enable_if<!b>::type forward(const v_type (&ins)[v_in_size]) noexcept
     {
-        static constexpr auto v_size_inner = std::min(v_size, in_size);
-
         for(int i = 0; i < v_out_size; ++i)
             outs[i] = v_type((T)0.0);
 
+        /** Same padding-lane clamp as the biased case above; see that comment. */
         T scalar_in alignas(RTNEURAL_DEFAULT_ALIGNMENT)[v_size] { (T)0 };
         for(int k = 0; k < v_in_size; ++k)
         {
             ins[k].store_aligned(scalar_in);
+            const int laneStart = k * v_size;
+            const int laneEnd = std::min(laneStart + v_size, in_size);
             for(int i = 0; i < v_out_size; ++i)
             {
-                for(int j = 0; j < v_size_inner; ++j)
-                    outs[i] += scalar_in[j] * weights[k * v_size + j][i];
+                for(int j = laneStart; j < laneEnd; ++j)
+                    outs[i] += scalar_in[j - laneStart] * weights[j][i];
             }
         }
     }
