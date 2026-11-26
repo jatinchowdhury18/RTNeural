@@ -80,7 +80,7 @@ import tensorflow as tf
 from tensorflow import keras
 from model_utils import save_model
 
-# create Tensrflow model
+# create Tensorflow model
 model = keras.Sequential()
 ...
 
